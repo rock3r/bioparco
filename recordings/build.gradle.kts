@@ -40,6 +40,14 @@ val recordSpecimens by
             "bioparco.recordings.dir",
             layout.buildDirectory.dir("recordings").get().asFile.absolutePath,
         )
-        // Real windows + Screen Recording TCC. Never part of ./gradlew check.
+        systemProperty("java.awt.headless", "false")
+        // Linux Xvfb / CI: software Skiko. macOS Aqua on Coso leaves this unset.
+        if (
+            providers.environmentVariable("CI").orNull == "true" ||
+                providers.environmentVariable("BIOPARCO_SOFTWARE_RENDER").isPresent
+        ) {
+            systemProperty("skiko.renderApi", "SOFTWARE_COMPAT")
+        }
+        // Virtual framebuffer (xvfb-run) or a real session. Never part of ./gradlew check.
         outputs.dir(layout.buildDirectory.dir("recordings"))
     }

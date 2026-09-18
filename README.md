@@ -40,10 +40,14 @@ Or visit one enclosure directly:
 |---|---|
 | Kotlin | 2.4.20 |
 | Compose Multiplatform | 1.12.0 |
-| Jewel (showcase) | `0.39.1-262.9437.29` (`jewel-int-ui-standalone`) |
+| Jewel (showcase) | `0.41.0-262.10968.63` (`jewel-int-ui-standalone`) |
 | Spectre (recordings) | 0.6.0 |
-| Gradle | 9.4.1 |
+| Gradle | 9.7.1 |
 
 ## House rules for agents
 
 [AGENTS.md](AGENTS.md) is the operating manual. `./gradlew check` is the gate.
+
+## License
+
+[Apache License 2.0](LICENSE). Copyright 2026 Sebastiano Poggi.

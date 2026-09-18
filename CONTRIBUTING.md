@@ -18,6 +18,7 @@ New specimens should:
   files formatted.
 - Commit messages: present-tense, explain the *why*.
 
-## Licence
+## License
 
-By contributing you agree your contribution is licensed under [Apache-2.0](LICENSE).
+Apache License 2.0. By contributing you agree your contribution is licensed under
+[LICENSE](LICENSE).

@@ -25,6 +25,19 @@ kotlin {
     }
 }
 
+// Jewel 0.41 Icons API still pulls the IJP kotlinx-coroutines fork; that fork
+// crashes packaged standalone apps against coroutines 1.11+.
+dependencies {
+    modules {
+        module("org.jetbrains.intellij.deps.kotlinx:kotlinx-coroutines-core-jvm") {
+            replacedBy(
+                "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm",
+                "The IJP fork lags upstream",
+            )
+        }
+    }
+}
+
 compose.desktop {
     application {
         mainClass = "dev.sebastiano.bioparco.showcase.MainKt"

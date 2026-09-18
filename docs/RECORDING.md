@@ -9,21 +9,41 @@ and link that URL from the READMEs.
 
 ## Regenerate
 
-Needs a real display and the platform capture grant (macOS Screen Recording for the JDK
-that launches Gradle; Linux portal / X11 helper; Windows Graphics Capture).
-
 ```bash
 ./gradlew :recordings:recordSpecimens
 ```
+
+You do **not** need a seated desktop monitor. Spectre records an AWT window:
+
+| Host | What is enough |
+|---|---|
+| Linux CI / agents | `xvfb-run -a` plus GStreamer (`ximagesrc`). No physical display. |
+| macOS (Coso) | Aqua session + Screen Recording for the JDK. `DISPLAY` can stay unset. |
+| Windows | Graphics Capture. Interactive or RDP session. |
 
 Outputs:
 
 - `recordings/build/recordings/grabby-stepper.mp4`
 - `recordings/build/recordings/chat-bubble-transition.mp4`
 
-If capture permission is missing, Spectre fails fast on purpose. On macOS run
-`spectre permissions request` from a [Spectre](https://github.com/rock3r/spectre) install,
-or grant Screen Recording to the JDK in System Settings, then rerun.
+### Linux / Xvfb
+
+```bash
+sudo apt-get install -y xvfb \
+  gstreamer1.0-tools gstreamer1.0-plugins-base \
+  gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly x11-utils
+CI=true xvfb-run -a ./gradlew :recordings:recordSpecimens
+```
+
+`CI=true` turns on Skiko `SOFTWARE_COMPAT` so the virtual framebuffer has pixels.
+
+### macOS
+
+Grant Screen Recording to the JDK that launches Gradle (`spectre permissions request`
+from a [Spectre](https://github.com/rock3r/spectre) install, or System Settings). Then
+the same Gradle task. Xvfb is a Linux X11 thing; it does not drive ScreenCaptureKit.
+
+If capture permission is missing, Spectre fails fast on purpose.
 
 ## Publish the movies
 
@@ -49,7 +69,8 @@ Each `recording`-tagged test:
 3. Drives the UI with `ComposeAutomator.inProcess()`.
 4. Stops the recorder and asserts the MP4 is non-empty.
 
-`./gradlew check` excludes the `recording` tag so CI stays headless-friendly.
+`./gradlew check` excludes the `recording` tag. The `recordings` CI job runs them under
+`xvfb-run` on Ubuntu and uploads the MP4s to the floating release.
 
 Spectre 0.6.0 from Maven Central. Helpers ride along as `testRuntimeOnly`
 (`spectre-recording-macos` / `-linux` / `-windows`).

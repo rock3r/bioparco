@@ -29,10 +29,10 @@ recordings --> grabby-stepper
 
 The showcase uses published standalone Int UI:
 
-`org.jetbrains.jewel:jewel-int-ui-standalone:0.39.1-262.9437.29`
+`org.jetbrains.jewel:jewel-int-ui-standalone:0.41.0-262.10968.63`
 
-That is the same Jewel line Compose Pi pins. It wants a JetBrains Runtime for the full
-font story; Temurin 21 still runs the catalog.
+Latest published standalone Int UI (Jewel 0.41, IJP 262.10968.63, CMP 1.12.0). A
+JetBrains Runtime is nicer for fonts; Temurin 21 still runs the catalog.
 
 ## Spectre
 
