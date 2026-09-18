@@ -5,6 +5,7 @@ import java.nio.file.Path
 object RecordingPaths {
     const val GRABBY_STEPPER = "grabby-stepper.mp4"
     const val CHAT_BUBBLE = "chat-bubble-transition.mp4"
+    const val PROCESSING_FIELD = "processing-field.mp4"
 
     fun directory(explicit: String? = System.getProperty("bioparco.recordings.dir")): Path {
         val value = explicit?.trim().orEmpty()

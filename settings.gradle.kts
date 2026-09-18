@@ -31,6 +31,8 @@ include(":grabby-stepper")
 
 include(":chat-bubble-transition")
 
+include(":processing-field")
+
 include(":showcase")
 
 include(":recordings")

@@ -14,25 +14,24 @@ kotlin {
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
+            implementation(compose.material3)
             implementation(compose.ui)
-            implementation(project(":grabby-stepper"))
-            implementation(project(":chat-bubble-transition"))
-            implementation(project(":processing-field"))
         }
-        jvmMain.dependencies {
-            implementation(compose.desktop.currentOs)
-            implementation(libs.jewel.int.ui.standalone)
+        jvmMain.dependencies { implementation(compose.desktop.currentOs) }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation(compose.ui)
         }
     }
 }
 
 compose.desktop {
     application {
-        mainClass = "dev.sebastiano.bioparco.showcase.MainKt"
+        mainClass = "dev.sebastiano.processingfield.MainKt"
         nativeDistributions {
-            packageName = "bioparco"
+            packageName = "ProcessingField"
             packageVersion = "1.0.0"
-            description = "A public collection of cute Compose Desktop experiments"
+            description = "bioparco specimen: a grid of marks whose sizes describe one soft mass"
         }
     }
 }

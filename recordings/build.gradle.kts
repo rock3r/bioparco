@@ -15,6 +15,7 @@ dependencies {
     implementation(compose.ui)
     implementation(project(":grabby-stepper"))
     implementation(project(":chat-bubble-transition"))
+    implementation(project(":processing-field"))
 
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.spectre.core)
