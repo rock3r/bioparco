@@ -1,0 +1,30 @@
+[versions]
+kotlin = "2.4.20"
+composeMultiplatform = "1.12.0"
+jewel = "0.39.1-262.9437.29"
+spectre = "0.6.0"
+detekt = "2.0.0-alpha.3"
+ktfmt = "0.26.0"
+composeRules = "0.5.7"
+junit = "5.13.4"
+
+[libraries]
+jewel-int-ui-standalone = { module = "org.jetbrains.jewel:jewel-int-ui-standalone", version.ref = "jewel" }
+spectre-core = { module = "dev.sebastiano.spectre:spectre-core", version.ref = "spectre" }
+spectre-testing = { module = "dev.sebastiano.spectre:spectre-testing", version.ref = "spectre" }
+spectre-recording = { module = "dev.sebastiano.spectre:spectre-recording", version.ref = "spectre" }
+spectre-recording-macos = { module = "dev.sebastiano.spectre:spectre-recording-macos", version.ref = "spectre" }
+spectre-recording-linux = { module = "dev.sebastiano.spectre:spectre-recording-linux", version.ref = "spectre" }
+spectre-recording-windows = { module = "dev.sebastiano.spectre:spectre-recording-windows", version.ref = "spectre" }
+compose-rules-detekt = { module = "io.nlopez.compose.rules:detekt", version.ref = "composeRules" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
+
+[plugins]
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
+composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }
+ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt" }

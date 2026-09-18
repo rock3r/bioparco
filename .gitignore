@@ -1,0 +1,17 @@
+.gradle/
+build/
+out/
+.kotlin/
+.idea/
+*.iml
+.DS_Store
+local.properties
+kotlin-js-store/
+captures/
+*.hprof
+.worktrees/
+worktrees/
+.plans/
+recordings/out/
+*.mp4
+*.mov
