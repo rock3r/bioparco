@@ -124,5 +124,3 @@ fun Path.addMetaball(
 
 private fun polar(origin: Offset, radius: Float, angle: Float): Offset =
     Offset(origin.x + radius * cos(angle), origin.y + radius * sin(angle))
-
-private fun Offset.getDistance(): Float = hypot(x, y)

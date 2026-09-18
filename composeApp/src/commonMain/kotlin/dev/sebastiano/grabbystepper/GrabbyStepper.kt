@@ -42,10 +42,10 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 private val SnapSpring =
-    spring<Float>(dampingRatio = 0.42f, stiffness = 210f, visibilityThreshold = 0.1f)
+    spring<Float>(dampingRatio = 0.38f, stiffness = 180f, visibilityThreshold = 0.1f)
 
 private val PunchSpring =
-    spring<Float>(dampingRatio = 0.36f, stiffness = Spring.StiffnessMediumLow)
+    spring<Float>(dampingRatio = 0.32f, stiffness = Spring.StiffnessMediumLow)
 
 private enum class DragAxis {
     Undecided,
