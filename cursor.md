@@ -17,11 +17,10 @@ gh pr edit
 gh pr comment
 gh run list
 gh run view
-gh release list
-gh release upload recordings build/recordings/*.mp4 --clobber
 ```
 
 ## Recordings
 
-Tag `vX.Y.Z` to refresh the floating `recordings` GitHub Release. Local
-`./gradlew :recordings:recordSpecimens` is optional. See `docs/RECORDING.md`.
+README movies are hosted on `static.sebastiano.dev`. CI records an enclosure only when
+its source fingerprint in `recordings/published.json` is stale. Upload with the
+`pr-asset-upload` skill (`PR_ASSET_UPLOAD_TOKEN`). See `docs/RECORDING.md`.

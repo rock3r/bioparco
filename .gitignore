@@ -12,6 +12,8 @@ captures/
 .worktrees/
 worktrees/
 .plans/
+.gradle-agent-home/
+.gradle-agent-home-*/
 recordings/out/
 *.mp4
 *.mov

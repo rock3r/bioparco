@@ -37,7 +37,7 @@ animation constants unless the change is actually about those numbers.
 ### Worktree Policy
 
 Before writing tracked files from a clean `main` checkout, check whether isolation already
-exists. If you are already inside a worktree or already on a non-main branch, keep working
+exists. If you are already in a worktree or already on a non-main branch, keep working
 there. Otherwise prefer a worktree so the main checkout stays clean.
 
 Plans belong in `.plans/` at the repo root, which should stay gitignored.
@@ -49,9 +49,9 @@ Use the local `using-git-worktree` skill when setting up an isolated workspace.
 - [ ] `./gradlew check` passes (detekt + ktfmt + unit tests).
 - [ ] After rebase: verified key changes survived.
 
-`./gradlew :recordings:recordSpecimens` is **not** part of `check`. The README movies
-come from the `recordings` CI job on `v*` tags (`xvfb-run`; a push to `main` is a
-backup feed). Local regeneration is optional.
+`./gradlew :recordings:recordSpecimens` is **not** part of `check`. README movies come
+from the `recordings` CI job on `main`, and only for specimens whose source fingerprint
+moved. Local regeneration is optional.
 
 **Always run `./gradlew check` before the actual push.**
 

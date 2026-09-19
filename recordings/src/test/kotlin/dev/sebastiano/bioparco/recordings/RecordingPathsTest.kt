@@ -64,6 +64,47 @@ class RecordingPathsTest {
     }
 
     @Test
+    fun requestedMovieNamesDefaultToEveryEnclosure() {
+        val settings = RecordingPaths.settingsGradleKts()
+        assertEquals(
+            RecordingPaths.expectedNames(settings),
+            RecordingPaths.requestedMovieNames(only = null, settingsFile = settings),
+        )
+        assertEquals(
+            listOf("processing-field.mp4"),
+            RecordingPaths.requestedMovieNames(only = "processing-field", settingsFile = settings),
+        )
+        assertEquals(
+            listOf("grabby-stepper.mp4", "chat-bubble-transition.mp4"),
+            RecordingPaths.requestedMovieNames(
+                only = "grabby-stepper.mp4, chat-bubble-transition",
+                settingsFile = settings,
+            ),
+        )
+        assertEquals(
+            "*GrabbyStepperRecordingTest",
+            RecordingPaths.recordingTestInclude("grabby-stepper"),
+        )
+        assertEquals(
+            "*ChatBubbleRecordingTest",
+            RecordingPaths.recordingTestInclude("chat-bubble-transition"),
+        )
+    }
+
+    @Test
+    fun missingOutputsCanCheckASubset(@TempDir dir: Path) {
+        Files.write(dir.resolve("grabby-stepper.mp4"), ByteArray(2_000))
+        assertEquals(
+            emptyList<String>(),
+            RecordingPaths.missingOutputs(dir, names = listOf("grabby-stepper.mp4")),
+        )
+        assertEquals(
+            listOf("processing-field.mp4"),
+            RecordingPaths.missingOutputs(dir, names = listOf("processing-field.mp4")),
+        )
+    }
+
+    @Test
     fun missingOutputsReportsAbsentAndTinyFiles(@TempDir dir: Path) {
         assertEquals(RecordingPaths.expectedNames(), RecordingPaths.missingOutputs(dir))
 

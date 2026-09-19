@@ -36,13 +36,66 @@ val recordingsDirPath = recordingsOutput.map { it.asFile.absolutePath }
 val houseModules = setOf("showcase", "recordings")
 val expectedMovieNames: List<String> =
     rootProject.subprojects.map { it.name }.filter { it !in houseModules }.map { "$it.mp4" }
+val recordOnlyValue = providers.environmentVariable("BIOPARCO_RECORD_ONLY").orElse("").get()
+val requestedMovieNames: List<String> =
+    if (recordOnlyValue.isBlank()) {
+        expectedMovieNames
+    } else {
+        recordOnlyValue
+            .split(",")
+            .map { it.trim().removeSuffix(".mp4") }
+            .filter { it.isNotEmpty() }
+            .map { "$it.mp4" }
+    }
+val requestedTestIncludes: List<String> = requestedMovieNames.map { name ->
+    val specimen = name.removeSuffix(".mp4")
+    if (specimen == "chat-bubble-transition") "*ChatBubbleRecordingTest"
+    else {
+        val camel =
+            specimen.split("-").joinToString("") { part ->
+                part.replaceFirstChar { it.uppercase() }
+            }
+        "*${camel}RecordingTest"
+    }
+}
+val repoRootPath = rootDir.absolutePath
+val publishSpecimenName = providers.gradleProperty("specimen").orElse("")
+val publishUrl = providers.gradleProperty("url").orElse("")
+
+tasks.register<JavaExec>("printStaleSpecimens") {
+    group = "verification"
+    description = "Print comma-separated specimen names whose hosted MP4 is stale or missing."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("dev.sebastiano.bioparco.recordings.RecordingCli")
+    args("stale", repoRootPath)
+}
+
+tasks.register<JavaExec>("writeReadmeEnclosures") {
+    group = "verification"
+    description = "Rewrite the README enclosure table from recordings/published.json."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("dev.sebastiano.bioparco.recordings.RecordingCli")
+    args("readme", repoRootPath)
+}
+
+tasks.register<JavaExec>("publishSpecimen") {
+    group = "verification"
+    description = "Record a hosted MP4 URL into recordings/published.json (-Pspecimen= -Purl=)."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("dev.sebastiano.bioparco.recordings.RecordingCli")
+    args("publish", repoRootPath, publishSpecimenName.get(), publishUrl.get())
+}
 
 tasks.register<Test>("recordSpecimens") {
     group = "verification"
-    description = "Drive each specimen with Spectre and write MP4s under build/recordings/."
+    description =
+        "Drive each requested specimen with Spectre and write MP4s under build/recordings/."
     testClassesDirs = tasks.test.get().testClassesDirs
     classpath = tasks.test.get().classpath
     useJUnitPlatform { includeTags("recording") }
+    if (recordOnlyValue.isNotBlank()) {
+        filter { requestedTestIncludes.forEach { includeTestsMatching(it) } }
+    }
     systemProperty("bioparco.recordings.dir", recordingsOutput.get().asFile.absolutePath)
     systemProperty("java.awt.headless", "false")
     // One JVM per enclosure: Compose application() is not safe to restart in-process,
@@ -56,11 +109,11 @@ tasks.register<Test>("recordSpecimens") {
     ) {
         systemProperty("skiko.renderApi", "SOFTWARE_COMPAT")
     }
-    // Always re-record. A cached empty directory would still look up-to-date.
+    // Always re-record requested movies. A cached empty directory would still look up-to-date.
     outputs.dir(recordingsOutput)
     outputs.upToDateWhen { false }
     val outputDirPath = recordingsDirPath
-    val movies = expectedMovieNames
+    val movies = requestedMovieNames
     doLast {
         val dir = File(outputDirPath.get())
         val missing = movies.filter { name ->

@@ -25,10 +25,11 @@ For behaviour that is not "does this spring feel right":
 ./gradlew :recordings:test
 ./gradlew check
 ./gradlew :recordings:recordSpecimens
+./gradlew -q :recordings:printStaleSpecimens
 ```
 
 Recording tests skip on a headless JVM so `./gradlew :recordings:recordSpecimens` can be
-typed locally without a display. The recordings job (`v*` tags, or a push to `main`)
-must not skip: it runs under `xvfb-run`, and the task fails if any README movie is
-missing. Specimen windows must not `exitProcess` on close, or only the first MP4 is
-written. See [RECORDING.md](RECORDING.md).
+typed locally without a display. The recordings job on `main` must not skip a stale
+specimen: it runs under `xvfb-run`, and the task fails if a requested README movie is
+missing. Unchanged specimens are not recorded again. Specimen windows must not
+`exitProcess` on close, or only the first MP4 is written. See [RECORDING.md](RECORDING.md).

@@ -20,6 +20,36 @@ object RecordingPaths {
             .map { "$it.mp4" }
             .toList()
 
+    fun expectedSpecimens(settingsFile: Path = settingsGradleKts()): List<String> =
+        expectedNames(settingsFile).map { it.removeSuffix(".mp4") }
+
+    fun recordingTestInclude(specimen: String): String {
+        // chat-bubble-transition's test is ChatBubbleRecordingTest, not ChatBubbleTransition…
+        if (specimen == "chat-bubble-transition") return "*ChatBubbleRecordingTest"
+        val camel =
+            specimen.split('-').joinToString("") { part ->
+                part.replaceFirstChar { it.uppercase() }
+            }
+        return "*${camel}RecordingTest"
+    }
+
+    fun requestedMovieNames(
+        only: String? = System.getenv("BIOPARCO_RECORD_ONLY"),
+        settingsFile: Path = settingsGradleKts(),
+    ): List<String> {
+        val expected = expectedNames(settingsFile)
+        val raw = only?.trim().orEmpty()
+        if (raw.isEmpty()) return expected
+        val movies =
+            raw.split(',')
+                .map { it.trim().removeSuffix(".mp4") }
+                .filter { it.isNotEmpty() }
+                .map { "$it.mp4" }
+        val unknown = movies.filter { it !in expected }
+        check(unknown.isEmpty()) { "unknown specimens: $unknown" }
+        return movies
+    }
+
     fun settingsGradleKts(start: Path = Path.of("").toAbsolutePath()): Path {
         var dir: Path? = start.normalize()
         while (dir != null) {
@@ -38,12 +68,16 @@ object RecordingPaths {
     fun file(name: String, directory: Path = directory()): Path = directory.resolve(name)
 
     /**
-     * Names the README release links expect that are missing or too small under [directory]. CI
-     * uses this so a skipped or broken Spectre run cannot publish a partial set.
+     * Names the README movies expect that are missing or too small under [directory]. CI uses this
+     * so a skipped or broken Spectre run cannot publish a partial set. Pass [names] to check only
+     * the specimens this run was asked to record.
      */
-    fun missingOutputs(directory: Path, minBytes: Long = MIN_USABLE_BYTES): List<String> =
-        expectedNames().filter { name ->
-            val output = directory.resolve(name)
-            !Files.isRegularFile(output) || Files.size(output) < minBytes
-        }
+    fun missingOutputs(
+        directory: Path,
+        minBytes: Long = MIN_USABLE_BYTES,
+        names: List<String> = expectedNames(),
+    ): List<String> = names.filter { name ->
+        val output = directory.resolve(name)
+        !Files.isRegularFile(output) || Files.size(output) < minBytes
+    }
 }

@@ -19,7 +19,7 @@ recordings --> grabby-stepper
 | `:grabby-stepper` | Specimen 1. Library + standalone `run`. |
 | `:chat-bubble-transition` | Specimen 2. Library + standalone `run`. |
 | `:processing-field` | Specimen 3. Library + standalone `run`. |
-| `:recordings` | Spectre-driven recording tests. Not part of `check`. |
+| `:recordings` | Spectre-driven recording tests plus the README movie ledger. |
 
 ## Invariants
 
@@ -27,6 +27,9 @@ recordings --> grabby-stepper
 - The showcase owns Jewel chrome. Specimens keep their own look.
 - Motion-critical reads stay in `graphicsLayer` / `offset` lambdas, not composition.
 - Recordings attach to a real titled window and write MP4s under `build/recordings/`.
+- README movies are hosted on `static.sebastiano.dev`. `recordings/published.json` stores
+  each enclosure's source fingerprint and URL. CI re-records an enclosure only when that
+  fingerprint moves.
 
 ## Jewel
 

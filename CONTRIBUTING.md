@@ -9,8 +9,9 @@ New specimens should:
 - be a Gradle submodule imported by `:showcase`
 - ship a README with concepts, references, and the tricky bits
 - grow a Spectre recording test next to the others in `:recordings`
-- after it lands, tag `vX.Y.Z` so CI re-cuts the README movies (see
-  [docs/RECORDING.md](docs/RECORDING.md)). Do not `gh release upload` in the happy path.
+- after it lands on `main`, CI records that enclosure (only) and hosts the MP4 on
+  static.sebastiano.dev so the README table can embed it. See
+  [docs/RECORDING.md](docs/RECORDING.md). Do not `gh release upload` in the happy path.
 
 ## Pull requests
 
