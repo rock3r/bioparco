@@ -10,9 +10,6 @@ kotlin { jvmToolchain(21) }
 
 dependencies {
     implementation(compose.desktop.currentOs)
-    implementation(compose.runtime)
-    implementation(compose.foundation)
-    implementation(compose.ui)
     implementation(project(":grabby-stepper"))
     implementation(project(":chat-bubble-transition"))
     implementation(project(":processing-field"))
@@ -51,10 +48,19 @@ tasks.register<Test>("recordSpecimens") {
     outputs.dir(recordingsOutput)
     outputs.upToDateWhen { false }
     doLast {
-        val dir = recordingsOutput.get().asFile.toPath()
-        val missing = RecordingPaths.missingOutputs(dir)
+        val dir = recordingsOutput.get().asFile
+        val houseModules = setOf("showcase", "recordings")
+        val missing =
+            rootProject.subprojects
+                .map { it.name }
+                .filter { it !in houseModules }
+                .map { "$it.mp4" }
+                .filter { name ->
+                    val file = dir.resolve(name)
+                    !file.isFile || file.length() < 1_000
+                }
         check(missing.isEmpty()) {
-            "recordSpecimens did not write usable README movies under $dir: $missing"
+            "recordSpecimens did not write usable README movies under ${dir.absolutePath}: $missing"
         }
     }
 }

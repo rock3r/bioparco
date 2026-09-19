@@ -38,8 +38,8 @@ object RecordingPaths {
     fun file(name: String, directory: Path = directory()): Path = directory.resolve(name)
 
     /**
-     * Names the README release links expect that are missing or too small under [directory].
-     * CI uses this so a skipped or broken Spectre run cannot publish a partial set.
+     * Names the README release links expect that are missing or too small under [directory]. CI
+     * uses this so a skipped or broken Spectre run cannot publish a partial set.
      */
     fun missingOutputs(directory: Path, minBytes: Long = MIN_USABLE_BYTES): List<String> =
         expectedNames().filter { name ->
