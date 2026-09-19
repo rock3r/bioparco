@@ -26,6 +26,10 @@ class SpecimenWindowProcessTest {
                 .redirectErrorStream(true)
                 .start()
         val finished = process.waitFor(45, TimeUnit.SECONDS)
+        if (!finished) {
+            process.destroyForcibly()
+            process.waitFor(2, TimeUnit.SECONDS)
+        }
         val output = process.inputStream.bufferedReader().readText()
         assertTrue(finished, "process-probe timed out. output=$output")
         assertEquals(0, process.exitValue(), "process-probe exited ${process.exitValue()}: $output")

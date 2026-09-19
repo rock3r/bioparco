@@ -8,9 +8,9 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Child-JVM entry used by [SpecimenWindowProcessTest]. Prints [STILL_ALIVE] only if
- * [SpecimenWindow.stop] returns. Compose Desktop's `application {}` defaults to
- * `exitProcessOnExit = true`, which kills this process after the first enclosure and
- * leaves later README movies unwritten.
+ * [SpecimenWindow.stop] returns. Compose Desktop's `application {}` defaults to `exitProcessOnExit
+ * = true`, which kills this process after the first enclosure and leaves later README movies
+ * unwritten.
  */
 internal object SpecimenWindowProcessProbe {
     const val MAIN = "dev.sebastiano.bioparco.recordings.SpecimenWindowProcessProbe"

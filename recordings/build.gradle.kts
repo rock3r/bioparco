@@ -63,11 +63,10 @@ tasks.register<Test>("recordSpecimens") {
     val movies = expectedMovieNames
     doLast {
         val dir = File(outputDirPath.get())
-        val missing =
-            movies.filter { name ->
-                val file = dir.resolve(name)
-                !file.isFile || file.length() < 1_000L
-            }
+        val missing = movies.filter { name ->
+            val file = dir.resolve(name)
+            !file.isFile || file.length() < 1_000L
+        }
         check(missing.isEmpty()) {
             "recordSpecimens did not write usable README movies under ${dir.absolutePath}: $missing"
         }
