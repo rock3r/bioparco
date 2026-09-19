@@ -91,10 +91,39 @@ Each `recording`-tagged test:
 3. Drives the UI with `ComposeAutomator.inProcess()`.
 4. Stops the recorder and asserts the MP4 is non-empty.
 
+Windows use `application(exitProcessOnExit = false)`. Compose Desktop's default
+`application {}` calls `exitProcess(0)` when the window closes, which kills the
+Gradle test worker after the first MP4 (chat-bubble, alphabetically) and leaves
+later enclosures unwritten. The task also forks one JVM per test so a leaked
+`exitProcess` cannot cancel the rest of the set.
+
 `./gradlew check` excludes the `recording` tag. The `recordings` CI job (`v*` tags, or
 a push to `main`) runs them under `xvfb-run` on Ubuntu and uploads every MP4 to the
 floating release. A skipped or empty recording fails the job instead of publishing a
 partial set.
+
+### Prove all three MP4s
+
+On the `recordings` CI job, the "Record specimens" step must list every enclosure
+as `PASSED` (`ChatBubbleRecordingTest`, `GrabbyStepperRecordingTest`,
+`ProcessingFieldRecordingTest`) and `recordings/build/recordings/` must contain
+three files each larger than 1 KB. The task fails closed if any name is missing.
+
+Locally, same gate under Xvfb:
+
+```bash
+CI=true xvfb-run -a ./gradlew :recordings:recordSpecimens
+ls -la recordings/build/recordings/*.mp4
+```
+
+Config-cache hygiene (does not need a display; `--dry-run` still stores the task):
+
+```bash
+./gradlew :recordings:recordSpecimens --dry-run --configuration-cache
+```
+
+A stored entry with "cannot serialize Gradle script object references" means the
+`doLast` expected-files check captured `rootProject` / script objects again.
 
 Spectre 0.6.0 from Maven Central. Helpers ride along as `testRuntimeOnly`
 (`spectre-recording-macos` / `-linux` / `-windows`).
