@@ -30,4 +30,5 @@ For behaviour that is not "does this spring feel right":
 Recording tests skip on a headless JVM so `./gradlew :recordings:recordSpecimens` can be
 typed locally without a display. The recordings job (`v*` tags, or a push to `main`)
 must not skip: it runs under `xvfb-run`, and the task fails if any README movie is
-missing. See [RECORDING.md](RECORDING.md).
+missing. Specimen windows must not `exitProcess` on close, or only the first MP4 is
+written. See [RECORDING.md](RECORDING.md).

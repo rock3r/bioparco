@@ -35,7 +35,9 @@ internal class SpecimenWindow(
             Thread(
                     {
                         try {
-                            application {
+                            // Default application() calls exitProcess(0) when the window closes,
+                            // which kills the Gradle test worker after the first enclosure.
+                            application(exitProcessOnExit = false) {
                                 exitFn = ::exitApplication
                                 Window(
                                     onCloseRequest = ::exitApplication,
@@ -70,6 +72,9 @@ internal class SpecimenWindow(
 
     fun stop() {
         exitFn?.invoke()
+        if (::thread.isInitialized) {
+            thread.join(15_000)
+        }
     }
 
     private fun frameOrNull(): Frame? =
