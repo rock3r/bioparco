@@ -50,8 +50,8 @@ Use the local `using-git-worktree` skill when setting up an isolated workspace.
 - [ ] After rebase: verified key changes survived.
 
 `./gradlew :recordings:recordSpecimens` is **not** part of `check`. The README movies
-come from the `recordings` CI job on `main` (`xvfb-run`, no seated display). Local
-regeneration is optional and needs a display plus the platform capture grant.
+come from the `recordings` CI job on `v*` tags (`xvfb-run`; a push to `main` is a
+backup feed). Local regeneration is optional.
 
 **Always run `./gradlew check` before the actual push.**
 

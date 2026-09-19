@@ -23,6 +23,5 @@ gh release upload recordings build/recordings/*.mp4 --clobber
 
 ## Recordings
 
-Regenerate with `./gradlew :recordings:recordSpecimens` on a machine that can show a
-window and grant Screen Recording / portal capture. Host the MP4s on the floating
-`recordings` GitHub Release. See `docs/RECORDING.md`.
+Tag `vX.Y.Z` to refresh the floating `recordings` GitHub Release. Local
+`./gradlew :recordings:recordSpecimens` is optional. See `docs/RECORDING.md`.

@@ -51,19 +51,10 @@ tasks.register<Test>("recordSpecimens") {
     outputs.dir(recordingsOutput)
     outputs.upToDateWhen { false }
     doLast {
-        val dir = recordingsOutput.get().asFile
-        val missing =
-            listOf(
-                    "grabby-stepper.mp4",
-                    "chat-bubble-transition.mp4",
-                    "processing-field.mp4",
-                )
-                .filter { name ->
-                    val file = dir.resolve(name)
-                    !file.isFile || file.length() < 1_000
-                }
+        val dir = recordingsOutput.get().asFile.toPath()
+        val missing = RecordingPaths.missingOutputs(dir)
         check(missing.isEmpty()) {
-            "recordSpecimens did not write usable README movies under ${dir.absolutePath}: $missing"
+            "recordSpecimens did not write usable README movies under $dir: $missing"
         }
     }
 }

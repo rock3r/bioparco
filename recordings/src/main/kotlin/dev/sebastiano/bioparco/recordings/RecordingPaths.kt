@@ -9,7 +9,26 @@ object RecordingPaths {
     const val PROCESSING_FIELD = "processing-field.mp4"
     const val MIN_USABLE_BYTES = 1_000L
 
-    fun expectedNames(): List<String> = listOf(GRABBY_STEPPER, CHAT_BUBBLE, PROCESSING_FIELD)
+    private val houseModules = setOf("showcase", "recordings")
+    private val includePattern = Regex("""include\(":([^"]+)"\)""")
+
+    fun expectedNames(settingsFile: Path = settingsGradleKts()): List<String> =
+        includePattern
+            .findAll(Files.readString(settingsFile))
+            .map { it.groupValues[1] }
+            .filter { it !in houseModules }
+            .map { "$it.mp4" }
+            .toList()
+
+    fun settingsGradleKts(start: Path = Path.of("").toAbsolutePath()): Path {
+        var dir: Path? = start.normalize()
+        while (dir != null) {
+            val candidate = dir.resolve("settings.gradle.kts")
+            if (Files.isRegularFile(candidate)) return candidate
+            dir = dir.parent
+        }
+        error("settings.gradle.kts not found from $start")
+    }
 
     fun directory(explicit: String? = System.getProperty("bioparco.recordings.dir")): Path {
         val value = explicit?.trim().orEmpty()

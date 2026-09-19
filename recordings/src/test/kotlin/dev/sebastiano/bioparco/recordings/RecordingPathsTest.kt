@@ -32,16 +32,35 @@ class RecordingPathsTest {
     }
 
     @Test
-    fun expectedNamesAreTheReadmeMovies() {
+    fun expectedNamesFollowIncludedSpecimenModules() {
+        val settings = RecordingPaths.settingsGradleKts()
         assertEquals(
             listOf(
                 "grabby-stepper.mp4",
                 "chat-bubble-transition.mp4",
                 "processing-field.mp4",
             ),
-            RecordingPaths.expectedNames(),
+            RecordingPaths.expectedNames(settings),
         )
-        assertTrue(RecordingPaths.expectedNames().all { it.endsWith(".mp4") })
+        assertTrue(RecordingPaths.expectedNames(settings).contains("processing-field.mp4"))
+        assertTrue(RecordingPaths.expectedNames(settings).all { it.endsWith(".mp4") })
+    }
+
+    @Test
+    fun expectedNamesIgnoreHouseModules(@TempDir dir: Path) {
+        Files.writeString(
+            dir.resolve("settings.gradle.kts"),
+            """
+            include(":new-specimen")
+            include(":showcase")
+            include(":recordings")
+            """
+                .trimIndent(),
+        )
+        assertEquals(
+            listOf("new-specimen.mp4"),
+            RecordingPaths.expectedNames(dir.resolve("settings.gradle.kts")),
+        )
     }
 
     @Test

@@ -16,11 +16,11 @@ an eye for detail, and the passion to care about these things.
 
 ## Enclosures
 
-| Specimen | What you should see | Recording |
+| Specimen | Author | Recording |
 |---|---|---|
-| [Grabby stepper](grabby-stepper/) | A thumb you grab; the dark track stretches after it like rubber | [mp4](https://github.com/rock3r/bioparco/releases/download/recordings/grabby-stepper.mp4) |
-| [Chat bubble transition](chat-bubble-transition/) | Composer chrome flies into the transcript and becomes a sent bubble | [mp4](https://github.com/rock3r/bioparco/releases/download/recordings/chat-bubble-transition.mp4) |
-| [Processing field](processing-field/) | A grid of marks whose sizes describe one soft mass that drifts and folds | [mp4](https://github.com/rock3r/bioparco/releases/download/recordings/processing-field.mp4) |
+| [Grabby stepper](grabby-stepper/) | **Seb** ([rock3r](https://github.com/rock3r)) · [Vishal’s original](https://x.com/iamvishal16_ios/status/2100596660032172287) | <video src="https://github.com/rock3r/bioparco/releases/download/recordings/grabby-stepper.mp4" width="300" controls muted playsinline></video> |
+| [Chat bubble transition](chat-bubble-transition/) | **Seb** · Kavsoft “Chat Bubble Transition” ([gist](https://gist.github.com/rock3r/4db005c28217aadb9cb7672200f98c2e)) | <video src="https://github.com/rock3r/bioparco/releases/download/recordings/chat-bubble-transition.mp4" width="300" controls muted playsinline></video> |
+| [Processing field](processing-field/) | **Chris** ([c5inco](https://github.com/c5inco)) · [Haplo ProcessingField](https://github.com/haplollc/ProcessingField) | <video src="https://github.com/rock3r/bioparco/releases/download/recordings/processing-field.mp4" width="300" controls muted playsinline></video> |
 
 Recordings are generated automatically with [Spectre](https://spectre.sebastiano.dev).
 
