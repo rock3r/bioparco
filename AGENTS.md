@@ -49,8 +49,9 @@ Use the local `using-git-worktree` skill when setting up an isolated workspace.
 - [ ] `./gradlew check` passes (detekt + ktfmt + unit tests).
 - [ ] After rebase: verified key changes survived.
 
-`./gradlew :recordings:recordSpecimens` is **not** part of `check`. It needs a display and
-platform capture permission. Run it when a specimen's visible motion changes.
+`./gradlew :recordings:recordSpecimens` is **not** part of `check`. The README movies
+come from the `recordings` CI job on `main` (`xvfb-run`, no seated display). Local
+regeneration is optional and needs a display plus the platform capture grant.
 
 **Always run `./gradlew check` before the actual push.**
 

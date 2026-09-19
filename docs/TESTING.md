@@ -27,5 +27,7 @@ For behaviour that is not "does this spring feel right":
 ./gradlew :recordings:recordSpecimens
 ```
 
-Recording tests skip on a headless JVM. On a machine with a display they still need the
-platform capture grant documented in [RECORDING.md](RECORDING.md).
+Recording tests skip on a headless JVM so `./gradlew :recordings:recordSpecimens` can be
+typed locally without a display. The main-branch recordings job must not skip: it runs
+under `xvfb-run`, and the task fails if any README movie is missing. See
+[RECORDING.md](RECORDING.md).

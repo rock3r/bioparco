@@ -1,8 +1,11 @@
 package dev.sebastiano.bioparco.recordings
 
+import java.nio.file.Files
 import java.nio.file.Path
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 
 class RecordingPathsTest {
     @Test
@@ -26,5 +29,34 @@ class RecordingPathsTest {
             dir.resolve("processing-field.mp4"),
             RecordingPaths.file(RecordingPaths.PROCESSING_FIELD, dir),
         )
+    }
+
+    @Test
+    fun expectedNamesAreTheReadmeMovies() {
+        assertEquals(
+            listOf(
+                "grabby-stepper.mp4",
+                "chat-bubble-transition.mp4",
+                "processing-field.mp4",
+            ),
+            RecordingPaths.expectedNames(),
+        )
+        assertTrue(RecordingPaths.expectedNames().all { it.endsWith(".mp4") })
+    }
+
+    @Test
+    fun missingOutputsReportsAbsentAndTinyFiles(@TempDir dir: Path) {
+        assertEquals(RecordingPaths.expectedNames(), RecordingPaths.missingOutputs(dir))
+
+        Files.write(dir.resolve("chat-bubble-transition.mp4"), ByteArray(64))
+        Files.write(dir.resolve("grabby-stepper.mp4"), ByteArray(2_000))
+        assertEquals(
+            listOf("chat-bubble-transition.mp4", "processing-field.mp4"),
+            RecordingPaths.missingOutputs(dir),
+        )
+
+        Files.write(dir.resolve("chat-bubble-transition.mp4"), ByteArray(2_000))
+        Files.write(dir.resolve("processing-field.mp4"), ByteArray(2_000))
+        assertEquals(emptyList<String>(), RecordingPaths.missingOutputs(dir))
     }
 }
