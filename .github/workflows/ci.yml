@@ -78,7 +78,21 @@ jobs:
             done
             gh release upload "$tag" "${files[@]}"
           fi
+      - name: Publish recordings-assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          dir=recordings/build/recordings
+          shopt -s nullglob
+          files=("$dir"/*.mp4)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No MP4s under $dir — nothing to publish to recordings-assets." >&2
+            exit 1
+          fi
           # README embeds need raw.githubusercontent.com (video/mp4, not attachment).
+          # Bearer extraheaders are ignored by git-over-HTTPS; git then prompts
+          # for a username and dies with exit 128. Use gh as the credential helper.
           work=$(mktemp -d)
           git init "$work"
           git -C "$work" checkout -b recordings-assets
@@ -93,5 +107,6 @@ jobs:
           git -C "$work" remote add origin \
             "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
           git -C "$work" \
-            -c "http.extraheader=AUTHORIZATION: bearer ${GH_TOKEN}" \
+            -c credential.helper= \
+            -c credential.helper='!gh auth git-credential' \
             push -f origin HEAD:recordings-assets
