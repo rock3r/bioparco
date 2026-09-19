@@ -92,7 +92,7 @@ jobs:
           fi
           # README embeds need raw.githubusercontent.com (video/mp4, not attachment).
           # Bearer extraheaders are ignored by git-over-HTTPS; git then prompts
-          # for a username and dies with exit 128. Use gh as the credential helper.
+          # for a username and dies with exit 128. Put the token in the remote URL.
           work=$(mktemp -d)
           git init "$work"
           git -C "$work" checkout -b recordings-assets
@@ -105,8 +105,5 @@ jobs:
             -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
             commit -m "Refresh specimen recordings"
           git -C "$work" remote add origin \
-            "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
-          git -C "$work" \
-            -c credential.helper= \
-            -c credential.helper='!gh auth git-credential' \
-            push -f origin HEAD:recordings-assets
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git -C "$work" push -f origin HEAD:recordings-assets
