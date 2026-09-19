@@ -1,4 +1,6 @@
-# bioparco
+<img width="100%" alt="bioparco banner" src="https://github.com/user-attachments/assets/bea3be12-0d9e-4e60-9d2e-f71a63de1a96" />
+
+# Bioparco
 
 A public collection of cute [Compose Desktop](https://www.jetbrains.com/compose-multiplatform/)
 experiments, gathered like specimens in a bioparco (wildlife park). Each specimen is in its own
