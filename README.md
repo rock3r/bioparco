@@ -9,6 +9,11 @@ enclosure (Gradle module).
 The easiest way to try the specimens is the showcase. Each enclosure is its own folder, its own
 Gradle module, and its own README.
 
+Note that all examples in this repository are grown (i.e., mostly vibe coded) and not crafted,
+because the goal here is to prove that you _can_ create all those nice effects you see on iOS
+and the Web in Compose, too, even if you're not an expert. You just need a decent agent, time,
+an eye for detail, and the passion to care about these things.
+
 ## Enclosures
 
 | Specimen | What you should see | Recording |
