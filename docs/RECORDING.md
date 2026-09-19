@@ -3,21 +3,28 @@
 Every specimen should be visible in motion. The movies are produced by Spectre tests in
 `:recordings`, not by hand-waving a screen recorder.
 
-They are **not** committed. MP4s are large and they go stale. Host them on the floating
-GitHub Release named [`recordings`](https://github.com/rock3r/bioparco/releases/tag/recordings)
-and embed that URL from the READMEs.
+They are **not** committed on `main`. MP4s are large and they go stale. CI writes them
+to two places:
+
+- the floating GitHub Release named [`recordings`](https://github.com/rock3r/bioparco/releases/tag/recordings)
+  (download / archive; browsers treat these URLs as attachments)
+- the `recordings-assets` branch under `media/*.mp4`, which
+  `raw.githubusercontent.com` serves as `video/mp4` for README `<video>` tags
+
+Do not put `<video>` inside a markdown `| table |` cell: GitHub strips it.
 
 **Tag `vX.Y.Z` to refresh the movies.** That is the intentional signal. The `recordings`
 CI job records under `xvfb-run`, fails if any specimen MP4 is missing or empty, then
-uploads every `*.mp4` to the floating `recordings` release (`--clobber` / delete-asset).
-README links never churn. A push to `main` is a backup feed of the same job.
+uploads every `*.mp4` to the floating `recordings` release (`--clobber` / delete-asset)
+and force-pushes `recordings-assets`. README links never churn. A push to `main` is a
+backup feed of the same job.
 
 You do not need Coso, Screen Recording, a seated monitor, or a local Gradle recording
 run for the README videos. Local regeneration is optional: useful when iterating on
 motion before the next tag.
 
 On a version tag the job also attaches the same MP4s to that GitHub Release for
-archival. The README keeps pointing at `recordings`.
+archival. The README keeps pointing at `recordings-assets`.
 
 ## Regenerate
 
@@ -76,11 +83,13 @@ gh release view recordings || gh release create recordings --title "specimen rec
 gh release upload recordings recordings/build/recordings/*.mp4 --clobber
 ```
 
-README URLs (stable):
+Also refresh `recordings-assets` (`media/*.mp4`) so README `<video>` tags keep playing.
 
-- https://github.com/rock3r/bioparco/releases/download/recordings/grabby-stepper.mp4
-- https://github.com/rock3r/bioparco/releases/download/recordings/chat-bubble-transition.mp4
-- https://github.com/rock3r/bioparco/releases/download/recordings/processing-field.mp4
+README embed URLs (stable, inline-playable):
+
+- https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/grabby-stepper.mp4
+- https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/chat-bubble-transition.mp4
+- https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/processing-field.mp4
 
 ## What the tests do
 
