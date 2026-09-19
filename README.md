@@ -36,7 +36,7 @@ an eye for detail, and the passion to care about these things.
 
 **Chris** ([c5inco](https://github.com/c5inco)) · [Haplo ProcessingField](https://github.com/haplollc/ProcessingField)
 
-![Processing field](https://static.sebastiano.dev/public/4ef422de-170a-4754-9ce6-fcb1f8e1f875.webp)
+![Processing field](https://static.sebastiano.dev/public/9ba8d684-f078-4601-a788-cbc43ee77a3e.webp)
 
 [mp4](https://static.sebastiano.dev/public/0f1a3f5f-cc47-4291-bc08-e0d852e4abfb.mp4)
 
