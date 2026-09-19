@@ -16,11 +16,23 @@ an eye for detail, and the passion to care about these things.
 
 ## Enclosures
 
-| Specimen | Author | Recording |
-|---|---|---|
-| [Grabby stepper](grabby-stepper/) | **Seb** ([rock3r](https://github.com/rock3r)) · [Vishal’s original](https://x.com/iamvishal16_ios/status/2100596660032172287) | <video src="https://github.com/rock3r/bioparco/releases/download/recordings/grabby-stepper.mp4" width="300" controls muted playsinline></video> |
-| [Chat bubble transition](chat-bubble-transition/) | **Seb** · Kavsoft “Chat Bubble Transition” ([gist](https://gist.github.com/rock3r/4db005c28217aadb9cb7672200f98c2e)) | <video src="https://github.com/rock3r/bioparco/releases/download/recordings/chat-bubble-transition.mp4" width="300" controls muted playsinline></video> |
-| [Processing field](processing-field/) | **Chris** ([c5inco](https://github.com/c5inco)) · [Haplo ProcessingField](https://github.com/haplollc/ProcessingField) | <video src="https://github.com/rock3r/bioparco/releases/download/recordings/processing-field.mp4" width="300" controls muted playsinline></video> |
+### [Grabby stepper](grabby-stepper/)
+
+**Seb** ([rock3r](https://github.com/rock3r)) · [Vishal’s original](https://x.com/iamvishal16_ios/status/2100596660032172287)
+
+<video src="https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/grabby-stepper.mp4" width="300" controls muted playsinline></video>
+
+### [Chat bubble transition](chat-bubble-transition/)
+
+**Seb** · Kavsoft “Chat Bubble Transition” ([gist](https://gist.github.com/rock3r/4db005c28217aadb9cb7672200f98c2e))
+
+<video src="https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/chat-bubble-transition.mp4" width="300" controls muted playsinline></video>
+
+### [Processing field](processing-field/)
+
+**Chris** ([c5inco](https://github.com/c5inco)) · [Haplo ProcessingField](https://github.com/haplollc/ProcessingField)
+
+<video src="https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/processing-field.mp4" width="300" controls muted playsinline></video>
 
 Recordings are generated automatically with [Spectre](https://spectre.sebastiano.dev).
 
