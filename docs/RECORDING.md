@@ -25,6 +25,7 @@ Outputs:
 
 - `recordings/build/recordings/grabby-stepper.mp4`
 - `recordings/build/recordings/chat-bubble-transition.mp4`
+- `recordings/build/recordings/processing-field.mp4`
 
 ### Linux / Xvfb
 
@@ -52,6 +53,7 @@ gh release view recordings || gh release create recordings --title "specimen rec
 gh release upload recordings \
   recordings/build/recordings/grabby-stepper.mp4 \
   recordings/build/recordings/chat-bubble-transition.mp4 \
+  recordings/build/recordings/processing-field.mp4 \
   --clobber
 ```
 
@@ -59,6 +61,7 @@ README links:
 
 - https://github.com/rock3r/bioparco/releases/download/recordings/grabby-stepper.mp4
 - https://github.com/rock3r/bioparco/releases/download/recordings/chat-bubble-transition.mp4
+- https://github.com/rock3r/bioparco/releases/download/recordings/processing-field.mp4
 
 ## What the tests do
 

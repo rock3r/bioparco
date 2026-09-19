@@ -96,6 +96,7 @@ Working on `main` is allowed only when the owner has said so for that task.
 ./gradlew :showcase:run
 ./gradlew :grabby-stepper:run
 ./gradlew :chat-bubble-transition:run
+./gradlew :processing-field:run
 ./gradlew :recordings:recordSpecimens
 ```
 

@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import chatbubble.ChatApp
 import dev.sebastiano.grabbystepper.App
+import dev.sebastiano.processingfield.App as ProcessingFieldApp
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.DefaultButton
 import org.jetbrains.jewel.ui.component.OutlinedButton
@@ -30,6 +31,7 @@ private enum class SpecimenRoute {
     Catalog,
     Grabby,
     ChatBubble,
+    ProcessingField,
 }
 
 @Composable
@@ -41,6 +43,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 Catalog(
                     onOpenGrabby = { route = SpecimenRoute.Grabby },
                     onOpenChat = { route = SpecimenRoute.ChatBubble },
+                    onOpenProcessingField = { route = SpecimenRoute.ProcessingField },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -59,6 +62,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     ChatApp()
                 }
+            SpecimenRoute.ProcessingField ->
+                SpecimenHost(
+                    title = "Processing field",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    ProcessingFieldApp()
+                }
         }
     }
 }
@@ -67,6 +78,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
 private fun Catalog(
     onOpenGrabby: () -> Unit,
     onOpenChat: () -> Unit,
+    onOpenProcessingField: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -93,6 +105,13 @@ private fun Catalog(
             summary = "The composer chrome flies into the transcript and becomes a sent bubble.",
             testTag = "open-chat-bubble-transition",
             onOpen = onOpenChat,
+        )
+        SpecimenCard(
+            name = "Processing field",
+            summary =
+                "A grid of marks whose sizes describe one soft mass that drifts, folds and breathes.",
+            testTag = "open-processing-field",
+            onOpen = onOpenProcessingField,
         )
     }
 }

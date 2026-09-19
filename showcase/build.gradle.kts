@@ -17,6 +17,7 @@ kotlin {
             implementation(compose.ui)
             implementation(project(":grabby-stepper"))
             implementation(project(":chat-bubble-transition"))
+            implementation(project(":processing-field"))
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)

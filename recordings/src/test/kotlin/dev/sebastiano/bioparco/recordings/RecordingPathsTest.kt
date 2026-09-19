@@ -22,5 +22,9 @@ class RecordingPathsTest {
             dir.resolve("chat-bubble-transition.mp4"),
             RecordingPaths.file(RecordingPaths.CHAT_BUBBLE, dir),
         )
+        assertEquals(
+            dir.resolve("processing-field.mp4"),
+            RecordingPaths.file(RecordingPaths.PROCESSING_FIELD, dir),
+        )
     }
 }
