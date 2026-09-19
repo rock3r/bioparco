@@ -20,21 +20,28 @@ an eye for detail, and the passion to care about these things.
 
 **Seb** ([rock3r](https://github.com/rock3r)) · [Vishal’s original](https://x.com/iamvishal16_ios/status/2100596660032172287)
 
-<video src="https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/grabby-stepper.mp4" width="300" controls muted playsinline></video>
+![Grabby stepper](https://static.sebastiano.dev/public/33186bfb-3370-409e-af03-9eb252f539a4.webp)
+
+[mp4](https://static.sebastiano.dev/public/01938e84-1d9f-4e5e-9412-b4f38748e24b.mp4)
 
 ### [Chat bubble transition](chat-bubble-transition/)
 
 **Seb** · Kavsoft “Chat Bubble Transition” ([gist](https://gist.github.com/rock3r/4db005c28217aadb9cb7672200f98c2e))
 
-<video src="https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/chat-bubble-transition.mp4" width="300" controls muted playsinline></video>
+![Chat bubble transition](https://static.sebastiano.dev/public/58c28de3-ca20-4c68-bf2c-f9d2dc080547.webp)
+
+[mp4](https://static.sebastiano.dev/public/ff9d3fbb-5647-45a0-a43f-9799aa08fcdc.mp4)
 
 ### [Processing field](processing-field/)
 
 **Chris** ([c5inco](https://github.com/c5inco)) · [Haplo ProcessingField](https://github.com/haplollc/ProcessingField)
 
-<video src="https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/processing-field.mp4" width="300" controls muted playsinline></video>
+![Processing field](https://static.sebastiano.dev/public/e0940d07-6580-4bb1-a5a5-27f6c51682ee.webp)
+
+[mp4](https://static.sebastiano.dev/public/eb3de970-73c7-4d2a-957e-5e8ca8a56c5d.mp4)
 
 Recordings are generated automatically with [Spectre](https://spectre.sebastiano.dev).
+README previews are animated WebP hosted on [static.sebastiano.dev](https://static.sebastiano.dev); mp4 links are the full clips.
 
 ## Run the showcase
 
