@@ -14,6 +14,7 @@ module, and its own README.
 |---|---|---|
 | [Grabby stepper](grabby-stepper/) | A thumb you grab; the dark track stretches after it like rubber | [mp4](https://github.com/rock3r/bioparco/releases/download/recordings/grabby-stepper.mp4) |
 | [Chat bubble transition](chat-bubble-transition/) | Composer chrome flies into the transcript and becomes a sent bubble | [mp4](https://github.com/rock3r/bioparco/releases/download/recordings/chat-bubble-transition.mp4) |
+| [Thinking Orbs](thinking-orbs/) | Nine dotted 3D signals for what an AI or agent is doing | [mp4](https://github.com/rock3r/bioparco/releases/download/recordings/thinking-orbs.mp4) |
 
 Recordings are generated automatically with [Spectre](https://github.com/rock3r/spectre).
 They live on the floating [`recordings` release](https://github.com/rock3r/bioparco/releases/tag/recordings),
@@ -32,6 +33,7 @@ Or visit one enclosure directly:
 ```bash
 ./gradlew :grabby-stepper:run
 ./gradlew :chat-bubble-transition:run
+./gradlew :thinking-orbs:run
 ```
 
 ## Versions

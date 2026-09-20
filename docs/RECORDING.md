@@ -20,6 +20,7 @@ Outputs:
 
 - `recordings/build/recordings/grabby-stepper.mp4`
 - `recordings/build/recordings/chat-bubble-transition.mp4`
+- `recordings/build/recordings/thinking-orbs.mp4`
 
 If capture permission is missing, Spectre fails fast on purpose. On macOS run
 `spectre permissions request` from a [Spectre](https://github.com/rock3r/spectre) install,
@@ -32,6 +33,7 @@ gh release view recordings || gh release create recordings --title "specimen rec
 gh release upload recordings \
   recordings/build/recordings/grabby-stepper.mp4 \
   recordings/build/recordings/chat-bubble-transition.mp4 \
+  recordings/build/recordings/thinking-orbs.mp4 \
   --clobber
 ```
 
@@ -39,6 +41,7 @@ README links:
 
 - https://github.com/rock3r/bioparco/releases/download/recordings/grabby-stepper.mp4
 - https://github.com/rock3r/bioparco/releases/download/recordings/chat-bubble-transition.mp4
+- https://github.com/rock3r/bioparco/releases/download/recordings/thinking-orbs.mp4
 
 ## What the tests do
 

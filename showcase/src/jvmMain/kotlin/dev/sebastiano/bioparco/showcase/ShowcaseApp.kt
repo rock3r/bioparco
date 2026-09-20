@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import chatbubble.ChatApp
 import dev.sebastiano.grabbystepper.App
+import dev.sebastiano.thinkingorbs.App as ThinkingOrbsApp
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.DefaultButton
 import org.jetbrains.jewel.ui.component.OutlinedButton
@@ -30,6 +31,7 @@ private enum class SpecimenRoute {
     Catalog,
     Grabby,
     ChatBubble,
+    ThinkingOrbs,
 }
 
 @Composable
@@ -41,6 +43,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 Catalog(
                     onOpenGrabby = { route = SpecimenRoute.Grabby },
                     onOpenChat = { route = SpecimenRoute.ChatBubble },
+                    onOpenThinkingOrbs = { route = SpecimenRoute.ThinkingOrbs },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -59,6 +62,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     ChatApp()
                 }
+            SpecimenRoute.ThinkingOrbs ->
+                SpecimenHost(
+                    title = "Thinking Orbs",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    ThinkingOrbsApp()
+                }
         }
     }
 }
@@ -67,6 +78,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
 private fun Catalog(
     onOpenGrabby: () -> Unit,
     onOpenChat: () -> Unit,
+    onOpenThinkingOrbs: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -93,6 +105,12 @@ private fun Catalog(
             summary = "The composer chrome flies into the transcript and becomes a sent bubble.",
             testTag = "open-chat-bubble-transition",
             onOpen = onOpenChat,
+        )
+        SpecimenCard(
+            name = "Thinking Orbs",
+            summary = "Nine dotted 3D signals for what an AI or agent is doing.",
+            testTag = "open-thinking-orbs",
+            onOpen = onOpenThinkingOrbs,
         )
     }
 }
