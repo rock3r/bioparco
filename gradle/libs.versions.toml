@@ -1,12 +1,12 @@
 [versions]
 kotlin = "2.4.20"
 composeMultiplatform = "1.12.0"
-jewel = "0.39.1-262.9437.29"
+jewel = "0.41.0-262.10968.63"
 spectre = "0.6.0"
-detekt = "2.0.0-alpha.3"
-ktfmt = "0.26.0"
-composeRules = "0.5.7"
-junit = "5.13.4"
+detekt = "2.0.0-alpha.6"
+ktfmt = "0.27.0"
+composeRules = "0.6.6"
+junit = "6.1.3"
 
 [libraries]
 jewel-int-ui-standalone = { module = "org.jetbrains.jewel:jewel-int-ui-standalone", version.ref = "jewel" }

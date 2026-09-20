@@ -27,6 +27,7 @@ class ThinkingOrbsRecordingTest {
             }
         window.start()
         try {
+            delay(800)
             val handle = AutoRecorder().startWindow(window.frame().asTitledWindow(), output)
             try {
                 delay(5_000)

@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import chatbubble.ChatApp
 import dev.sebastiano.grabbystepper.App
+import dev.sebastiano.processingfield.App as ProcessingFieldApp
 import dev.sebastiano.thinkingorbs.App as ThinkingOrbsApp
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.DefaultButton
@@ -31,6 +32,7 @@ private enum class SpecimenRoute {
     Catalog,
     Grabby,
     ChatBubble,
+    ProcessingField,
     ThinkingOrbs,
 }
 
@@ -43,6 +45,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 Catalog(
                     onOpenGrabby = { route = SpecimenRoute.Grabby },
                     onOpenChat = { route = SpecimenRoute.ChatBubble },
+                    onOpenProcessingField = { route = SpecimenRoute.ProcessingField },
                     onOpenThinkingOrbs = { route = SpecimenRoute.ThinkingOrbs },
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -62,6 +65,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     ChatApp()
                 }
+            SpecimenRoute.ProcessingField ->
+                SpecimenHost(
+                    title = "Processing field",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    ProcessingFieldApp()
+                }
             SpecimenRoute.ThinkingOrbs ->
                 SpecimenHost(
                     title = "Thinking Orbs",
@@ -78,6 +89,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
 private fun Catalog(
     onOpenGrabby: () -> Unit,
     onOpenChat: () -> Unit,
+    onOpenProcessingField: () -> Unit,
     onOpenThinkingOrbs: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -105,6 +117,13 @@ private fun Catalog(
             summary = "The composer chrome flies into the transcript and becomes a sent bubble.",
             testTag = "open-chat-bubble-transition",
             onOpen = onOpenChat,
+        )
+        SpecimenCard(
+            name = "Processing field",
+            summary =
+                "A grid of marks whose sizes describe one soft mass that drifts, folds and breathes.",
+            testTag = "open-processing-field",
+            onOpen = onOpenProcessingField,
         )
         SpecimenCard(
             name = "Thinking Orbs",
