@@ -49,7 +49,7 @@ an eye for detail, and the passion to care about these things.
 [mp4](https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/thinking-orbs.mp4)
 
 Recordings are generated automatically with [Spectre](https://spectre.sebastiano.dev).
-README previews are animated WebP hosted on [static.sebastiano.dev](https://static.sebastiano.dev); mp4 links are the full clips.
+README previews are animated, lower quality WebPs; original mp4 files are the full clips.
 
 ## Run the showcase
 
