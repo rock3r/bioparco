@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import chatbubble.ChatApp
 import dev.sebastiano.grabbystepper.App
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
+import dev.sebastiano.thinkingorbs.App as ThinkingOrbsApp
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.DefaultButton
 import org.jetbrains.jewel.ui.component.OutlinedButton
@@ -32,6 +33,7 @@ private enum class SpecimenRoute {
     Grabby,
     ChatBubble,
     ProcessingField,
+    ThinkingOrbs,
 }
 
 @Composable
@@ -44,6 +46,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenGrabby = { route = SpecimenRoute.Grabby },
                     onOpenChat = { route = SpecimenRoute.ChatBubble },
                     onOpenProcessingField = { route = SpecimenRoute.ProcessingField },
+                    onOpenThinkingOrbs = { route = SpecimenRoute.ThinkingOrbs },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -70,6 +73,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     ProcessingFieldApp()
                 }
+            SpecimenRoute.ThinkingOrbs ->
+                SpecimenHost(
+                    title = "Thinking Orbs",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    ThinkingOrbsApp()
+                }
         }
     }
 }
@@ -79,6 +90,7 @@ private fun Catalog(
     onOpenGrabby: () -> Unit,
     onOpenChat: () -> Unit,
     onOpenProcessingField: () -> Unit,
+    onOpenThinkingOrbs: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -112,6 +124,12 @@ private fun Catalog(
                 "A grid of marks whose sizes describe one soft mass that drifts, folds and breathes.",
             testTag = "open-processing-field",
             onOpen = onOpenProcessingField,
+        )
+        SpecimenCard(
+            name = "Thinking Orbs",
+            summary = "Nine dotted 3D signals for what an AI or agent is doing.",
+            testTag = "open-thinking-orbs",
+            onOpen = onOpenThinkingOrbs,
         )
     }
 }

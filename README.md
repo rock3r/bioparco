@@ -40,6 +40,14 @@ an eye for detail, and the passion to care about these things.
 
 [mp4](https://static.sebastiano.dev/public/0f1a3f5f-cc47-4291-bc08-e0d852e4abfb.mp4)
 
+### [Thinking Orbs](thinking-orbs/)
+
+**Chris** · [Haplo ThinkingOrbs](https://github.com/haplollc/ThinkingOrbs)
+
+![Thinking Orbs](https://static.sebastiano.dev/public/47905992-e9e5-4826-9d75-2b9c205de570.webp)
+
+[mp4](https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/thinking-orbs.mp4)
+
 Recordings are generated automatically with [Spectre](https://spectre.sebastiano.dev).
 README previews are animated WebP hosted on [static.sebastiano.dev](https://static.sebastiano.dev); mp4 links are the full clips.
 
@@ -57,6 +65,7 @@ Or visit one enclosure directly:
 ./gradlew :grabby-stepper:run
 ./gradlew :chat-bubble-transition:run
 ./gradlew :processing-field:run
+./gradlew :thinking-orbs:run
 ...
 ```
 

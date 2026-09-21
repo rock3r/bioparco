@@ -41,11 +41,12 @@ You do **not** need a seated desktop monitor. Spectre records an AWT window:
 | Windows | Graphics Capture. Interactive or RDP session. |
 
 Outputs (one MP4 per specimen module; discovered from Gradle includes, not a hardcoded
-two-file list):
+list):
 
 - `recordings/build/recordings/grabby-stepper.mp4`
 - `recordings/build/recordings/chat-bubble-transition.mp4`
 - `recordings/build/recordings/processing-field.mp4`
+- `recordings/build/recordings/thinking-orbs.mp4`
 
 ### Linux / Xvfb
 
@@ -90,6 +91,7 @@ README embed URLs (stable, inline-playable):
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/grabby-stepper.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/chat-bubble-transition.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/processing-field.mp4
+- https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/thinking-orbs.mp4
 
 ## What the tests do
 
@@ -111,12 +113,13 @@ a push to `main`) runs them under `xvfb-run` on Ubuntu and uploads every MP4 to 
 floating release. A skipped or empty recording fails the job instead of publishing a
 partial set.
 
-### Prove all three MP4s
+### Prove all four MP4s
 
 On the `recordings` CI job, the "Record specimens" step must list every enclosure
 as `PASSED` (`ChatBubbleRecordingTest`, `GrabbyStepperRecordingTest`,
-`ProcessingFieldRecordingTest`) and `recordings/build/recordings/` must contain
-three files each larger than 1 KB. The task fails closed if any name is missing.
+`ProcessingFieldRecordingTest`, `ThinkingOrbsRecordingTest`) and
+`recordings/build/recordings/` must contain four files each larger than 1 KB. The task
+fails closed if any name is missing.
 
 Locally, same gate under Xvfb:
 

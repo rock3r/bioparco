@@ -33,6 +33,8 @@ include(":chat-bubble-transition")
 
 include(":processing-field")
 
+include(":thinking-orbs")
+
 include(":showcase")
 
 include(":recordings")

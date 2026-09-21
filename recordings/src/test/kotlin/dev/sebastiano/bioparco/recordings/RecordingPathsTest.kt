@@ -29,6 +29,10 @@ class RecordingPathsTest {
             dir.resolve("processing-field.mp4"),
             RecordingPaths.file(RecordingPaths.PROCESSING_FIELD, dir),
         )
+        assertEquals(
+            dir.resolve("thinking-orbs.mp4"),
+            RecordingPaths.file(RecordingPaths.THINKING_ORBS, dir),
+        )
     }
 
     @Test
@@ -39,6 +43,7 @@ class RecordingPathsTest {
                 "grabby-stepper.mp4",
                 "chat-bubble-transition.mp4",
                 "processing-field.mp4",
+                "thinking-orbs.mp4",
             ),
             RecordingPaths.expectedNames(settings),
         )
@@ -70,12 +75,17 @@ class RecordingPathsTest {
         Files.write(dir.resolve("chat-bubble-transition.mp4"), ByteArray(64))
         Files.write(dir.resolve("grabby-stepper.mp4"), ByteArray(2_000))
         assertEquals(
-            listOf("chat-bubble-transition.mp4", "processing-field.mp4"),
+            listOf(
+                "chat-bubble-transition.mp4",
+                "processing-field.mp4",
+                "thinking-orbs.mp4",
+            ),
             RecordingPaths.missingOutputs(dir),
         )
 
         Files.write(dir.resolve("chat-bubble-transition.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("processing-field.mp4"), ByteArray(2_000))
+        Files.write(dir.resolve("thinking-orbs.mp4"), ByteArray(2_000))
         assertEquals(emptyList<String>(), RecordingPaths.missingOutputs(dir))
     }
 }

@@ -6,10 +6,12 @@ bioparco is a Gradle monorepo of Compose Desktop specimens plus a Jewel showcase
 showcase  -->  grabby-stepper
           \->  chat-bubble-transition
           \->  processing-field
+          \->  thinking-orbs
 
 recordings --> grabby-stepper
            \->  chat-bubble-transition
            \->  processing-field
+           \->  thinking-orbs
            \->  Spectre (Maven Central)
 ```
 
@@ -19,6 +21,7 @@ recordings --> grabby-stepper
 | `:grabby-stepper` | Specimen 1. Library + standalone `run`. |
 | `:chat-bubble-transition` | Specimen 2. Library + standalone `run`. |
 | `:processing-field` | Specimen 3. Library + standalone `run`. |
+| `:thinking-orbs` | Specimen 4. Library + standalone `run`. |
 | `:recordings` | Spectre-driven recording tests. Not part of `check`. |
 
 ## Invariants

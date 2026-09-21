@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":grabby-stepper"))
     implementation(project(":chat-bubble-transition"))
     implementation(project(":processing-field"))
+    implementation(project(":thinking-orbs"))
 
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.spectre.core)
