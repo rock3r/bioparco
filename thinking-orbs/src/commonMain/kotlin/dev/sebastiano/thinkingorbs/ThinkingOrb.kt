@@ -33,11 +33,18 @@ fun ThinkingOrb(
     isPaused: Boolean = false,
     isDark: Boolean = isSystemInDarkTheme(),
 ) {
-    var clockSeconds by remember { mutableDoubleStateOf(0.6) }
+    val clock = remember { OrbPlaybackClock() }
+    var clockSeconds by remember { mutableDoubleStateOf(clock.seconds) }
     LaunchedEffect(isPaused) {
-        if (isPaused) return@LaunchedEffect
+        if (isPaused) {
+            clock.pause()
+            return@LaunchedEffect
+        }
         while (isActive) {
-            withFrameNanos { clockSeconds = it / 1_000_000_000.0 }
+            withFrameNanos { now ->
+                clock.onFrame(now)
+                clockSeconds = clock.seconds
+            }
         }
     }
 
