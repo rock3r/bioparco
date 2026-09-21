@@ -44,12 +44,6 @@ an eye for detail, and the passion to care about these things.
 
 **Chris** · [Haplo ThinkingOrbs](https://github.com/haplollc/ThinkingOrbs)
 
-<!--
-  Capocantiere: download the animated WebP and upload it to static.sebastiano.dev/public/,
-  then replace the src below with the resulting URL.
-    https://github.com/rock3r/bioparco/releases/download/recordings/thinking-orbs.webp
-  480x435, 8 fps, 5s loop, 378458 bytes, sha256 349e9feb67ce7d029a0a3473499d41be333d3940d7d56d0e8b0b57a9679cc272
--->
 ![Thinking Orbs](https://static.sebastiano.dev/public/47905992-e9e5-4826-9d75-2b9c205de570.webp)
 
 [mp4](https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/thinking-orbs.mp4)
