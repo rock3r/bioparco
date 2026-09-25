@@ -72,6 +72,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
+import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
+import org.jetbrains.jewel.ui.component.Text
 
 internal val BubbleFill = Color(0xFFE5E5EA)
 internal val ChatBackground = Color(0xFFFFFFFF)
@@ -105,6 +107,12 @@ data class Flight(val id: Long, val text: String, val start: Rect)
  */
 @Composable
 fun ChatApp(modifier: Modifier = Modifier) {
+    // Jewel supplies the text defaults; the chat keeps its own explicit colours and styles.
+    IntUiTheme(isDark = false) { ChatScene(modifier) }
+}
+
+@Composable
+private fun ChatScene(modifier: Modifier = Modifier) {
     val messages = remember {
         mutableStateListOf(
             ChatMessage(1, "Hey, I'm Justine"),
@@ -320,7 +328,7 @@ private fun ComposerField(
         decorationBox = { inner ->
             Box(contentAlignment = Alignment.CenterStart) {
                 if (draft.isEmpty()) {
-                    androidx.compose.material3.Text(
+                    Text(
                         text = "Type a message",
                         style = MessageTextStyle.copy(color = PlaceholderInk),
                     )
@@ -341,7 +349,7 @@ private fun ChatBubble(text: String, modifier: Modifier = Modifier, hidden: Bool
                 .background(if (hidden) Color.Transparent else BubbleFill, shape)
                 .padding(horizontal = 14.dp, vertical = 9.dp)
     ) {
-        androidx.compose.material3.Text(
+        Text(
             text = text,
             style = MessageTextStyle,
             color = if (hidden) Color.Transparent else MessageInk,
@@ -455,7 +463,7 @@ private fun FlightOverlay(flight: Flight?, destination: Rect?, progress: Float) 
                 .padding(horizontal = 14.dp, vertical = 9.dp)
     ) {
         // Text size stays constant — no scale on the typography.
-        androidx.compose.material3.Text(text = flight.text, style = MessageTextStyle)
+        Text(text = flight.text, style = MessageTextStyle)
     }
 }
 

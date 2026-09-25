@@ -10,7 +10,6 @@ data class GrabbyColors(
     val number: Color,
     val chrome: Color,
     val hint: Color,
-    val toggleSurface: Color,
     val focusRing: Color,
 )
 
@@ -24,7 +23,6 @@ val DarkGrabbyColors =
         // iOS secondary label on the dark pill — large ± still reads.
         chrome = Color(0xFFC7C7CC),
         hint = Color(0xFFC7C7CC),
-        toggleSurface = Color(0xFF2C2C2E),
         focusRing = Color(0xFFFFFFFF),
     )
 
@@ -37,6 +35,5 @@ val LightGrabbyColors =
         number = Color(0xFF1C1C1E),
         chrome = Color(0xFF3A3A3C),
         hint = Color(0xFF3A3A3C),
-        toggleSurface = Color(0xFFFFFFFF),
         focusRing = Color(0xFF1C1C1E),
     )

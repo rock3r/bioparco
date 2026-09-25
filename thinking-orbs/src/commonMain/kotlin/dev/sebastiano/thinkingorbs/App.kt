@@ -12,12 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,6 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
+import org.jetbrains.jewel.ui.component.OutlinedButton
+import org.jetbrains.jewel.ui.component.SegmentedControl
+import org.jetbrains.jewel.ui.component.SegmentedControlButtonData
+import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.typography
 
 @Composable
 fun App(modifier: Modifier = Modifier, initialDark: Boolean = true) {
@@ -36,7 +37,10 @@ fun App(modifier: Modifier = Modifier, initialDark: Boolean = true) {
     var orbSize by remember { mutableStateOf(OrbSize.Regular) }
     val background = if (dark) Color(0xFF111113) else Color(0xFFF7F7F8)
 
-    MaterialTheme(colorScheme = if (dark) darkColorScheme() else lightColorScheme()) {
+    // Card colours match what the Material surfaceVariant tint used to look like here.
+    val card = if (dark) Color(0xFF302E34) else Color(0xFFEEEAF1)
+
+    IntUiTheme(isDark = dark) {
         Column(
             modifier =
                 modifier
@@ -47,53 +51,65 @@ fun App(modifier: Modifier = Modifier, initialDark: Boolean = true) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    "Thinking Orbs",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    style = MaterialTheme.typography.headlineLarge,
-                )
+                Text("Thinking Orbs", style = JewelTheme.typography.h1TextStyle)
                 Text(
                     "Nine dotted signals for what an AI is doing.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = JewelTheme.globalColors.text.info,
                 )
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ToggleButton("Dark", dark) { dark = true }
-                ToggleButton("Light", !dark) { dark = false }
-                ToggleButton("Regular", orbSize == OrbSize.Regular) { orbSize = OrbSize.Regular }
-                ToggleButton("Small", orbSize == OrbSize.Small) { orbSize = OrbSize.Small }
-                ToggleButton(if (paused) "Play" else "Pause", paused) { paused = !paused }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Choice(first = "Dark", second = "Light", firstSelected = dark) { dark = it }
+                Choice(
+                    first = "Regular",
+                    second = "Small",
+                    firstSelected = orbSize == OrbSize.Regular,
+                ) {
+                    orbSize = if (it) OrbSize.Regular else OrbSize.Small
+                }
+                OutlinedButton(onClick = { paused = !paused }) {
+                    Text(if (paused) "Play" else "Pause")
+                }
             }
-            OrbGallery(size = orbSize, paused = paused, dark = dark)
+            OrbGallery(size = orbSize, paused = paused, dark = dark, card = card)
             Text(
                 "Ported from Haplo LLC’s ThinkingOrbs · Original engine by Jakub Antalik",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = JewelTheme.typography.small,
+                color = JewelTheme.globalColors.text.info,
             )
         }
     }
 }
 
+/** Two mutually exclusive options. [onChange] receives `true` when [first] is picked. */
 @Composable
-private fun ToggleButton(label: String, selected: Boolean, onClick: () -> Unit) {
-    Surface(
-        color =
-            if (selected) MaterialTheme.colorScheme.primaryContainer
-            else MaterialTheme.colorScheme.surfaceVariant,
-        shape = RoundedCornerShape(18.dp),
-    ) {
-        TextButton(onClick = onClick) {
-            Text(
-                label,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+private fun Choice(
+    first: String,
+    second: String,
+    firstSelected: Boolean,
+    onChange: (Boolean) -> Unit,
+) {
+    SegmentedControl(
+        buttons =
+            listOf(
+                SegmentedControlButtonData(
+                    selected = firstSelected,
+                    content = { Text(first) },
+                    onSelect = { onChange(true) },
+                ),
+                SegmentedControlButtonData(
+                    selected = !firstSelected,
+                    content = { Text(second) },
+                    onSelect = { onChange(false) },
+                ),
             )
-        }
-    }
+    )
 }
 
 @Composable
-private fun OrbGallery(size: OrbSize, paused: Boolean, dark: Boolean) {
+private fun OrbGallery(size: OrbSize, paused: Boolean, dark: Boolean, card: Color) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         OrbDesign.entries.chunked(3).forEach { row ->
             Row(
@@ -106,6 +122,7 @@ private fun OrbGallery(size: OrbSize, paused: Boolean, dark: Boolean) {
                         size = size,
                         paused = paused,
                         dark = dark,
+                        card = card,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -120,13 +137,10 @@ private fun OrbCard(
     size: OrbSize,
     paused: Boolean,
     dark: Boolean,
+    card: Color,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = modifier.height(180.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
-        shape = RoundedCornerShape(18.dp),
-    ) {
+    Box(modifier = modifier.height(180.dp).background(card, RoundedCornerShape(18.dp))) {
         Column(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -141,15 +155,11 @@ private fun OrbCard(
                     isDark = dark,
                 )
             }
-            Text(
-                design.title,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.SemiBold,
-            )
+            Text(design.title, fontWeight = FontWeight.SemiBold)
             Text(
                 design.summary,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = JewelTheme.typography.small,
+                color = JewelTheme.globalColors.text.info,
             )
         }
     }

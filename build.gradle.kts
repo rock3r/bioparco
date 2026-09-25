@@ -29,6 +29,24 @@ configure<DetektExtension> {
 val generatedSourceExcludes = arrayOf("**/build/**", "**/generated/**")
 
 subprojects {
+    // Specimens use Jewel components only. compose.desktop.currentOs still drags in Compose
+    // Material 2, so drop it everywhere, as Jewel's own standalone sample does.
+    configurations.configureEach { exclude(group = "org.jetbrains.compose.material") }
+
+    // Jewel 0.41's Icons API still pulls the IJP kotlinx-coroutines fork; that fork
+    // crashes packaged standalone apps against coroutines 1.11+. Every specimen uses Jewel
+    // now, so every module that can see it gets the substitution.
+    dependencies {
+        modules {
+            module("org.jetbrains.intellij.deps.kotlinx:kotlinx-coroutines-core-jvm") {
+                replacedBy(
+                    "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm",
+                    "The IJP fork lags upstream",
+                )
+            }
+        }
+    }
+
     pluginManager.withPlugin("com.ncorti.ktfmt.gradle") {
         extensions.configure<KtfmtExtension> { kotlinLangStyle() }
         tasks.withType<KtfmtCheckTask>().configureEach { exclude(*generatedSourceExcludes) }
