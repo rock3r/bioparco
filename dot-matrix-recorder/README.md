@@ -70,9 +70,12 @@ Compose rebuild from that video. It does not use the original code or assets.
   redrew while no size animation was running (seen in `ImageComposeScene` renders).
 - Each face gets a frozen snapshot of the state (`Look`). Without it, the face that is leaving
   would show the new state while it fades out.
-- The fade blur uses a few fixed radii and snaps small ones to no blur. A smoothly shrinking
-  radius caused ~100 ms frame stalls near the end of each fade, with no app code, GC or
-  safepoint in the gap. Tracing with androidx.tracing and removing the blur pinned it down.
+- The fade blur only uses whole multiples of 4 px, and anything smaller is no blur. Skia picks a
+  GPU blur program from the blur size (`ceil(3 * sigma)`, per the Skia m150 sources) and
+  compiles it synchronously the first time it is drawn. A radius that shrank smoothly to zero
+  walked through several programs and stalled frames by ~100 ms (traced with androidx.tracing).
+  A continuous radius kept inside one program band measured worse (43–51 ms stalls), so the
+  radius is fixed steps, in pixels so every display density gets the same programs.
 - Collapsing waits 220 ms after the pointer leaves. Without the wait, the pill can flicker when
   the outline shrinks under a pointer that has not moved.
 - The record lens hides its four corner dots, so it reads as round. The countdown digits are
