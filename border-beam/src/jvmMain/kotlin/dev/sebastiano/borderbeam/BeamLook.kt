@@ -14,23 +14,22 @@ internal fun beamLook(size: BeamSize, theme: BeamTheme): BeamLook {
     return when (size) {
         BeamSize.Sm ->
             if (light) {
-                BeamLook(0.16f, 0.32f, 0.42f, 1.8f, 1.3f, darkInk = true)
+                BeamLook(0.12f, 0.30f, 0.16f, 1.8f, 1.3f, darkInk = true)
             } else {
-                // Mid-high bloom so strength 1 reads as rim light; stroke up from CSS
-                // 0.46 so the traveling core survives Skia AA on a thin ring.
-                BeamLook(0.58f, 0.30f, 0.62f, 1.25f, 1.3f, darkInk = false)
+                BeamLook(0.46f, 0.24f, 0.38f, 1.2f, 1.3f, darkInk = false)
             }
         BeamSize.Md ->
             if (light) {
-                BeamLook(0.16f, 0.30f, 0.50f, 1.5f, 1.3f, darkInk = true)
+                BeamLook(0.12f, 0.26f, 0.34f, 1.5f, 1.3f, darkInk = true)
             } else {
-                BeamLook(0.42f, 0.48f, 0.68f, 1.25f, 1.3f, darkInk = false)
+                // CSS md/dark: stroke 0.26, bloom 0.24 — inflated bloom amplified leaks.
+                BeamLook(0.26f, 0.42f, 0.24f, 1.2f, 1.3f, darkInk = false)
             }
         BeamSize.Line ->
             if (light) {
-                BeamLook(0.22f, 0.36f, 0.48f, 1.95f, 1.3f, darkInk = true)
+                BeamLook(0.16f, 0.32f, 0.30f, 1.95f, 1.3f, darkInk = true)
             } else {
-                BeamLook(1.14f, 0.75f, 0.85f, 1.25f, 1.3f, darkInk = false)
+                BeamLook(1.14f, 0.70f, 0.80f, 1.2f, 1.3f, darkInk = false)
             }
         BeamSize.PulseOutside ->
             if (light) {

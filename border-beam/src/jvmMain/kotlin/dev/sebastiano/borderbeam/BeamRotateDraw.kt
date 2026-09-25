@@ -37,16 +37,15 @@ internal fun DrawScope.drawRotateBeam(
             if (!compact) drawEdgeBand(INNER_BAND)
         }
     }
-    // Traveling core on a modest stroke ring.
+    // Traveling core on the 1px stroke ring (Metal kind=0 / CSS ::after).
     drawMaskedBlobs(
         alpha = layerOpacity(look.stroke, variant, strength, fade),
         matrix = matrix,
-        blurPx = STROKE_BLUR,
+        blurPx = 0f,
         degrees = degrees,
         mask = maskStopsMd,
-        outset = STROKE_OUTSET,
     ) {
-        clipRing(radius, if (compact) STROKE_BAND_SM else STROKE_BAND) {
+        clipRing(radius, BORDER_WIDTH) {
             drawBlobList(border)
             drawConicWash(degrees, highlight, ink, BlendMode.SrcOver)
         }
@@ -56,55 +55,41 @@ internal fun DrawScope.drawRotateBeam(
         variant,
         strength,
         fade,
-        matrix,
         degrees,
-        border,
         bloom,
         ink,
         radius,
-        compact,
     )
 }
 
 /**
- * Soft rim light. Source stays on a thin ring around the border; MaskFilter blur (with layer
- * outset) spills a continuous aura. Avoid Screen — with a conic + blobs it separates into discrete
- * hue islands outside the card.
+ * Soft rim wash. Metal kind=2 / CSS `[data-beam-bloom]`: mono white/black conic on a 1px ring, then
+ * blur(~8) + brightness/saturate with **no** hue. No color blobs, no DstIn beam mask, no outside
+ * aura — those painted disconnected hue islands past the card.
  */
 private fun DrawScope.drawOuterBloom(
     look: BeamLook,
     variant: BeamColorVariant,
     strength: Float,
     fade: Float,
-    matrix: FloatArray,
     degrees: Float,
-    border: List<BeamBlob>,
     bloom: List<Pair<Float, Float>>,
     ink: Color,
     radius: Float,
-    compact: Boolean,
 ) {
-    val blur = if (compact) BLOOM_BLUR_SM else BLOOM_BLUR
-    val inside = if (compact) BLOOM_INSIDE_SM else BLOOM_INSIDE
-    val outside = if (compact) BLOOM_OUTSIDE_SM else BLOOM_OUTSIDE
-    withFilteredLayer(
-        alpha = layerOpacity(look.bloom, variant, strength, fade),
-        colorMatrix = matrix,
-        blurPx = blur,
-        outset = blur * 2.5f + outside,
-        blendMode = BlendMode.SrcOver,
-    ) {
-        // Narrow aura straddling the edge — not the 30/36px band that floated blobs.
-        clipAura(radius, inside, outside) {
-            drawBlobList(border)
-            drawConicWash(degrees, bloom, ink, BlendMode.SrcOver)
+    // Web bloom filter is static brightness/saturate only (no hue-rotate).
+    val bloomMatrix = colorMatrix4x5(0f, look.brightness, look.saturation)
+    // overflow:hidden parity — keep the softened wash on the card face.
+    clipRounded(radius) {
+        withFilteredLayer(
+            alpha = layerOpacity(look.bloom, variant, strength, fade),
+            colorMatrix = bloomMatrix,
+            blurPx = BLOOM_BLUR,
+            outset = BLOOM_BLUR * 2.5f,
+            blendMode = BlendMode.SrcOver,
+        ) {
+            clipRing(radius, BORDER_WIDTH) { drawConicWash(degrees, bloom, ink, BlendMode.SrcOver) }
         }
-        drawConicWash(
-            degrees,
-            if (compact) maskStopsSm else maskStopsMd,
-            Color.White,
-            BlendMode.DstIn,
-        )
     }
 }
 
@@ -143,16 +128,9 @@ private fun DrawScope.drawMaskedBlobs(
 
 private const val INNER_BAND = 28f
 private const val INNER_BLUR = 4f
-private const val STROKE_BAND = 3.5f
-private const val STROKE_BAND_SM = 2.75f
-private const val STROKE_BLUR = 1.25f
-private const val STROKE_OUTSET = 6f
-// ~10–14: soft rim without dissolving the beam into exterior hue blobs.
-private const val BLOOM_BLUR = 12f
-private const val BLOOM_BLUR_SM = 10f
-private const val BLOOM_INSIDE = 8f
-private const val BLOOM_OUTSIDE = 6f
-private const val BLOOM_INSIDE_SM = 6f
-private const val BLOOM_OUTSIDE_SM = 4f
+/** Spec / CSS `borderWidth` for stroke + bloom rings. */
+private const val BORDER_WIDTH = 1f
+/** CSS / Metal `bloomBlurPx` (Gaussian std-dev). */
+private const val BLOOM_BLUR = 8f
 private const val DEFAULT_HUE = 30f
 private const val HUE_PERIOD = 12f
