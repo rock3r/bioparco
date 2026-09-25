@@ -40,8 +40,9 @@ The showcase uses published standalone Int UI:
 
 `org.jetbrains.jewel:jewel-int-ui-standalone:0.41.0-262.10968.63`
 
-Latest published standalone Int UI (Jewel 0.41, IJP 262.10968.63, CMP 1.12.0). A
-JetBrains Runtime is nicer for fonts; Temurin 21 still runs the catalog.
+Latest published standalone Int UI (Jewel 0.41, IJP 262.10968.63, CMP 1.12.0). Jewel 0.41 is
+compiled for Java 25 (class file 69), so every module builds with `jvmToolchain(25)`. Use
+JetBrains Runtime 25. On Java 21 the catalog fails with `UnsupportedClassVersionError`.
 
 ## Spectre
 

@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.ktfmt)
 }
 
-kotlin { jvmToolchain(21) }
+kotlin { jvmToolchain(25) }
 
 dependencies {
     implementation(compose.desktop.currentOs)
