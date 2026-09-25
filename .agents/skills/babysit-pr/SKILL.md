@@ -90,9 +90,6 @@ are almost always lint, static analysis, or code problems, so diagnose them firs
 how to tell a branch-caused failure from a flaky one, and when to stop and ask. `references/github-api-notes.md`
 documents the `gh` calls and JSON fields the script uses.
 
-The script also understands an optional extra review gate that bioparco does not use. It only activates when a PR
-carries the `pr-af` label, so it stays inactive here.
-
 ## Codex
 
 Codex has no CI check. `chatgpt-codex-connector[bot]` adds a 👀 reaction to the PR while it reviews and removes it

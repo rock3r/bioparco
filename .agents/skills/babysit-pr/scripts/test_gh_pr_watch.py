@@ -200,323 +200,6 @@ class RetryEligibilityTests(unittest.TestCase):
 
         self.assertIn("diagnose_merge_conflict", actions)
 
-    def test_summarize_checks_ignores_optional_pr_af_checks(self):
-        checks = [
-            {
-                "name": "pr-af-review",
-                "workflow": "AgentField PR Review",
-                "bucket": "fail",
-                "state": "FAILURE",
-            },
-            {"name": "CI", "workflow": "CI", "bucket": "pass", "state": "SUCCESS"},
-        ]
-
-        summary = watch.summarize_checks(checks)
-
-        self.assertEqual(summary["failed_count"], 0)
-        self.assertEqual(summary["passed_count"], 1)
-        self.assertTrue(summary["all_terminal"])
-
-    def test_failed_runs_ignore_optional_pr_af_workflow(self):
-        runs = [
-            {
-                "id": 123,
-                "name": "AgentField PR Review",
-                "head_sha": "abc123",
-                "status": "completed",
-                "conclusion": "failure",
-                "html_url": "https://example.invalid/pr-af",
-            },
-            {
-                "id": 124,
-                "name": "CI",
-                "head_sha": "abc123",
-                "status": "completed",
-                "conclusion": "failure",
-                "html_url": "https://example.invalid/ci",
-            },
-        ]
-
-        failed_runs = watch.failed_runs_from_workflow_runs(runs, "abc123")
-
-        self.assertEqual([run["workflow_name"] for run in failed_runs], ["CI"])
-
-    def test_optional_review_name_matching_is_anchored_to_known_reviewers(self):
-        self.assertTrue(watch.is_optional_review_name("AgentField PR Review"))
-        self.assertTrue(watch.is_optional_review_name("pr-af-review"))
-        self.assertFalse(watch.is_optional_review_name("verify-pr-after-rebase"))
-        self.assertFalse(watch.is_optional_review_name("Cursor provider smoke"))
-
-    def test_recommend_actions_waits_for_optional_pr_af_pending_after_hard_checks_terminal(self):
-        checks = [
-            {
-                "name": "pr-af-review",
-                "workflow": "AgentField PR Review",
-                "bucket": "pending",
-                "state": "IN_PROGRESS",
-            },
-            {"name": "CI", "workflow": "CI", "bucket": "pass", "state": "SUCCESS"},
-        ]
-
-        actions = watch.recommend_actions(
-            pr=self._base_pr(),
-            checks_summary=watch.summarize_checks(checks),
-            failed_runs=[],
-            new_review_items=[],
-            hung_checks=[],
-            retries_used=0,
-            max_retries=3,
-            checks_terminal_elapsed=120,
-            blocking_review_items=[],
-            codex_gate={"reviewing": False, "status": "idle"},
-            pr_af_gate=watch.summarize_pr_af_gate_from_checks(checks),
-        )
-
-        self.assertEqual(actions, ["wait_pr_af"])
-
-    def test_recommend_actions_allows_terminal_failed_pr_af_after_hard_checks_terminal(self):
-        checks = [
-            {
-                "name": "pr-af-review",
-                "workflow": "AgentField PR Review",
-                "bucket": "fail",
-                "state": "FAILURE",
-            },
-            {"name": "CI", "workflow": "CI", "bucket": "pass", "state": "SUCCESS"},
-        ]
-
-        actions = watch.recommend_actions(
-            pr=self._base_pr(),
-            checks_summary=watch.summarize_checks(checks),
-            failed_runs=[],
-            new_review_items=[],
-            hung_checks=[],
-            retries_used=0,
-            max_retries=3,
-            checks_terminal_elapsed=120,
-            blocking_review_items=[],
-            codex_gate={"reviewing": False, "status": "idle"},
-            pr_af_gate=watch.summarize_pr_af_gate_from_checks(checks),
-        )
-
-        self.assertIn("stop_ready_to_merge", actions)
-
-    def test_recommend_actions_waits_briefly_for_labelled_missing_pr_af_check(self):
-        pr = self._base_pr()
-        pr.update({"labels": ["pr-af"]})
-        gate = {
-            "required": False,
-            "present": True,
-            "status": "missing_wait",
-            "conclusion": "",
-            "is_success": False,
-        }
-
-        actions = watch.recommend_actions(
-            pr=pr,
-            checks_summary={
-                "all_terminal": True,
-                "failed_count": 0,
-                "pending_count": 0,
-                "passed_count": 1,
-                "skipping_count": 0,
-            },
-            failed_runs=[],
-            new_review_items=[],
-            hung_checks=[],
-            retries_used=0,
-            max_retries=3,
-            checks_terminal_elapsed=120,
-            blocking_review_items=[],
-            codex_gate={"reviewing": False, "status": "idle"},
-            pr_af_gate=gate,
-        )
-
-        self.assertEqual(actions, ["wait_pr_af"])
-
-    def test_recommend_actions_allows_labelled_missing_pr_af_check_after_grace(self):
-        pr = self._base_pr()
-        pr.update({"labels": ["pr-af"]})
-        gate = {
-            "required": False,
-            "present": True,
-            "status": "missing_timeout",
-            "conclusion": "",
-            "is_success": False,
-        }
-
-        actions = watch.recommend_actions(
-            pr=pr,
-            checks_summary={
-                "all_terminal": True,
-                "failed_count": 0,
-                "pending_count": 0,
-                "passed_count": 1,
-                "skipping_count": 0,
-            },
-            failed_runs=[],
-            new_review_items=[],
-            hung_checks=[],
-            retries_used=0,
-            max_retries=3,
-            checks_terminal_elapsed=120,
-            blocking_review_items=[],
-            codex_gate={"reviewing": False, "status": "idle"},
-            pr_af_gate=gate,
-        )
-
-        self.assertIn("stop_ready_to_merge", actions)
-
-    def test_same_sha_pr_af_relabel_waits_for_fresh_check(self):
-        pr = self._base_pr()
-        pr.update({"head_sha": "abc123", "labels": []})
-        state = {}
-        absent_at = watch.parse_github_time_seconds("2026-08-24T08:06:00Z")
-        relabel_at = watch.parse_github_time_seconds("2026-08-24T08:10:00Z")
-        watch.update_pr_af_label_rerun_tracking(pr, state, now_seconds=absent_at)
-
-        pr["labels"] = ["pr-af"]
-        watch.update_pr_af_label_rerun_tracking(pr, state, now_seconds=relabel_at)
-        gate = watch.summarize_pr_af_gate_from_checks(
-            [
-                {
-                    "name": "pr-af-review",
-                    "workflow": "pr-af-review",
-                    "state": "SUCCESS",
-                    "bucket": "pass",
-                    "startedAt": "2026-08-24T08:00:00Z",
-                    "completedAt": "2026-08-24T08:12:00Z",
-                    "link": "https://example.invalid/old-pr-af",
-                }
-            ]
-        )
-
-        gate = watch.apply_pr_af_label_rerun_grace(pr, gate, state)
-        gate = watch.apply_pr_af_missing_check_grace(pr, gate, state, now_seconds=relabel_at)
-
-        self.assertEqual("missing_wait", gate["status"])
-        self.assertFalse(gate["is_success"])
-
-    def test_same_sha_pr_af_relabel_accepts_newer_completed_check(self):
-        pr = self._base_pr()
-        pr.update({"head_sha": "abc123", "labels": []})
-        state = {}
-        absent_at = watch.parse_github_time_seconds("2026-08-24T08:06:00Z")
-        relabel_at = watch.parse_github_time_seconds("2026-08-24T08:10:00Z")
-        watch.update_pr_af_label_rerun_tracking(pr, state, now_seconds=absent_at)
-
-        pr["labels"] = ["pr-af"]
-        watch.update_pr_af_label_rerun_tracking(pr, state, now_seconds=relabel_at)
-        gate = watch.summarize_pr_af_gate_from_checks(
-            [
-                {
-                    "name": "pr-af-review",
-                    "workflow": "pr-af-review",
-                    "state": "SUCCESS",
-                    "bucket": "pass",
-                    "startedAt": "2026-08-24T08:20:00Z",
-                    "completedAt": "2026-08-24T08:25:00Z",
-                    "link": "https://example.invalid/new-pr-af",
-                }
-            ]
-        )
-
-        gate = watch.apply_pr_af_label_rerun_grace(pr, gate, state)
-        gate = watch.apply_pr_af_missing_check_grace(pr, gate, state, now_seconds=relabel_at)
-
-        self.assertEqual("completed", gate["status"])
-        self.assertTrue(gate["is_success"])
-
-    def test_same_sha_pr_af_relabel_between_polls_waits_for_fresh_check(self):
-        pr = self._base_pr()
-        pr.update({"head_sha": "abc123", "labels": ["pr-af"]})
-        state = {
-            "last_snapshot_at": watch.parse_github_time_seconds("2026-08-24T08:06:00Z"),
-        }
-        relabel_at = watch.parse_github_time_seconds("2026-08-24T08:10:00Z")
-        label_events = [
-            {
-                "__typename": "UnlabeledEvent",
-                "createdAt": "2026-08-24T08:09:00Z",
-                "label": {"name": "pr-af"},
-            },
-            {
-                "__typename": "LabeledEvent",
-                "createdAt": "2026-08-24T08:10:00Z",
-                "label": {"name": "pr-af"},
-            },
-        ]
-
-        watch.update_pr_af_label_rerun_tracking(
-            pr,
-            state,
-            now_seconds=relabel_at,
-            label_events=label_events,
-        )
-        gate = watch.summarize_pr_af_gate_from_checks(
-            [
-                {
-                    "name": "pr-af-review",
-                    "workflow": "pr-af-review",
-                    "state": "SUCCESS",
-                    "bucket": "pass",
-                    "startedAt": "2026-08-24T08:00:00Z",
-                    "completedAt": "2026-08-24T08:12:00Z",
-                    "link": "https://example.invalid/old-pr-af",
-                }
-            ]
-        )
-
-        gate = watch.apply_pr_af_label_rerun_grace(pr, gate, state)
-        gate = watch.apply_pr_af_missing_check_grace(pr, gate, state, now_seconds=relabel_at)
-
-        self.assertEqual("missing_wait", gate["status"])
-        self.assertFalse(gate["is_success"])
-
-    def test_same_sha_pr_af_relabel_on_fresh_state_waits_for_fresh_check(self):
-        pr = self._base_pr()
-        pr.update({"head_sha": "abc123", "labels": ["pr-af"]})
-        state = {}
-        relabel_at = watch.parse_github_time_seconds("2026-08-24T08:10:00Z")
-        label_events = [
-            {
-                "__typename": "UnlabeledEvent",
-                "createdAt": "2026-08-24T08:09:00Z",
-                "label": {"name": "pr-af"},
-            },
-            {
-                "__typename": "LabeledEvent",
-                "createdAt": "2026-08-24T08:10:00Z",
-                "label": {"name": "pr-af"},
-            },
-        ]
-
-        watch.update_pr_af_label_rerun_tracking(
-            pr,
-            state,
-            now_seconds=relabel_at,
-            label_events=label_events,
-        )
-        gate = watch.summarize_pr_af_gate_from_checks(
-            [
-                {
-                    "name": "pr-af-review",
-                    "workflow": "pr-af-review",
-                    "state": "SUCCESS",
-                    "bucket": "pass",
-                    "startedAt": "2026-08-24T08:00:00Z",
-                    "completedAt": "2026-08-24T08:12:00Z",
-                    "link": "https://example.invalid/old-pr-af",
-                }
-            ]
-        )
-
-        gate = watch.apply_pr_af_label_rerun_grace(pr, gate, state)
-        gate = watch.apply_pr_af_missing_check_grace(pr, gate, state, now_seconds=relabel_at)
-
-        self.assertEqual("missing_wait", gate["status"])
-        self.assertFalse(gate["is_success"])
-
     def test_fetch_new_review_items_excludes_resolved_blocking_comments(self):
         pr = {
             "repo": "rock3r/bioparco",
@@ -558,13 +241,12 @@ class RetryEligibilityTests(unittest.TestCase):
                 state,
                 fresh_state=True,
                 authenticated_login="octocat",
-                pr_af_gate={"present": True, "status": "completed"},
             )
 
         self.assertEqual(len(new_items), 1)
         self.assertEqual(blocking_items, [])
 
-    def test_fetch_new_review_items_ignores_unmarked_github_actions_review_comments(self):
+    def test_fetch_new_review_items_ignores_github_actions_review_comments(self):
         pr = {
             "repo": "rock3r/bioparco",
             "number": 716,
@@ -605,161 +287,6 @@ class RetryEligibilityTests(unittest.TestCase):
                 state,
                 fresh_state=True,
                 authenticated_login="octocat",
-                pr_af_gate={"present": True, "status": "completed"},
-            )
-
-        self.assertEqual(new_items, [])
-        self.assertEqual(blocking_items, [])
-
-    def test_fetch_new_review_items_accepts_marked_pr_af_review_comments(self):
-        pr = {
-            "repo": "rock3r/bioparco",
-            "number": 716,
-            "head_sha": "abc123",
-        }
-        state = {
-            "seen_issue_comment_ids": [],
-            "seen_review_comment_ids": [],
-            "seen_review_ids": [],
-            "last_review_poll_at": None,
-        }
-
-        review_comment_payload = [
-            {
-                "id": 42,
-                "user": {"login": "github-actions[bot]"},
-                "author_association": "NONE",
-                "created_at": "2026-01-01T00:00:00Z",
-                "body": "Finding details.\n\nReviewed by [AgentField PR-AF]",
-                "path": "foo.kt",
-                "line": 1,
-                "commit_id": "abc123",
-                "html_url": "https://example.invalid/comment",
-            }
-        ]
-
-        with patch.object(
-            watch,
-            "gh_api_list_paginated",
-            side_effect=[[], review_comment_payload, []],
-        ), patch.object(
-            watch,
-            "get_unresolved_review_comment_ids",
-            return_value={"ids": {"42"}, "truncated": False},
-        ):
-            new_items, blocking_items = watch.fetch_new_review_items(
-                pr,
-                state,
-                fresh_state=True,
-                authenticated_login="octocat",
-                pr_af_gate={"present": True, "status": "completed"},
-            )
-
-        self.assertEqual(len(new_items), 1)
-        self.assertEqual(len(blocking_items), 1)
-        self.assertEqual(blocking_items[0]["id"], "42")
-
-    def test_fetch_new_review_items_accepts_pr_af_comments_from_marked_parent_review(self):
-        pr = {
-            "repo": "rock3r/bioparco",
-            "number": 716,
-            "head_sha": "abc123",
-        }
-        state = {
-            "seen_issue_comment_ids": [],
-            "seen_review_comment_ids": [],
-            "seen_review_ids": [],
-            "last_review_poll_at": None,
-        }
-
-        review_comment_payload = [
-            {
-                "id": 42,
-                "pull_request_review_id": 99,
-                "user": {"login": "github-actions[bot]"},
-                "author_association": "NONE",
-                "created_at": "2026-01-01T00:00:00Z",
-                "body": "Finding details without a footer.",
-                "path": "foo.kt",
-                "line": 1,
-                "commit_id": "abc123",
-                "html_url": "https://example.invalid/comment",
-            }
-        ]
-        review_payload = [
-            {
-                "id": 99,
-                "user": {"login": "github-actions[bot]"},
-                "author_association": "NONE",
-                "submitted_at": "2026-01-01T00:00:00Z",
-                "body": "## PR-AF Review — Safe to Merge",
-                "state": "COMMENTED",
-                "html_url": "https://example.invalid/review",
-            }
-        ]
-
-        with patch.object(
-            watch,
-            "gh_api_list_paginated",
-            side_effect=[[], review_comment_payload, review_payload],
-        ), patch.object(
-            watch,
-            "get_unresolved_review_comment_ids",
-            return_value={"ids": {"42"}, "truncated": False},
-        ):
-            new_items, blocking_items = watch.fetch_new_review_items(
-                pr,
-                state,
-                fresh_state=True,
-                authenticated_login="octocat",
-                pr_af_gate={"present": True, "status": "completed"},
-            )
-
-        self.assertEqual(len(new_items), 2)
-        self.assertEqual(len(blocking_items), 1)
-        self.assertEqual(blocking_items[0]["id"], "42")
-
-    def test_fetch_new_review_items_ignores_marker_without_current_pr_af_check(self):
-        pr = {
-            "repo": "rock3r/bioparco",
-            "number": 716,
-            "head_sha": "abc123",
-        }
-        state = {
-            "seen_issue_comment_ids": [],
-            "seen_review_comment_ids": [],
-            "seen_review_ids": [],
-            "last_review_poll_at": None,
-        }
-        review_comment_payload = [
-            {
-                "id": 42,
-                "user": {"login": "github-actions[bot]"},
-                "author_association": "NONE",
-                "created_at": "2026-01-01T00:00:00Z",
-                "body": "Echoed PR title: PR-AF Review — not actually from PR-AF",
-                "path": "foo.kt",
-                "line": 1,
-                "commit_id": "abc123",
-                "html_url": "https://example.invalid/comment",
-            }
-        ]
-
-        with patch.object(
-            watch,
-            "gh_api_list_paginated",
-            side_effect=[[], review_comment_payload, []],
-        ), patch.object(
-            watch,
-            "get_unresolved_review_comment_ids",
-            return_value={"ids": {"42"}, "truncated": False},
-        ):
-            new_items, blocking_items = watch.fetch_new_review_items(
-                pr,
-                state,
-                fresh_state=True,
-                authenticated_login="octocat",
-                pr_af_gate={"present": False, "status": "missing"},
             )
 
         self.assertEqual(new_items, [])
@@ -1196,28 +723,6 @@ class RetryEligibilityTests(unittest.TestCase):
         self.assertEqual(len(hung), 1)
         self.assertEqual(hung[0]["name"], "CI")
 
-    def test_hung_checks_from_checks_ignores_optional_review_checks(self):
-        checks = [
-            {
-                "name": "pr-af-review",
-                "bucket": "pending",
-                "state": "IN_PROGRESS",
-                "startedAt": "",
-                "workflow": "AgentField PR Review",
-                "link": "https://example.invalid/pr-af",
-            },
-        ]
-        pending_first_seen = {watch.pending_check_key(check): 100 for check in checks}
-
-        with patch.object(
-            watch.time,
-            "time",
-            return_value=watch.HUNG_CHECK_THRESHOLDS_SECONDS["default"] + 101,
-        ):
-            hung = watch.hung_checks_from_checks(checks, pending_first_seen)
-
-        self.assertEqual(hung, [])
-
     def test_reset_state_for_new_head_sha_clears_pending_map(self):
         state = {
             "last_seen_head_sha": "oldsha",
@@ -1363,7 +868,7 @@ class NeedsAgentAttentionTests(unittest.TestCase):
         self.assertFalse(watch.needs_agent_attention(["wait_codex"]))
 
     def test_combined_passive_waits_do_not_need_attention(self):
-        self.assertFalse(watch.needs_agent_attention(["idle", "wait_pr_af", "wait_codex"]))
+        self.assertFalse(watch.needs_agent_attention(["idle", "wait_codex"]))
 
     def test_stop_ready_to_merge_needs_attention(self):
         self.assertTrue(watch.needs_agent_attention(["stop_ready_to_merge"]))
@@ -1381,7 +886,7 @@ class NeedsAgentAttentionTests(unittest.TestCase):
         self.assertTrue(watch.needs_agent_attention(["stop_pr_closed"]))
 
     def test_mixed_passive_and_active_needs_attention(self):
-        self.assertTrue(watch.needs_agent_attention(["wait_pr_af", "diagnose_ci_failure"]))
+        self.assertTrue(watch.needs_agent_attention(["wait_codex", "diagnose_ci_failure"]))
 
     def test_empty_actions_needs_attention(self):
         self.assertTrue(watch.needs_agent_attention([]))
@@ -1442,12 +947,12 @@ class RunOnceTests(unittest.TestCase):
         self.assertEqual(len(sleeps), 3)
         self.assertIn("diagnose_ci_failure", result["actions"])
 
-    def test_waits_through_pr_af_and_codex(self):
-        """wait_pr_af and wait_codex should not cause early return."""
+    def test_waits_through_codex(self):
+        """wait_codex should not cause early return."""
         waiting = {
             "pr": {"closed": False, "merged": False},
             "checks": {"all_terminal": True, "failed_count": 0, "pending_count": 0, "passed_count": 2},
-            "actions": ["wait_pr_af", "wait_codex"],
+            "actions": ["wait_codex"],
         }
         ready = {
             "pr": {"closed": False, "merged": False},
