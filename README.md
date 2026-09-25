@@ -62,6 +62,12 @@ an eye for detail, and the passion to care about these things.
 
 [mp4](https://static.sebastiano.dev/public/f284f1c3-b80b-458e-af76-6632575a5f42.mp4)
 
+### [Achievement badge](achievement-badge/)
+
+**Seb** · [Adrian](https://x.com/adriankuleszo)’s [badge animation](https://x.com/adriankuleszo/status/2103473953868063151)
+
+[mp4](https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/achievement-badge.mp4)
+
 Recordings are generated automatically with [Spectre](https://spectre.sebastiano.dev).
 README previews are animated, lower quality WebPs; original mp4 files are the full clips.
 
@@ -83,6 +89,7 @@ Or visit one enclosure directly:
 ./gradlew :thinking-orbs:run
 ./gradlew :dot-matrix-recorder:run
 ./gradlew :border-beam:run
+./gradlew :achievement-badge:run
 ...
 ```
 

@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":thinking-orbs"))
     implementation(project(":dot-matrix-recorder"))
     implementation(project(":border-beam"))
+    implementation(project(":achievement-badge"))
 
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.spectre.core)
