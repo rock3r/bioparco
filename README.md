@@ -48,6 +48,12 @@ an eye for detail, and the passion to care about these things.
 
 [mp4](https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/thinking-orbs.mp4)
 
+### [Dot-matrix recorder](dot-matrix-recorder/)
+
+**Seb** · [Sasha Birukoff’s Halogen](https://x.com/sashabirukoff/status/2103156002220589129)
+
+[mp4](https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/dot-matrix-recorder.mp4)
+
 Recordings are generated automatically with [Spectre](https://spectre.sebastiano.dev).
 README previews are animated, lower quality WebPs; original mp4 files are the full clips.
 
@@ -66,6 +72,7 @@ Or visit one enclosure directly:
 ./gradlew :chat-bubble-transition:run
 ./gradlew :processing-field:run
 ./gradlew :thinking-orbs:run
+./gradlew :dot-matrix-recorder:run
 ...
 ```
 

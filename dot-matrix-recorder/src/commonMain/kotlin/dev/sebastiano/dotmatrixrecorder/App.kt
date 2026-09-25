@@ -1,0 +1,26 @@
+package dev.sebastiano.dotmatrixrecorder
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+@Composable
+fun App(modifier: Modifier = Modifier) {
+    Box(modifier.fillMaxSize().background(Color.Black)) {
+        RecorderPill(Modifier.align(Alignment.Center))
+        BasicText(
+            text = "Hover the pill. Record counts down; hover again to stop, restart, or delete.",
+            style = TextStyle(color = Color(0xFF4A4A4A), fontSize = 12.sp),
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 20.dp),
+        )
+    }
+}

@@ -7,11 +7,13 @@ showcase  -->  grabby-stepper
           \->  chat-bubble-transition
           \->  processing-field
           \->  thinking-orbs
+          \->  dot-matrix-recorder
 
 recordings --> grabby-stepper
            \->  chat-bubble-transition
            \->  processing-field
            \->  thinking-orbs
+           \->  dot-matrix-recorder
            \->  Spectre (Maven Central)
 ```
 
@@ -22,6 +24,7 @@ recordings --> grabby-stepper
 | `:chat-bubble-transition` | Specimen 2. Library + standalone `run`. |
 | `:processing-field` | Specimen 3. Library + standalone `run`. |
 | `:thinking-orbs` | Specimen 4. Library + standalone `run`. |
+| `:dot-matrix-recorder` | Specimen 5. Library + standalone `run`. |
 | `:recordings` | Spectre-driven recording tests. Not part of `check`. |
 
 ## Invariants

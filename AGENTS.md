@@ -99,6 +99,7 @@ Working on `main` is allowed only when the owner has said so for that task.
 ./gradlew :chat-bubble-transition:run
 ./gradlew :processing-field:run
 ./gradlew :thinking-orbs:run
+./gradlew :dot-matrix-recorder:run
 ./gradlew :recordings:recordSpecimens
 ```
 

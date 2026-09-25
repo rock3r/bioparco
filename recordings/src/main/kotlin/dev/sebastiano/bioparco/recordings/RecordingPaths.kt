@@ -8,6 +8,7 @@ object RecordingPaths {
     const val CHAT_BUBBLE = "chat-bubble-transition.mp4"
     const val PROCESSING_FIELD = "processing-field.mp4"
     const val THINKING_ORBS = "thinking-orbs.mp4"
+    const val DOT_MATRIX_RECORDER = "dot-matrix-recorder.mp4"
     const val MIN_USABLE_BYTES = 1_000L
 
     private val houseModules = setOf("showcase", "recordings")

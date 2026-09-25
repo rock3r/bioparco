@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":chat-bubble-transition"))
     implementation(project(":processing-field"))
     implementation(project(":thinking-orbs"))
+    implementation(project(":dot-matrix-recorder"))
 
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.spectre.core)

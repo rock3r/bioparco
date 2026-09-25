@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import chatbubble.ChatApp
+import dev.sebastiano.dotmatrixrecorder.App as DotMatrixRecorderApp
 import dev.sebastiano.grabbystepper.App
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
 import dev.sebastiano.thinkingorbs.App as ThinkingOrbsApp
@@ -34,6 +35,7 @@ private enum class SpecimenRoute {
     ChatBubble,
     ProcessingField,
     ThinkingOrbs,
+    DotMatrixRecorder,
 }
 
 @Composable
@@ -47,6 +49,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenChat = { route = SpecimenRoute.ChatBubble },
                     onOpenProcessingField = { route = SpecimenRoute.ProcessingField },
                     onOpenThinkingOrbs = { route = SpecimenRoute.ThinkingOrbs },
+                    onOpenDotMatrixRecorder = { route = SpecimenRoute.DotMatrixRecorder },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -81,6 +84,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     ThinkingOrbsApp()
                 }
+            SpecimenRoute.DotMatrixRecorder ->
+                SpecimenHost(
+                    title = "Dot-matrix recorder",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    DotMatrixRecorderApp()
+                }
         }
     }
 }
@@ -91,6 +102,7 @@ private fun Catalog(
     onOpenChat: () -> Unit,
     onOpenProcessingField: () -> Unit,
     onOpenThinkingOrbs: () -> Unit,
+    onOpenDotMatrixRecorder: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -130,6 +142,13 @@ private fun Catalog(
             summary = "Nine dotted 3D signals for what an AI or agent is doing.",
             testTag = "open-thinking-orbs",
             onOpen = onOpenThinkingOrbs,
+        )
+        SpecimenCard(
+            name = "Dot-matrix recorder",
+            summary =
+                "A record pill with 5×5 dot icons that counts down 3, 2, 1 and folds into a timer.",
+            testTag = "open-dot-matrix-recorder",
+            onOpen = onOpenDotMatrixRecorder,
         )
     }
 }
