@@ -44,11 +44,11 @@ specimen is the control, not a screen recorder.
 - A second `AnimatedContent`, keyed on a session counter, blurs the whole pill out on Stop
   or Delete and brings the idle pill back.
 
-## Reference
+## Credit
 
-- Sasha Birukoff's Halogen teaser: https://x.com/sashabirukoff/status/2103156002220589129
-
-This is a rebuild from the video. It is not the original code or assets.
+The design is by [Sasha Birukoff](https://x.com/sashabirukoff), from the
+[Halogen teaser video](https://x.com/sashabirukoff/status/2103156002220589129). This is a
+Compose rebuild from that video. It does not use the original code or assets.
 
 ## Tricky bits
 

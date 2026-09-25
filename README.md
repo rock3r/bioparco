@@ -50,7 +50,7 @@ an eye for detail, and the passion to care about these things.
 
 ### [Dot-matrix recorder](dot-matrix-recorder/)
 
-**Seb** · [Sasha Birukoff’s Halogen](https://x.com/sashabirukoff/status/2103156002220589129)
+**Seb** · [Sasha Birukoff](https://x.com/sashabirukoff)’s [Halogen recorder](https://x.com/sashabirukoff/status/2103156002220589129)
 
 [mp4](https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/dot-matrix-recorder.mp4)
 

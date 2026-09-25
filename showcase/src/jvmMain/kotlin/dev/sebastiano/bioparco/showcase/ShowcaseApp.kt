@@ -146,7 +146,8 @@ private fun Catalog(
         SpecimenCard(
             name = "Dot-matrix recorder",
             summary =
-                "A record pill with 5×5 dot icons that counts down 3, 2, 1 and folds into a timer.",
+                "A record pill with 5×5 dot icons that counts down 3, 2, 1 and folds into a " +
+                    "timer. After Sasha Birukoff’s Halogen.",
             testTag = "open-dot-matrix-recorder",
             onOpen = onOpenDotMatrixRecorder,
         )
