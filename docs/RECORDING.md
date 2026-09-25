@@ -24,18 +24,20 @@ hand.
 
 Do not put `<video>` inside a markdown `| table |` cell: GitHub strips it.
 
-**Tag `vX.Y.Z` to refresh the movies.** That is the intentional signal. The `recordings`
-CI job records under `xvfb-run`, fails if any specimen MP4 is missing or empty, then
-uploads every `*.mp4` to the floating `recordings` release (`--clobber` / delete-asset)
-and force-pushes `recordings-assets`. README links never churn. A push to `main` is a
-backup feed of the same job.
+**Tag `vX.Y.Z` to refresh the recordings.** That is the intentional signal. The
+`recordings` CI job records under `xvfb-run`, fails if any specimen MP4 is missing or
+empty, then uploads every `*.mp4` to the floating `recordings` release (`--clobber` /
+delete-asset) and force-pushes `recordings-assets`. A push to `main` is a backup feed of
+the same job. On a version tag the job also attaches the same MP4s to that GitHub Release
+for archival.
+
+The job does not touch the README. Its links point at the hosted snapshots, so after a
+tag, re-host the WebP and MP4 of each specimen whose motion changed and update those
+links. The CI MP4 is the source for both files.
 
 You do not need Coso, Screen Recording, a seated monitor, or a local Gradle recording
-run for the README videos. Local regeneration is optional: useful when iterating on
+run to get the recordings. Local regeneration is optional: useful when iterating on
 motion before the next tag.
-
-On a version tag the job also attaches the same MP4s to that GitHub Release for
-archival. The README keeps pointing at `recordings-assets`.
 
 ## Regenerate
 
@@ -88,8 +90,10 @@ If capture permission is missing, Spectre fails fast on purpose.
 
 ## Publish the movies
 
-Happy path: `git tag vX.Y.Z && git push origin vX.Y.Z`. CI does the rest. Do not
-`gh release upload` by hand unless the job is down.
+Happy path: `git tag vX.Y.Z && git push origin vX.Y.Z`. CI refreshes the release and
+`recordings-assets`. Then refresh the hosted README snapshots for any specimen whose motion
+changed (see the top of this page). Do not `gh release upload` by hand unless the job is
+down.
 
 Emergency local publish:
 
