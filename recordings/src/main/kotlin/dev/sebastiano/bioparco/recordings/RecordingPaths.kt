@@ -16,6 +16,8 @@ object RecordingPaths {
     private val houseModules = setOf("showcase", "recordings")
     // Every `include(...)` call, with any whitespace and any number of project paths.
     private val includeCall = Regex("""\binclude\s*\(([^)]*)\)""")
+    // Line and block comments, so commented-out includes do not count.
+    private val comment = Regex("""//[^\n]*|/\*[\s\S]*?\*/""")
     private val projectPath = Regex(""""\s*:?([^"]+?)\s*"""")
 
     fun expectedNames(settingsFile: Path = settingsGradleKts()): List<String> =
@@ -24,7 +26,7 @@ object RecordingPaths {
     /** The specimen modules included in [settingsFile], in include order. */
     fun specimenModules(settingsFile: Path = settingsGradleKts()): List<String> =
         includeCall
-            .findAll(Files.readString(settingsFile))
+            .findAll(Files.readString(settingsFile).replace(comment, ""))
             .flatMap { call -> projectPath.findAll(call.groupValues[1]).map { it.groupValues[1] } }
             .filter { it !in houseModules }
             .toList()

@@ -105,6 +105,24 @@ class RecordingPathsTest {
     }
 
     @Test
+    fun specimenModulesSkipCommentedOutIncludes(@TempDir dir: Path) {
+        Files.writeString(
+            dir.resolve("settings.gradle.kts"),
+            """
+            include(":kept")
+            // include(":removed")
+            /* include(":parked") */
+            include(":also-kept") // a trailing comment
+            """
+                .trimIndent(),
+        )
+        assertEquals(
+            listOf("kept", "also-kept"),
+            RecordingPaths.specimenModules(dir.resolve("settings.gradle.kts")),
+        )
+    }
+
+    @Test
     fun missingOutputsReportsAbsentAndTinyFiles(@TempDir dir: Path) {
         assertEquals(RecordingPaths.expectedNames(), RecordingPaths.missingOutputs(dir))
 
