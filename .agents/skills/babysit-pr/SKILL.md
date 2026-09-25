@@ -82,6 +82,7 @@ emits `stop_ready_to_merge`.
 | `stop_non_retryable_failure` | The failure is in a workflow the watcher does not rerun (for example CI). Fix it first. | yes |
 | `stop_exhausted_retries` | Flaky reruns used the budget for this SHA (3). The owner must investigate. | yes |
 | `stop_ready_to_merge` | CI is green, no review blocks it, and there are no conflicts. | yes |
+| `stop_draft_pr` | CI is green but the PR is a draft. Ask the owner to mark it ready. | yes |
 | `stop_pr_closed` | The PR is merged or closed. | yes |
 | `stop_session_timeout` | `--max-session-minutes` has passed. Report and stop. | yes |
 

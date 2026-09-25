@@ -1106,6 +1106,38 @@ class CodexHeadReviewTests(unittest.TestCase):
         self.assertNotIn("stop_ready_to_merge", actions)
 
 
+class DraftPrTests(unittest.TestCase):
+    def _actions(self, merge_state_status, failed_count=0):
+        pr = {
+            "closed": False, "merged": False, "mergeable": "MERGEABLE",
+            "merge_state_status": merge_state_status, "review_decision": "",
+        }
+        checks = {
+            "all_terminal": True, "failed_count": failed_count, "pending_count": 0,
+            "passed_count": 1, "skipping_count": 0,
+        }
+        return watch.recommend_actions(
+            pr, checks, failed_runs=[], new_review_items=[], hung_checks=[],
+            retries_used=0, max_retries=3, checks_terminal_elapsed=120,
+            blocking_review_items=[],
+            codex_gate={"reviewing": False, "status": "idle", "active": True, "head_reviewed": True},
+        )
+
+    def test_green_draft_stops_and_asks_the_owner_to_mark_it_ready(self):
+        # Without this the watcher idles until the session timeout on a PR that can never merge.
+        actions = self._actions("DRAFT")
+        self.assertIn("stop_draft_pr", actions)
+        self.assertNotIn("stop_ready_to_merge", actions)
+        self.assertTrue(watch.should_stop_watching(actions))
+
+    def test_draft_with_a_failure_still_diagnoses_the_failure(self):
+        actions = self._actions("DRAFT", failed_count=1)
+        self.assertIn("diagnose_ci_failure", actions)
+
+    def test_non_draft_pr_gets_no_draft_action(self):
+        self.assertNotIn("stop_draft_pr", self._actions("CLEAN"))
+
+
 class SnapshotOrderingTests(unittest.TestCase):
     def test_codex_gate_is_read_before_review_comments(self):
         # If Codex posts a finding and then marks the head reviewed between the two reads,

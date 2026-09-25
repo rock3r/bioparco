@@ -1216,6 +1216,15 @@ def recommend_actions(
     if is_merge_conflicted(pr):
         actions.append("diagnose_merge_conflict")
 
+    # A draft can never become ready on its own. Once its checks are green, stop and hand it to the
+    # owner instead of idling until the session timeout.
+    if (
+        str(pr.get("merge_state_status") or "") == "DRAFT"
+        and checks_summary["all_terminal"]
+        and checks_summary["failed_count"] == 0
+    ):
+        actions.append("stop_draft_pr")
+
     if is_pr_ready_to_merge(
         pr,
         checks_summary,
@@ -1539,6 +1548,8 @@ def should_stop_watching(actions):
     if "stop_non_retryable_failure" in action_set:
         return True
     if "stop_ready_to_merge" in action_set:
+        return True
+    if "stop_draft_pr" in action_set:
         return True
     if "diagnose_hung_check" in action_set:
         return True
