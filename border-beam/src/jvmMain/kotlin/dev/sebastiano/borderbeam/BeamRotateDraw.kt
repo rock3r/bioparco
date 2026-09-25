@@ -98,16 +98,15 @@ private fun DrawScope.drawStroke(beam: RotateBeam, alpha: Float) {
 private fun DrawScope.drawBloom(beam: RotateBeam, alpha: Float, look: BeamLook) {
     val stops = if (beam.ink == Color.Black) bloomStopsLight else bloomStopsDark
     withLayer(alpha = alpha) {
-        clipPath(ringPath(beam)) {
-            withLayer(
-                colorMatrix = colorMatrix4x5(0f, look.brightness, look.saturation),
-                blurSigma = BLOOM_BLUR * density,
-            ) {
-                clipPath(roundedPath(0f, elementRadius(beam))) {
-                    drawConicWash(beam.angle, stops, beam.ink, BlendMode.SrcOver)
-                }
+        withLayer(
+            colorMatrix = colorMatrix4x5(0f, look.brightness, look.saturation),
+            blurSigma = BLOOM_BLUR * density,
+        ) {
+            clipPath(roundedPath(0f, elementRadius(beam))) {
+                drawConicWash(beam.angle, stops, beam.ink, BlendMode.SrcOver)
             }
         }
+        maskTo(ringPath(beam))
     }
 }
 

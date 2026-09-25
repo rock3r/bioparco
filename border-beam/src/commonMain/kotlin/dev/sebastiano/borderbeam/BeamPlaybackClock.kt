@@ -13,6 +13,14 @@ internal class BeamPlaybackClock {
 
     private var lastFrameNanos: Long? = null
 
+    /**
+     * Forgets the last frame time, so the first frame after a pause starts the clock again instead
+     * of charging the whole gap to the fade and the motion.
+     */
+    fun pause() {
+        lastFrameNanos = null
+    }
+
     fun onFrame(frameNanos: Long, active: Boolean) {
         val previous = lastFrameNanos
         lastFrameNanos = frameNanos
