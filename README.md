@@ -59,7 +59,8 @@ README previews are animated, lower quality WebPs; original mp4 files are the fu
 
 ## Run the showcase
 
-JDK 21+ (`jvmToolchain(21)`). A JetBrains Runtime is strongly recommended; Temurin works but not as well.
+JetBrains Runtime (JBR) 25 (`jvmToolchain(25)`). Jewel 0.41 is compiled for Java 25, so the showcase does not start on
+an older runtime. Another JDK 25 also works, but JBR renders fonts better.
 
 ```bash
 ./gradlew :showcase:run

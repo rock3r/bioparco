@@ -48,7 +48,7 @@ subprojects {
         dependencies.add("detektPlugins", rootProject.libs.compose.rules.detekt)
         tasks.withType<Detekt>().configureEach {
             exclude(*generatedSourceExcludes)
-            jvmTarget = "21"
+            jvmTarget = "25"
         }
     }
 
