@@ -52,9 +52,9 @@ an eye for detail, and the passion to care about these things.
 
 **Seb** · [Sasha Birukoff](https://x.com/sashabirukoff)’s [Halogen recorder](https://x.com/sashabirukoff/status/2103156002220589129)
 
-![Dot-matrix recorder](https://static.sebastiano.dev/public/acd6f299-f5d2-4cfc-b3c5-d84ba4b37a1d.webp)
+![Dot-matrix recorder](https://static.sebastiano.dev/public/4f22a5fb-1c39-460e-95d6-019a52ec1861.webp)
 
-[mp4](https://static.sebastiano.dev/public/150b414c-3bb4-4edc-8622-b86736c125af.mp4)
+[mp4](https://static.sebastiano.dev/public/014d19da-1048-403a-b6c2-6c3a010987cd.mp4)
 
 ### [Border beam](border-beam/)
 
