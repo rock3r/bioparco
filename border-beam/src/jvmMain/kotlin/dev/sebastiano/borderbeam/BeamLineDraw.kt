@@ -66,9 +66,8 @@ internal fun DrawScope.drawLineBeam(
         widthScale,
         heightScale,
         ink,
-        1f,
+        0.85f,
         outset = BLOOM_OUTSET,
-        blendMode = BlendMode.Screen,
         spill = true,
     )
 }
@@ -110,7 +109,7 @@ private fun DrawScope.drawLineLayer(
                     center = Offset(origin.x, origin.y + 2f),
                     radiusX = 24f * widthScale,
                     radiusY = 28f * heightScale,
-                    color = ink.copy(alpha = 0.55f),
+                    color = ink.copy(alpha = 0.42f),
                 )
             }
         }
@@ -141,8 +140,8 @@ private fun DrawScope.drawLineSpots(
 }
 
 private const val BREATHE_SCALE = 1.3f
-private const val BLOOM_BLUR = 22f
-private const val BLOOM_OUTSET = 48f
+private const val BLOOM_BLUR = 12f
+private const val BLOOM_OUTSET = 28f
 private const val BOTTOM_BAND = 42f
 private const val DEFAULT_HUE = 30f
 private const val HUE_PERIOD = 12f

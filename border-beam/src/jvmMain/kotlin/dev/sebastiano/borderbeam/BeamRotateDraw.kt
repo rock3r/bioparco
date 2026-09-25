@@ -17,24 +17,27 @@ internal fun DrawScope.drawRotateBeam(
     val degrees = fractionalTurn(seconds, defaultDurationSeconds(sizeKind)) * 360f
     val matrix = rotateMatrix(sizeKind, variant, look, seconds)
     val border = if (sizeKind == BeamSize.Sm) smallBorderBlobs(variant) else borderBlobs(variant)
+    val inner =
+        if (sizeKind == BeamSize.Sm) smallInnerBlobs(variant) else derivedInnerBlobs(variant)
     val innerMask = if (sizeKind == BeamSize.Sm) maskStopsSm else maskStopsMd
     val highlight = if (look.darkInk) highlightStopsLight else highlightStopsDark
     val bloom = if (look.darkInk) bloomStopsLight else bloomStopsDark
     val ink = if (look.darkInk) Color.Black else Color.White
     val compact = sizeKind == BeamSize.Sm
+    // Soft inner wash stays inside the card. SrcOver keeps hues from splitting apart.
     drawMaskedBlobs(
         alpha = layerOpacity(look.inner, variant, strength, fade),
         matrix = matrix,
-        blurPx = if (compact) 2f else INNER_BLUR,
+        blurPx = if (compact) 1.5f else INNER_BLUR,
         degrees = degrees,
         mask = innerMask,
-        blendMode = BlendMode.Screen,
     ) {
         clipRounded(radius) {
-            drawBlobList(if (compact) smallInnerBlobs(variant) else border)
+            drawBlobList(inner)
             if (!compact) drawEdgeBand(INNER_BAND)
         }
     }
+    // Traveling core on a modest stroke ring.
     drawMaskedBlobs(
         alpha = layerOpacity(look.stroke, variant, strength, fade),
         matrix = matrix,
@@ -63,6 +66,11 @@ internal fun DrawScope.drawRotateBeam(
     )
 }
 
+/**
+ * Soft rim light. Source stays on a thin ring around the border; MaskFilter blur (with layer
+ * outset) spills a continuous aura. Avoid Screen — with a conic + blobs it separates into discrete
+ * hue islands outside the card.
+ */
 private fun DrawScope.drawOuterBloom(
     look: BeamLook,
     variant: BeamColorVariant,
@@ -83,9 +91,10 @@ private fun DrawScope.drawOuterBloom(
         alpha = layerOpacity(look.bloom, variant, strength, fade),
         colorMatrix = matrix,
         blurPx = blur,
-        outset = blur + outside,
-        blendMode = BlendMode.Screen,
+        outset = blur * 2.5f + outside,
+        blendMode = BlendMode.SrcOver,
     ) {
+        // Narrow aura straddling the edge — not the 30/36px band that floated blobs.
         clipAura(radius, inside, outside) {
             drawBlobList(border)
             drawConicWash(degrees, bloom, ink, BlendMode.SrcOver)
@@ -132,17 +141,18 @@ private fun DrawScope.drawMaskedBlobs(
     }
 }
 
-private const val INNER_BAND = 34f
-private const val INNER_BLUR = 8f
-private const val STROKE_BAND = 4.5f
-private const val STROKE_BAND_SM = 3f
-private const val STROKE_BLUR = 2.5f
-private const val STROKE_OUTSET = 10f
-private const val BLOOM_BLUR = 22f
-private const val BLOOM_BLUR_SM = 14f
-private const val BLOOM_INSIDE = 30f
-private const val BLOOM_OUTSIDE = 36f
-private const val BLOOM_INSIDE_SM = 14f
-private const val BLOOM_OUTSIDE_SM = 18f
+private const val INNER_BAND = 28f
+private const val INNER_BLUR = 4f
+private const val STROKE_BAND = 3.5f
+private const val STROKE_BAND_SM = 2.75f
+private const val STROKE_BLUR = 1.25f
+private const val STROKE_OUTSET = 6f
+// ~10–14: soft rim without dissolving the beam into exterior hue blobs.
+private const val BLOOM_BLUR = 12f
+private const val BLOOM_BLUR_SM = 10f
+private const val BLOOM_INSIDE = 8f
+private const val BLOOM_OUTSIDE = 6f
+private const val BLOOM_INSIDE_SM = 6f
+private const val BLOOM_OUTSIDE_SM = 4f
 private const val DEFAULT_HUE = 30f
 private const val HUE_PERIOD = 12f
