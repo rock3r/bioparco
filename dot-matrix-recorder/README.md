@@ -14,9 +14,9 @@ Or open it from the [showcase](../README.md).
 
 ## Recording
 
-![Dot-matrix recorder](https://static.sebastiano.dev/public/4f22a5fb-1c39-460e-95d6-019a52ec1861.webp)
+![Dot-matrix recorder](https://static.sebastiano.dev/stable/bioparco/dot-matrix-recorder.webp)
 
-[mp4](https://static.sebastiano.dev/public/014d19da-1048-403a-b6c2-6c3a010987cd.mp4)
+[mp4](https://static.sebastiano.dev/stable/bioparco/dot-matrix-recorder.mp4)
 
 Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. See
 [docs/RECORDING.md](../docs/RECORDING.md).

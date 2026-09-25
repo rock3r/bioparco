@@ -13,9 +13,9 @@ Or open it from the [showcase](../README.md).
 
 ## Recording
 
-![Grabby stepper](https://static.sebastiano.dev/public/591216f5-6742-4352-99e5-5153377f94df.webp)
+![Grabby stepper](https://static.sebastiano.dev/stable/bioparco/grabby-stepper.webp)
 
-[mp4](https://static.sebastiano.dev/public/5de810a2-d521-4e4c-80d2-a872b96468a7.mp4)
+[mp4](https://static.sebastiano.dev/stable/bioparco/grabby-stepper.mp4)
 
 Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. See
 [docs/RECORDING.md](../docs/RECORDING.md).

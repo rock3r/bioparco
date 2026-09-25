@@ -15,9 +15,9 @@ Or open it from the [showcase](../README.md). The **Replay** button plays the ce
 
 ## Recording
 
-![Achievement badge](https://static.sebastiano.dev/public/3721f42d-9636-44d5-ba96-c0f77b90dd86.webp)
+![Achievement badge](https://static.sebastiano.dev/stable/bioparco/achievement-badge.webp)
 
-[mp4](https://static.sebastiano.dev/public/70e42da8-d4dc-46f3-9e64-e2ef80212447.mp4)
+[mp4](https://static.sebastiano.dev/stable/bioparco/achievement-badge.mp4)
 
 Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. See
 [docs/RECORDING.md](../docs/RECORDING.md).

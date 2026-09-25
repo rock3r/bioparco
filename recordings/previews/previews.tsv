@@ -1,0 +1,11 @@
+# How each specimen's README preview is cut from its CI recording.
+# Columns: specimen, fps, width (px, after crop), seconds (- = whole clip),
+# crop (ffmpeg w:h:x:y, - = none), WebP quality (0-100).
+# A specimen without a row gets: 12 fps, recording width, whole clip, no crop, quality 65.
+grabby-stepper	12	520	-	-	70
+chat-bubble-transition	12	420	-	-	65
+processing-field	8	360	8	-	65
+thinking-orbs	8	480	-	-	65
+dot-matrix-recorder	9	360	-	-	70
+border-beam	20	980	-	980:576:0:0	60
+achievement-badge	20	480	-	-	60

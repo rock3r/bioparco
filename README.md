@@ -20,57 +20,57 @@ an eye for detail, and the passion to care about these things.
 
 **Seb** ([rock3r](https://github.com/rock3r)) · [Vishal’s original](https://x.com/iamvishal16_ios/status/2100596660032172287)
 
-![Grabby stepper](https://static.sebastiano.dev/public/591216f5-6742-4352-99e5-5153377f94df.webp)
+![Grabby stepper](https://static.sebastiano.dev/stable/bioparco/grabby-stepper.webp)
 
-[mp4](https://static.sebastiano.dev/public/5de810a2-d521-4e4c-80d2-a872b96468a7.mp4)
+[mp4](https://static.sebastiano.dev/stable/bioparco/grabby-stepper.mp4)
 
 ### [Chat bubble transition](chat-bubble-transition/)
 
 **Seb** · Kavsoft “Chat Bubble Transition” ([gist](https://gist.github.com/rock3r/4db005c28217aadb9cb7672200f98c2e))
 
-![Chat bubble transition](https://static.sebastiano.dev/public/a54aef31-be29-455f-baf6-bbd62f3a559a.webp)
+![Chat bubble transition](https://static.sebastiano.dev/stable/bioparco/chat-bubble-transition.webp)
 
-[mp4](https://static.sebastiano.dev/public/a16ba9a3-15ed-4ea8-ae6a-7fa97945d28b.mp4)
+[mp4](https://static.sebastiano.dev/stable/bioparco/chat-bubble-transition.mp4)
 
 ### [Processing field](processing-field/)
 
 **Chris** ([c5inco](https://github.com/c5inco)) · [Haplo ProcessingField](https://github.com/haplollc/ProcessingField)
 
-![Processing field](https://static.sebastiano.dev/public/95f54b64-486b-4270-a3a2-bc27ee39ee77.webp)
+![Processing field](https://static.sebastiano.dev/stable/bioparco/processing-field.webp)
 
-[mp4](https://static.sebastiano.dev/public/2509f71b-ae97-425e-9c53-cb88fc3702c9.mp4)
+[mp4](https://static.sebastiano.dev/stable/bioparco/processing-field.mp4)
 
 ### [Thinking Orbs](thinking-orbs/)
 
 **Chris** · [Haplo ThinkingOrbs](https://github.com/haplollc/ThinkingOrbs)
 
-![Thinking Orbs](https://static.sebastiano.dev/public/f9cb4a37-fd43-4dfc-8370-80750de8f85f.webp)
+![Thinking Orbs](https://static.sebastiano.dev/stable/bioparco/thinking-orbs.webp)
 
-[mp4](https://static.sebastiano.dev/public/a87a0cc8-46cf-4154-8f27-8279a215a757.mp4)
+[mp4](https://static.sebastiano.dev/stable/bioparco/thinking-orbs.mp4)
 
 ### [Dot-matrix recorder](dot-matrix-recorder/)
 
 **Seb** · [Sasha Birukoff](https://x.com/sashabirukoff)’s [Halogen recorder](https://x.com/sashabirukoff/status/2103156002220589129)
 
-![Dot-matrix recorder](https://static.sebastiano.dev/public/4f22a5fb-1c39-460e-95d6-019a52ec1861.webp)
+![Dot-matrix recorder](https://static.sebastiano.dev/stable/bioparco/dot-matrix-recorder.webp)
 
-[mp4](https://static.sebastiano.dev/public/014d19da-1048-403a-b6c2-6c3a010987cd.mp4)
+[mp4](https://static.sebastiano.dev/stable/bioparco/dot-matrix-recorder.mp4)
 
 ### [Border beam](border-beam/)
 
 **Seb** · [Playground](https://beam.jakubantalik.com/) · [Jakub Antalik’s border-beam](https://github.com/Jakubantalik/border-beam)
 
-![Border beam](https://static.sebastiano.dev/public/81fb11e5-0b99-4baf-8bd8-7ea269d75bdc.webp)
+![Border beam](https://static.sebastiano.dev/stable/bioparco/border-beam.webp)
 
-[mp4](https://static.sebastiano.dev/public/f284f1c3-b80b-458e-af76-6632575a5f42.mp4)
+[mp4](https://static.sebastiano.dev/stable/bioparco/border-beam.mp4)
 
 ### [Achievement badge](achievement-badge/)
 
 **Seb** · [Adrian](https://x.com/adriankuleszo)’s [badge animation](https://x.com/adriankuleszo/status/2103473953868063151)
 
-![Achievement badge](https://static.sebastiano.dev/public/3721f42d-9636-44d5-ba96-c0f77b90dd86.webp)
+![Achievement badge](https://static.sebastiano.dev/stable/bioparco/achievement-badge.webp)
 
-[mp4](https://static.sebastiano.dev/public/70e42da8-d4dc-46f3-9e64-e2ef80212447.mp4)
+[mp4](https://static.sebastiano.dev/stable/bioparco/achievement-badge.mp4)
 
 Recordings are generated automatically with [Spectre](https://spectre.sebastiano.dev).
 README previews are animated, lower quality WebPs; original mp4 files are the full clips.
