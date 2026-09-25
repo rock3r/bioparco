@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import chatbubble.ChatApp
+import dev.sebastiano.borderbeam.App as BorderBeamApp
 import dev.sebastiano.dotmatrixrecorder.App as DotMatrixRecorderApp
 import dev.sebastiano.grabbystepper.App
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
@@ -37,6 +38,7 @@ private enum class SpecimenRoute {
     ProcessingField,
     ThinkingOrbs,
     DotMatrixRecorder,
+    BorderBeam,
 }
 
 @Composable
@@ -53,6 +55,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenProcessingField = { route = SpecimenRoute.ProcessingField },
                     onOpenThinkingOrbs = { route = SpecimenRoute.ThinkingOrbs },
                     onOpenDotMatrixRecorder = { route = SpecimenRoute.DotMatrixRecorder },
+                    onOpenBorderBeam = { route = SpecimenRoute.BorderBeam },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -95,6 +98,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     DotMatrixRecorderApp()
                 }
+            SpecimenRoute.BorderBeam ->
+                SpecimenHost(
+                    title = "Border beam",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    BorderBeamApp()
+                }
         }
     }
 }
@@ -106,6 +117,7 @@ private fun Catalog(
     onOpenProcessingField: () -> Unit,
     onOpenThinkingOrbs: () -> Unit,
     onOpenDotMatrixRecorder: () -> Unit,
+    onOpenBorderBeam: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -153,6 +165,12 @@ private fun Catalog(
                     "timer. After Sasha Birukoff’s Halogen.",
             testTag = "open-dot-matrix-recorder",
             onOpen = onOpenDotMatrixRecorder,
+        )
+        SpecimenCard(
+            name = "Border beam",
+            summary = "A traveling or breathing glow that rides the border of a card.",
+            testTag = "open-border-beam",
+            onOpen = onOpenBorderBeam,
         )
     }
 }
