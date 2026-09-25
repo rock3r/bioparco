@@ -124,6 +124,58 @@ class RetryEligibilityTests(unittest.TestCase):
 
         self.assertFalse(ready)
 
+    def test_is_pr_ready_to_merge_blocks_while_codex_gate_is_unknown(self):
+        # A failed reactions lookup must not be read as "Codex is done".
+        ready = watch.is_pr_ready_to_merge(
+            pr=self._base_pr(),
+            checks_summary={
+                "all_terminal": True,
+                "failed_count": 0,
+                "pending_count": 0,
+                "passed_count": 1,
+            },
+            new_review_items=[],
+            checks_terminal_elapsed=120,
+            blocking_review_items=[],
+            codex_gate={"reviewing": False, "status": "unknown"},
+        )
+
+        self.assertFalse(ready)
+
+    def test_summarize_checks_counts_cancelled_as_failed(self):
+        checks = [{"name": "check", "workflow": "CI", "bucket": "cancel", "state": "CANCELLED"}]
+
+        summary = watch.summarize_checks(checks)
+
+        self.assertEqual(summary["failed_count"], 1)
+
+    @staticmethod
+    def _fake_gh_run(returncode, stdout, stderr=""):
+        # Behaves like subprocess.run, including check=True raising on a nonzero exit.
+        def run(cmd, check=False, **_kwargs):
+            if check and returncode != 0:
+                raise watch.subprocess.CalledProcessError(
+                    returncode, cmd, output=stdout, stderr=stderr
+                )
+            return watch.subprocess.CompletedProcess(cmd, returncode, stdout=stdout, stderr=stderr)
+
+        return run
+
+    def test_get_pr_checks_reads_json_when_checks_are_pending_or_failing(self):
+        # `gh pr checks` exits 8 while checks are pending and 1 when one failed,
+        # but still prints the requested JSON in both cases.
+        payload = '[{"name": "check", "bucket": "pending", "state": "IN_PROGRESS"}]'
+        for code in (1, 8):
+            with patch.object(watch.subprocess, "run", side_effect=self._fake_gh_run(code, payload)):
+                checks = watch.get_pr_checks("21", repo="rock3r/bioparco")
+            self.assertEqual(checks[0]["bucket"], "pending", f"exit code {code}")
+
+    def test_get_pr_checks_still_fails_without_json(self):
+        fake = self._fake_gh_run(1, "", stderr="no pull requests found")
+        with patch.object(watch.subprocess, "run", side_effect=fake):
+            with self.assertRaises(watch.GhCommandError):
+                watch.get_pr_checks("21", repo="rock3r/bioparco")
+
     def test_is_blocking_review_item_ignores_stale_comments(self):
         created_at = "2026-01-01T00:00:00Z"
         created_at_seconds = watch.datetime.fromisoformat("2026-01-01T00:00:00+00:00").timestamp()

@@ -143,7 +143,17 @@ Stop the review loop and ask the owner when any of these hold:
 When the PR is merged (`stop_pr_closed`), clean up local state. Skip any step whose branch or worktree does not exist.
 
 1. If you are on the PR branch, switch to `main`.
-2. Run `git branch -D <head_branch>`. Squash merges leave the branch looking unmerged.
+2. Delete the local branch only when nothing would be lost. Squash merges leave the branch looking unmerged, so
+   `git branch -d` refuses and `git branch -D` is needed. Force-deleting a branch is a destructive history change, so
+   first prove that the local tip is exactly the head that was merged:
+
+   ```bash
+   merged_head=$(gh pr view <n> --json headRefOid --jq .headRefOid)
+   test "$(git rev-parse <head_branch>)" = "$merged_head" && git branch -D <head_branch>
+   ```
+
+   If the local tip differs, it has commits that were never merged. Keep the branch, and tell the owner.
 3. If `git worktree list` shows the branch in a worktree, run `git worktree remove <path>` from the main checkout,
-   never from inside the worktree you are removing.
+   never from inside the worktree you are removing. `git worktree remove` refuses when the worktree has uncommitted
+   changes. Do not force it; tell the owner instead.
 4. Run `git pull --ff-only` on `main`.

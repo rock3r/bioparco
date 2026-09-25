@@ -99,6 +99,8 @@ HUNG_CHECK_THRESHOLDS_SECONDS = {
 # It never carries a finding, so it must not surface as a review item.
 STATUS_ONLY_BOT_COMMENT_MARKER = "<!-- codex-pull-request-review-summary -->"
 
+GH_PR_CHECKS_STATE_EXIT_CODES = (0, 1, 8)
+
 # Jobs that are skipped on every PR by design. bioparco's `recordings` job only runs on
 # pushes to main and on v* tags, so a skipped run on a PR is normal, not a blocker.
 EXPECTED_SKIPPED_CHECK_NAMES = {
@@ -202,7 +204,7 @@ def _format_gh_error(cmd, err):
     return "\n".join(parts)
 
 
-def gh_text(args, repo=None):
+def gh_text(args, repo=None, ok_exit_codes=(0,)):
     cmd = ["gh"]
     # `gh api` does not accept `-R/--repo` on all gh versions. The watcher's
     # API calls use explicit endpoints (e.g. repos/{owner}/{repo}/...), so the
@@ -215,12 +217,14 @@ def gh_text(args, repo=None):
     except FileNotFoundError as err:
         raise GhCommandError("`gh` command not found") from err
     except subprocess.CalledProcessError as err:
+        if err.returncode in ok_exit_codes and (err.stdout or "").strip():
+            return err.stdout
         raise GhCommandError(_format_gh_error(cmd, err)) from err
     return proc.stdout
 
 
-def gh_json(args, repo=None):
-    raw = gh_text(args, repo=repo).strip()
+def gh_json(args, repo=None, ok_exit_codes=(0,)):
+    raw = gh_text(args, repo=repo, ok_exit_codes=ok_exit_codes).strip()
     if not raw:
         return None
     try:
@@ -499,7 +503,9 @@ def get_pr_checks(pr_spec, repo):
     if parsed["value"] is not None:
         cmd.append(parsed["value"])
     cmd.extend(["--json", checks_fields()])
-    data = gh_json(cmd, repo=repo)
+    # `gh pr checks` exits 1 when a check failed and 8 while checks are pending, and still
+    # prints the requested JSON. Those are states to report, not command failures.
+    data = gh_json(cmd, repo=repo, ok_exit_codes=GH_PR_CHECKS_STATE_EXIT_CODES)
     if data is None:
         return []
     if not isinstance(data, list):
@@ -524,7 +530,7 @@ def summarize_checks(checks):
         bucket = str(check.get("bucket") or "").lower()
         if is_pending_check(check):
             pending_count += 1
-        elif bucket == "fail":
+        elif bucket in ("fail", "cancel"):
             failed_count += 1
         elif bucket == "pass":
             passed_count += 1
@@ -1285,6 +1291,9 @@ def is_pr_ready_to_merge(
     if str(pr.get("review_decision") or "") in MERGE_BLOCKING_REVIEW_DECISIONS:
         return False
     if codex_gate and bool(codex_gate.get("reviewing")):
+        return False
+    # A failed reactions lookup means we cannot tell whether Codex is still reviewing.
+    if codex_gate and str(codex_gate.get("status") or "") == "unknown":
         return False
     if pr_af_gate and str(pr_af_gate.get("status") or "") in {"in_progress", "missing_wait"}:
         return False
