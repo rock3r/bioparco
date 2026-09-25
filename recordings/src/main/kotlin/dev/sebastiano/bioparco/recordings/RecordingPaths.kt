@@ -10,6 +10,7 @@ object RecordingPaths {
     const val THINKING_ORBS = "thinking-orbs.mp4"
     const val DOT_MATRIX_RECORDER = "dot-matrix-recorder.mp4"
     const val BORDER_BEAM = "border-beam.mp4"
+    const val ACHIEVEMENT_BADGE = "achievement-badge.mp4"
     const val MIN_USABLE_BYTES = 1_000L
 
     private val houseModules = setOf("showcase", "recordings")

@@ -21,6 +21,7 @@ kotlin {
             implementation(project(":thinking-orbs"))
             implementation(project(":dot-matrix-recorder"))
             implementation(project(":border-beam"))
+            implementation(project(":achievement-badge"))
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)

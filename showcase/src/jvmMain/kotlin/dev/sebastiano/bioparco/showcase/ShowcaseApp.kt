@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import chatbubble.ChatApp
+import dev.sebastiano.achievementbadge.App as AchievementBadgeApp
 import dev.sebastiano.borderbeam.App as BorderBeamApp
 import dev.sebastiano.dotmatrixrecorder.App as DotMatrixRecorderApp
 import dev.sebastiano.grabbystepper.App
@@ -39,6 +40,7 @@ private enum class SpecimenRoute {
     ThinkingOrbs,
     DotMatrixRecorder,
     BorderBeam,
+    AchievementBadge,
 }
 
 @Composable
@@ -56,6 +58,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenThinkingOrbs = { route = SpecimenRoute.ThinkingOrbs },
                     onOpenDotMatrixRecorder = { route = SpecimenRoute.DotMatrixRecorder },
                     onOpenBorderBeam = { route = SpecimenRoute.BorderBeam },
+                    onOpenAchievementBadge = { route = SpecimenRoute.AchievementBadge },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -106,6 +109,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     BorderBeamApp()
                 }
+            SpecimenRoute.AchievementBadge ->
+                SpecimenHost(
+                    title = "Achievement badge",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    AchievementBadgeApp()
+                }
         }
     }
 }
@@ -118,6 +129,7 @@ private fun Catalog(
     onOpenThinkingOrbs: () -> Unit,
     onOpenDotMatrixRecorder: () -> Unit,
     onOpenBorderBeam: () -> Unit,
+    onOpenAchievementBadge: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -171,6 +183,14 @@ private fun Catalog(
             summary = "A traveling or breathing glow that rides the border of a card.",
             testTag = "open-border-beam",
             onOpen = onOpenBorderBeam,
+        )
+        SpecimenCard(
+            name = "Achievement badge",
+            summary =
+                "A trophy badge that spins into its slot, bursts into confetti, and lights " +
+                    "itself up. After Adrian (@adriankuleszo).",
+            testTag = "open-achievement-badge",
+            onOpen = onOpenAchievementBadge,
         )
     }
 }

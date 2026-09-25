@@ -39,6 +39,8 @@ include(":dot-matrix-recorder")
 
 include(":border-beam")
 
+include(":achievement-badge")
+
 include(":showcase")
 
 include(":recordings")

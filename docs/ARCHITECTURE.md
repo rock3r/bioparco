@@ -9,6 +9,7 @@ showcase  -->  grabby-stepper
           \->  thinking-orbs
           \->  dot-matrix-recorder
           \->  border-beam
+          \->  achievement-badge
 
 recordings --> grabby-stepper
            \->  chat-bubble-transition
@@ -16,6 +17,7 @@ recordings --> grabby-stepper
            \->  thinking-orbs
            \->  dot-matrix-recorder
            \->  border-beam
+           \->  achievement-badge
            \->  Spectre (Maven Central)
 ```
 
@@ -28,6 +30,7 @@ recordings --> grabby-stepper
 | `:thinking-orbs` | Specimen 4. Library + standalone `run`. |
 | `:dot-matrix-recorder` | Specimen 5. Library + standalone `run`. |
 | `:border-beam` | Specimen 6. Library + standalone `run`. |
+| `:achievement-badge` | Specimen 7. Library + standalone `run`. |
 | `:recordings` | Spectre-driven recording tests. Not part of `check`. |
 
 ## Invariants
