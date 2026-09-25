@@ -13,7 +13,8 @@ object ReadmeMedia {
     // A link, not an image: `![...](...mp4)` renders as a broken image, not a playable video.
     private val mp4Link = Regex("""(?<!!)\[[^\]]*]\((https?://[^)\s]+\.mp4)\)""")
     // Markdown GitHub shows as source, not as media: HTML comments, fenced blocks, code spans.
-    private val unrendered = Regex("""<!--[\s\S]*?-->|(?m)^(```|~~~)[\s\S]*?^\1[^\n]*$|`[^`\n]*`""")
+    private val unrendered =
+        Regex("""<!--[\s\S]*?-->|(?m)^(```|~~~)[\s\S]*?^\1[^\n]*$|(`+)(?!`).*?(?<!`)\2(?!`)""")
 
     /** Hosts that serve MP4s as attachments, so a browser downloads them instead of playing. */
     private val downloadingHost =

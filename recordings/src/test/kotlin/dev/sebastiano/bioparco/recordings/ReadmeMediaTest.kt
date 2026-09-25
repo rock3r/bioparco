@@ -106,6 +106,13 @@ class ReadmeMediaTest {
     }
 
     @Test
+    fun mediaInsideMultiBacktickSpansDoesNotCount(@TempDir root: Path) {
+        val spans = "``![New]($PREVIEW)`` and ```[mp4]($PLAYABLE_MP4)```"
+        repo(root, rootEntry = spans, specimenReadme = spans)
+        assertEquals(4, ReadmeMedia.problems(root).count { it.contains("has no") })
+    }
+
+    @Test
     fun theSpecimenReadmeMediaMustSitUnderTheRecordingSection(@TempDir root: Path) {
         val media = "![New]($PREVIEW)\n\n[mp4]($PLAYABLE_MP4)"
         repo(
