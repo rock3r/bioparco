@@ -5,9 +5,14 @@ on:
     branches: [main]
     tags: ["v*"]
   pull_request:
-  # Records and publishes the README media from any branch, e.g. to seed a new specimen's
-  # stable URLs before its README links go live.
+  # Records a branch and publishes the README media of the named specimens only, e.g. to seed
+  # a new specimen's stable URLs before its README links go live.
   workflow_dispatch:
+    inputs:
+      specimens:
+        description: "Specimens whose README media to publish, space-separated (e.g. new-specimen)"
+        required: true
+        type: string
 
 jobs:
   check:
@@ -32,6 +37,8 @@ jobs:
       contents: write
     env:
       STATIC_UPLOAD_TOKEN: ${{ secrets.STATIC_UPLOAD_TOKEN }}
+      # Manual runs publish only these; pushes to main and tags publish every specimen.
+      PUBLISH_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.specimens || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -72,10 +79,23 @@ jobs:
               --data-binary "@$1"
             echo
           }
-          for movie in recordings/build/recordings/*.mp4; do
-            name=$(basename "$movie" .mp4)
-            upload "recordings/build/recordings/$name.webp" image/webp "$name"
-            upload "$movie" video/mp4 "$name"
+          dir=recordings/build/recordings
+          if [ -n "${PUBLISH_ONLY}" ]; then
+            names=()
+            for name in ${PUBLISH_ONLY}; do
+              if [[ ! "$name" =~ ^[a-z0-9_-]+$ ]] || [ ! -f "$dir/$name.mp4" ]; then
+                echo "Unknown specimen: $name" >&2
+                exit 1
+              fi
+              names+=("$name")
+            done
+          else
+            names=()
+            for movie in "$dir"/*.mp4; do names+=("$(basename "$movie" .mp4)"); done
+          fi
+          for name in "${names[@]}"; do
+            upload "$dir/$name.webp" image/webp "$name"
+            upload "$dir/$name.mp4" video/mp4 "$name"
           done
       - name: Upload recordings release
         if: github.event_name == 'push'

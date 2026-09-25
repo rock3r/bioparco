@@ -10,9 +10,9 @@ New specimens should:
 - ship a README with concepts, references, and the tricky bits
 - grow a Spectre recording test next to the others in `:recordings`
 - show its animation: link the stable preview and MP4 URLs in both its root README entry
-  and its own README, and run the CI workflow on the branch once so they exist (see
-  [docs/RECORDING.md](docs/RECORDING.md)). `./gradlew check` fails without the links. Do
-  not `gh release upload` in the happy path.
+  and its own README. Run the CI workflow once on the branch, naming the specimen, so the
+  URLs exist (see [docs/RECORDING.md](docs/RECORDING.md)). `./gradlew check` fails without
+  the links. Do not `gh release upload` in the happy path.
 
 ## Pull requests
 

@@ -47,9 +47,15 @@ push to `main` is a backup feed of the same job. On a version tag the job also a
 the same MP4s to that GitHub Release for archival.
 
 **A new specimen** needs its stable URLs filled before its README links work. Run the CI
-workflow on the specimen's branch (`gh workflow run CI --ref <branch>`). A manual run
-records and publishes the README media, but leaves the release and `recordings-assets`
-alone.
+workflow on the specimen's branch and name it:
+
+```bash
+gh workflow run CI --ref <branch> -f specimens=<specimen>
+```
+
+A manual run records every specimen but publishes the README media of the named ones
+only, so a stale branch cannot overwrite the others. It leaves the release and
+`recordings-assets` alone.
 
 You do not need Coso, Screen Recording, a seated monitor, or a local Gradle recording
 run to get the recordings. Local regeneration is optional: useful when iterating on
