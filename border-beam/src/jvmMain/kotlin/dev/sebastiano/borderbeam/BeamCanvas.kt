@@ -54,17 +54,20 @@ internal fun DrawScope.withFilteredLayer(
     colorMatrix: FloatArray?,
     blurPx: Float,
     outset: Float = 0f,
+    blendMode: BlendMode = BlendMode.SrcOver,
     block: DrawScope.() -> Unit,
 ) {
     if (alpha <= 0.002f) return
     val paint =
         Paint().apply {
             this.alpha = alpha.coerceIn(0f, 1f)
+            this.blendMode = blendMode
             if (colorMatrix != null) {
                 colorFilter = ColorFilter.colorMatrix(ColorMatrix(colorMatrix))
             }
             if (blurPx > 0.5f) {
-                // CSS `blur()`'s argument is the Gaussian standard deviation.
+                // CSS blur() is a Gaussian std-deviation, but a 1px ring at that sigma
+                // collapses under Skia. Callers pass a larger sigma when the aura must read.
                 skiaPaint.maskFilter = MaskFilter.makeBlur(FilterBlurMode.NORMAL, blurPx, true)
             }
         }
@@ -205,6 +208,41 @@ internal fun DrawScope.drawEdgeBand(band: Float) {
     } finally {
         drawIntoCanvas { canvas -> canvas.restore() }
     }
+}
+
+/** Band centered on the rounded edge, extending [outside] px past the card and [inside] px in. */
+internal fun DrawScope.clipAura(
+    radius: Float,
+    inside: Float,
+    outside: Float,
+    block: DrawScope.() -> Unit,
+) {
+    val outer =
+        Path().apply {
+            addRoundRect(
+                RoundRect(
+                    Rect(-outside, -outside, size.width + outside, size.height + outside),
+                    CornerRadius(radius + outside),
+                )
+            )
+        }
+    val inset = inside.coerceAtMost(minOf(size.width, size.height) / 2f - 1f).coerceAtLeast(0.75f)
+    val inner =
+        Path().apply {
+            addRoundRect(
+                RoundRect(
+                    Rect(
+                        inset,
+                        inset,
+                        (size.width - inset).coerceAtLeast(inset + 1f),
+                        (size.height - inset).coerceAtLeast(inset + 1f),
+                    ),
+                    CornerRadius((radius - inset).coerceAtLeast(0f)),
+                )
+            )
+        }
+    val ring = Path().apply { op(outer, inner, PathOperation.Difference) }
+    clipPath(ring, block = block)
 }
 
 internal fun DrawScope.clipRing(radius: Float, band: Float, block: DrawScope.() -> Unit) {

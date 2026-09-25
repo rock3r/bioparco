@@ -1,6 +1,7 @@
 package dev.sebastiano.borderbeam
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipRect
@@ -65,7 +66,10 @@ internal fun DrawScope.drawLineBeam(
         widthScale,
         heightScale,
         ink,
-        0.85f,
+        1f,
+        outset = BLOOM_OUTSET,
+        blendMode = BlendMode.Screen,
+        spill = true,
     )
 }
 
@@ -92,20 +96,30 @@ private fun DrawScope.drawLineLayer(
     heightScale: Float,
     ink: Color,
     spotAlpha: Float,
+    outset: Float = 0f,
+    blendMode: BlendMode = BlendMode.SrcOver,
+    spill: Boolean = false,
 ) {
-    withFilteredLayer(alpha, matrix, blurPx) {
-        clipRounded(radius) {
-            clipRect(top = size.height - BOTTOM_BAND) {
+    withFilteredLayer(alpha, matrix, blurPx, outset, blendMode) {
+        val top = size.height - if (spill) BOTTOM_BAND + 12f else BOTTOM_BAND
+        val bottom = if (spill) size.height + outset else size.height
+        val drawSpots: DrawScope.() -> Unit = {
+            clipRect(top = top, bottom = bottom) {
                 drawLineSpots(spots, origin, widthScale, heightScale, spotAlpha)
                 drawSoftEllipse(
                     center = Offset(origin.x, origin.y + 2f),
                     radiusX = 24f * widthScale,
                     radiusY = 28f * heightScale,
-                    color = ink.copy(alpha = 0.38f),
+                    color = ink.copy(alpha = 0.55f),
                 )
             }
         }
-        drawEllipseMask(origin, 78f * widthScale, 60f * heightScale)
+        if (spill) drawSpots() else clipRounded(radius, drawSpots)
+        drawEllipseMask(
+            origin,
+            78f * widthScale,
+            if (spill) 72f * heightScale else 60f * heightScale,
+        )
     }
 }
 
@@ -127,7 +141,8 @@ private fun DrawScope.drawLineSpots(
 }
 
 private const val BREATHE_SCALE = 1.3f
-private const val BLOOM_BLUR = 10f
+private const val BLOOM_BLUR = 22f
+private const val BLOOM_OUTSET = 48f
 private const val BOTTOM_BAND = 42f
 private const val DEFAULT_HUE = 30f
 private const val HUE_PERIOD = 12f
