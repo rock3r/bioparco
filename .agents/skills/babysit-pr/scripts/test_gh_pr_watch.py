@@ -1106,6 +1106,39 @@ class CodexHeadReviewTests(unittest.TestCase):
         self.assertNotIn("stop_ready_to_merge", actions)
 
 
+class SnapshotOrderingTests(unittest.TestCase):
+    def test_codex_gate_is_read_before_review_comments(self):
+        # If Codex posts a finding and then marks the head reviewed between the two reads,
+        # reading the gate last would pair "reviewed" with a scan that missed the finding.
+        calls = []
+        pr = {
+            "repo": "rock3r/bioparco", "number": 21, "head_sha": "abc123",
+            "closed": False, "merged": False, "mergeable": "MERGEABLE",
+            "merge_state_status": "CLEAN", "review_decision": "",
+        }
+        args = SimpleNamespace(pr="21", repo=None, state_file=None, max_flaky_retries=3)
+
+        def gate(_pr):
+            calls.append("codex_gate")
+            return {"reviewing": False, "status": "idle", "active": True, "head_reviewed": True}
+
+        def reviews(*_args, **_kwargs):
+            calls.append("review_items")
+            return [], []
+
+        with tempfile.TemporaryDirectory() as tmp, \
+                patch.object(watch, "resolve_pr", return_value=pr), \
+                patch.object(watch, "default_state_file_for", return_value=watch.Path(tmp) / "s.json"), \
+                patch.object(watch, "get_pr_checks", return_value=[]), \
+                patch.object(watch, "get_authenticated_login", return_value="octocat"), \
+                patch.object(watch, "collect_codex_gate", side_effect=gate), \
+                patch.object(watch, "fetch_new_review_items", side_effect=reviews), \
+                patch.object(watch, "save_state", return_value=None):
+            watch.collect_snapshot(args)
+
+        self.assertEqual(calls, ["codex_gate", "review_items"])
+
+
 class CodexGateTests(unittest.TestCase):
     def test_codex_reviewing_blocks_merge_readiness(self):
         pr = {

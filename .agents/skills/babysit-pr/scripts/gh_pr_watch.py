@@ -599,6 +599,18 @@ def summarize_codex_head_review(issue_comments, head_sha):
     return {"active": active, "head_reviewed": head_reviewed}
 
 
+def collect_codex_gate(pr):
+    """Codex's review state for the PR: the 👀 reaction plus proof of a review of the head."""
+    codex_gate = summarize_codex_gate(get_pr_issue_reactions(pr["repo"], pr["number"]))
+    try:
+        issue_comments = gh_api_list_paginated(comment_endpoints(pr["repo"], pr["number"])["issue_comment"])
+        codex_gate.update(summarize_codex_head_review(issue_comments, pr["head_sha"]))
+    except GhCommandError:
+        # Without the summary comment we cannot prove the head was reviewed: treat as unknown.
+        codex_gate.update({"status": "unknown", "active": True, "head_reviewed": False})
+    return codex_gate
+
+
 def get_authenticated_login():
     global _AUTHENTICATED_LOGIN_CACHE
     if _AUTHENTICATED_LOGIN_CACHE:
@@ -1279,6 +1291,9 @@ def collect_snapshot(args):
         authenticated_login = get_authenticated_login()
     except GhCommandError:
         authenticated_login = None
+    # Read Codex's state before scanning review comments. Codex posts its findings before it
+    # marks the head reviewed, so this order can never pair "reviewed" with a stale scan.
+    codex_gate = collect_codex_gate(pr)
     new_review_items, blocking_review_items = fetch_new_review_items(
         pr,
         state,
@@ -1311,14 +1326,6 @@ def collect_snapshot(args):
         state["checks_went_terminal_at"] = None
         checks_terminal_elapsed = None
 
-    pr_issue_reactions = get_pr_issue_reactions(pr["repo"], pr["number"])
-    codex_gate = summarize_codex_gate(pr_issue_reactions)
-    try:
-        issue_comments = gh_api_list_paginated(comment_endpoints(pr["repo"], pr["number"])["issue_comment"])
-        codex_gate.update(summarize_codex_head_review(issue_comments, pr["head_sha"]))
-    except GhCommandError:
-        # Without the summary comment we cannot prove the head was reviewed: treat as unknown.
-        codex_gate.update({"status": "unknown", "active": True, "head_reviewed": False})
 
     retries_used = current_retry_count(state, pr["head_sha"])
     actions = recommend_actions(
