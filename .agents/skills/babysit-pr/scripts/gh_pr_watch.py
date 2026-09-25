@@ -566,6 +566,39 @@ def summarize_codex_gate(reactions):
     return {"reviewing": False, "status": "idle"}
 
 
+# One row of Codex's review-summary table, e.g.
+# | 📝 **Code Review** | ✅ **Completed** <relative-time ...> | `b5d394b` | New commits |
+_CODEX_SUMMARY_ROW = re.compile(
+    r"^\|\s*📝\s*\*\*Code Review\*\*\s*\|(?P<status>[^|]*)\|\s*`(?P<sha>[0-9a-f]{7,40})`",
+    re.MULTILINE,
+)
+
+
+def summarize_codex_head_review(issue_comments, head_sha):
+    """Tell whether Codex finished a review of `head_sha`.
+
+    A missing 👀 reaction only says Codex is not reviewing right now: on a fresh push it may
+    simply not have started. Codex's review-summary comment records the status and the commit
+    of its latest review, which is proof that the current head was reviewed. When the PR has
+    no such comment, Codex is not active on it and this check does not apply.
+    """
+    active = False
+    head_reviewed = False
+    for comment in issue_comments or []:
+        if not isinstance(comment, dict):
+            continue
+        if not is_codex_bot_login(extract_login(comment.get("user"))):
+            continue
+        body = str(comment.get("body") or "")
+        if STATUS_ONLY_BOT_COMMENT_MARKER not in body:
+            continue
+        active = True
+        for row in _CODEX_SUMMARY_ROW.finditer(body):
+            if "Completed" in row.group("status") and str(head_sha or "").startswith(row.group("sha")):
+                head_reviewed = True
+    return {"active": active, "head_reviewed": head_reviewed}
+
+
 def get_authenticated_login():
     global _AUTHENTICATED_LOGIN_CACHE
     if _AUTHENTICATED_LOGIN_CACHE:
@@ -995,6 +1028,11 @@ def unique_actions(actions):
     return out
 
 
+def codex_waiting_for_head_review(codex_gate):
+    """Codex is active on the PR but has not finished a review of the current head yet."""
+    return bool(codex_gate) and bool(codex_gate.get("active")) and not bool(codex_gate.get("head_reviewed"))
+
+
 def is_pr_ready_to_merge(
     pr,
     checks_summary,
@@ -1024,6 +1062,8 @@ def is_pr_ready_to_merge(
     if str(pr.get("review_decision") or "") in MERGE_BLOCKING_REVIEW_DECISIONS:
         return False
     if codex_gate and bool(codex_gate.get("reviewing")):
+        return False
+    if codex_waiting_for_head_review(codex_gate):
         return False
     # A failed reactions lookup means we cannot tell whether Codex is still reviewing.
     if codex_gate and str(codex_gate.get("status") or "") == "unknown":
@@ -1180,7 +1220,7 @@ def recommend_actions(
     elif blocking_review_items:
         actions.append("process_review_comment")
 
-    if codex_gate and bool(codex_gate.get("reviewing")):
+    if codex_gate and (bool(codex_gate.get("reviewing")) or codex_waiting_for_head_review(codex_gate)):
         actions.append("wait_codex")
 
     if hung_checks:
@@ -1273,6 +1313,12 @@ def collect_snapshot(args):
 
     pr_issue_reactions = get_pr_issue_reactions(pr["repo"], pr["number"])
     codex_gate = summarize_codex_gate(pr_issue_reactions)
+    try:
+        issue_comments = gh_api_list_paginated(comment_endpoints(pr["repo"], pr["number"])["issue_comment"])
+        codex_gate.update(summarize_codex_head_review(issue_comments, pr["head_sha"]))
+    except GhCommandError:
+        # Without the summary comment we cannot prove the head was reviewed: treat as unknown.
+        codex_gate.update({"status": "unknown", "active": True, "head_reviewed": False})
 
     retries_used = current_retry_count(state, pr["head_sha"])
     actions = recommend_actions(

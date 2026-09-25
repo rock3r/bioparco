@@ -1019,6 +1019,93 @@ class RunOnceTests(unittest.TestCase):
         self.assertIn("diagnose_ci_failure", result["actions"])
 
 
+class CodexHeadReviewTests(unittest.TestCase):
+    """Codex must have finished a review of the current head, not merely be idle."""
+
+    HEAD = "b5d394b666fc83b4fa9f779dc85512544662ef0a"
+
+    @staticmethod
+    def _summary(status, sha):
+        return {
+            "user": {"login": "chatgpt-codex-connector[bot]"},
+            "body": (
+                "<!-- codex-pull-request-review-summary -->\n\n## Codex Review Summary\n\n"
+                "| Review | Status | Commit | Review trigger |\n| --- | --- | --- | --- |\n"
+                f"| 📝 **Code Review** | {status} <relative-time>x</relative-time> | `{sha}` | New commits |\n"
+            ),
+        }
+
+    def test_no_summary_comment_means_codex_is_not_active_on_the_pr(self):
+        review = watch.summarize_codex_head_review([], self.HEAD)
+        self.assertEqual(review, {"active": False, "head_reviewed": False})
+
+    def test_completed_review_of_the_current_head_counts(self):
+        comments = [self._summary("✅ **Completed**", self.HEAD[:7])]
+        review = watch.summarize_codex_head_review(comments, self.HEAD)
+        self.assertEqual(review, {"active": True, "head_reviewed": True})
+
+    def test_running_review_of_the_current_head_does_not_count(self):
+        comments = [self._summary("🔄 **Running** since", self.HEAD[:7])]
+        review = watch.summarize_codex_head_review(comments, self.HEAD)
+        self.assertEqual(review, {"active": True, "head_reviewed": False})
+
+    def test_completed_review_of_an_older_head_does_not_count(self):
+        comments = [self._summary("✅ **Completed**", "734f214")]
+        review = watch.summarize_codex_head_review(comments, self.HEAD)
+        self.assertEqual(review, {"active": True, "head_reviewed": False})
+
+    def test_summary_from_a_non_codex_author_is_ignored(self):
+        comment = self._summary("✅ **Completed**", self.HEAD[:7])
+        comment["user"] = {"login": "someone-else"}
+        review = watch.summarize_codex_head_review([comment], self.HEAD)
+        self.assertEqual(review, {"active": False, "head_reviewed": False})
+
+    def _ready(self, codex_gate):
+        pr = {
+            "closed": False,
+            "merged": False,
+            "mergeable": "MERGEABLE",
+            "merge_state_status": "CLEAN",
+            "review_decision": "",
+        }
+        checks = {
+            "all_terminal": True,
+            "failed_count": 0,
+            "pending_count": 0,
+            "passed_count": 1,
+            "skipping_count": 0,
+        }
+        return watch.is_pr_ready_to_merge(
+            pr, checks, new_review_items=[], checks_terminal_elapsed=120,
+            blocking_review_items=[], codex_gate=codex_gate,
+        )
+
+    def test_idle_codex_without_a_review_of_the_head_blocks_readiness(self):
+        # No 👀 yet on a fresh head: idle, but Codex has not reviewed this commit.
+        gate = {"reviewing": False, "status": "idle", "active": True, "head_reviewed": False}
+        self.assertFalse(self._ready(gate))
+
+    def test_completed_review_of_the_head_allows_readiness(self):
+        gate = {"reviewing": False, "status": "idle", "active": True, "head_reviewed": True}
+        self.assertTrue(self._ready(gate))
+
+    def test_pr_without_codex_is_not_held_by_the_head_check(self):
+        gate = {"reviewing": False, "status": "idle", "active": False, "head_reviewed": False}
+        self.assertTrue(self._ready(gate))
+
+    def test_waiting_for_a_head_review_emits_wait_codex(self):
+        pr = {"closed": False, "merged": False, "mergeable": "MERGEABLE", "merge_state_status": "CLEAN", "review_decision": ""}
+        checks = {"all_terminal": True, "failed_count": 0, "pending_count": 0, "passed_count": 1, "skipping_count": 0}
+        actions = watch.recommend_actions(
+            pr, checks, failed_runs=[], new_review_items=[], hung_checks=[],
+            retries_used=0, max_retries=3, checks_terminal_elapsed=120,
+            blocking_review_items=[],
+            codex_gate={"reviewing": False, "status": "idle", "active": True, "head_reviewed": False},
+        )
+        self.assertIn("wait_codex", actions)
+        self.assertNotIn("stop_ready_to_merge", actions)
+
+
 class CodexGateTests(unittest.TestCase):
     def test_codex_reviewing_blocks_merge_readiness(self):
         pr = {

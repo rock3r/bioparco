@@ -98,8 +98,13 @@ when it is done. The watcher reads the reactions into `codex_gate.reviewing` and
 - Reaction gone, no comments: Codex is satisfied.
 - Reaction gone, comments posted: triage them like any other review finding.
 
-Codex also keeps a "Codex Review Summary" status table as a PR comment and edits it on every review. It is not a
-finding, so the watcher ignores it.
+A missing reaction is not proof on its own: right after a push, Codex may simply not have started. Codex keeps a "Codex
+Review Summary" table on the PR with the status and commit of its latest review. When that table exists, the watcher
+also requires a **Completed** review of the current head commit, and emits `wait_codex` until there is one
+(`codex_gate.head_reviewed`). A PR without the table does not have Codex active, so this check does not apply.
+
+Codex edits that table on every review. It is a status, not a finding, so the watcher never reports it as a review
+item.
 
 Trusted humans are authors with the `OWNER`, `MEMBER`, or `COLLABORATOR` association.
 
