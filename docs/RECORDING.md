@@ -8,23 +8,36 @@ to two places:
 
 - the floating GitHub Release named [`recordings`](https://github.com/rock3r/bioparco/releases/tag/recordings)
   (download / archive; browsers treat these URLs as attachments)
-- the `recordings-assets` branch under `media/*.mp4`, which
-  `raw.githubusercontent.com` serves as `video/mp4` for README `<video>` tags
+- the `recordings-assets` branch under `media/*.mp4`, at stable
+  `raw.githubusercontent.com` URLs
+
+`raw.githubusercontent.com` serves these files as `application/octet-stream` with
+`X-Content-Type-Options: nosniff`, so a browser downloads them instead of playing them.
+README entries therefore link copies hosted somewhere that serves real content types: an
+animated WebP preview (`image/webp`, which GitHub renders inline) and the MP4
+(`video/mp4`, which plays in the browser). Any static host works. Upload the two files and
+link them. bioparco's copies live on static.sebastiano.dev.
+
+These hosted copies are snapshots. CI does not update them. After a tag re-records a
+specimen whose motion changed, upload the new WebP and MP4 and update its README links by
+hand.
 
 Do not put `<video>` inside a markdown `| table |` cell: GitHub strips it.
 
-**Tag `vX.Y.Z` to refresh the movies.** That is the intentional signal. The `recordings`
-CI job records under `xvfb-run`, fails if any specimen MP4 is missing or empty, then
-uploads every `*.mp4` to the floating `recordings` release (`--clobber` / delete-asset)
-and force-pushes `recordings-assets`. README links never churn. A push to `main` is a
-backup feed of the same job.
+**Tag `vX.Y.Z` to refresh the recordings.** That is the intentional signal. The
+`recordings` CI job records under `xvfb-run`, fails if any specimen MP4 is missing or
+empty, then uploads every `*.mp4` to the floating `recordings` release (`--clobber` /
+delete-asset) and force-pushes `recordings-assets`. A push to `main` is a backup feed of
+the same job. On a version tag the job also attaches the same MP4s to that GitHub Release
+for archival.
+
+The job does not touch the README. Its links point at the hosted snapshots, so after a
+tag, re-host the WebP and MP4 of each specimen whose motion changed and update those
+links. The CI MP4 is the source for both files.
 
 You do not need Coso, Screen Recording, a seated monitor, or a local Gradle recording
-run for the README videos. Local regeneration is optional: useful when iterating on
+run to get the recordings. Local regeneration is optional: useful when iterating on
 motion before the next tag.
-
-On a version tag the job also attaches the same MP4s to that GitHub Release for
-archival. The README keeps pointing at `recordings-assets`.
 
 ## Regenerate
 
@@ -77,8 +90,10 @@ If capture permission is missing, Spectre fails fast on purpose.
 
 ## Publish the movies
 
-Happy path: `git tag vX.Y.Z && git push origin vX.Y.Z`. CI does the rest. Do not
-`gh release upload` by hand unless the job is down.
+Happy path: `git tag vX.Y.Z && git push origin vX.Y.Z`. CI refreshes the release and
+`recordings-assets`. Then refresh the hosted README snapshots for any specimen whose motion
+changed (see the top of this page). Do not `gh release upload` by hand unless the job is
+down.
 
 Emergency local publish:
 
@@ -87,9 +102,9 @@ gh release view recordings || gh release create recordings --title "specimen rec
 gh release upload recordings recordings/build/recordings/*.mp4 --clobber
 ```
 
-Also refresh `recordings-assets` (`media/*.mp4`) so README `<video>` tags keep playing.
+Also refresh `recordings-assets` (`media/*.mp4`) so the stable download URLs stay current.
 
-README embed URLs (stable, inline-playable):
+Stable download URLs:
 
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/grabby-stepper.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/chat-bubble-transition.mp4

@@ -46,7 +46,7 @@ an eye for detail, and the passion to care about these things.
 
 ![Thinking Orbs](https://static.sebastiano.dev/public/47905992-e9e5-4826-9d75-2b9c205de570.webp)
 
-[mp4](https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/thinking-orbs.mp4)
+[mp4](https://static.sebastiano.dev/public/a87a0cc8-46cf-4154-8f27-8279a215a757.mp4)
 
 ### [Dot-matrix recorder](dot-matrix-recorder/)
 
@@ -68,7 +68,9 @@ an eye for detail, and the passion to care about these things.
 
 **Seb** · [Adrian](https://x.com/adriankuleszo)’s [badge animation](https://x.com/adriankuleszo/status/2103473953868063151)
 
-[mp4](https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/achievement-badge.mp4)
+![Achievement badge](https://static.sebastiano.dev/public/3721f42d-9636-44d5-ba96-c0f77b90dd86.webp)
+
+[mp4](https://static.sebastiano.dev/public/70e42da8-d4dc-46f3-9e64-e2ef80212447.mp4)
 
 Recordings are generated automatically with [Spectre](https://spectre.sebastiano.dev).
 README previews are animated, lower quality WebPs; original mp4 files are the full clips.
