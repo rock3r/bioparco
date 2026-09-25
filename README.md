@@ -54,6 +54,12 @@ an eye for detail, and the passion to care about these things.
 
 [mp4](https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/dot-matrix-recorder.mp4)
 
+### [Border beam](border-beam/)
+
+**Seb** · [Playground](https://beam.jakubantalik.com/) · [Jakub Antalik’s border-beam](https://github.com/Jakubantalik/border-beam)
+
+[mp4](https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/border-beam.mp4)
+
 Recordings are generated automatically with [Spectre](https://spectre.sebastiano.dev).
 README previews are animated, lower quality WebPs; original mp4 files are the full clips.
 
@@ -74,6 +80,7 @@ Or visit one enclosure directly:
 ./gradlew :processing-field:run
 ./gradlew :thinking-orbs:run
 ./gradlew :dot-matrix-recorder:run
+./gradlew :border-beam:run
 ...
 ```
 

@@ -37,6 +37,10 @@ class RecordingPathsTest {
             dir.resolve("dot-matrix-recorder.mp4"),
             RecordingPaths.file(RecordingPaths.DOT_MATRIX_RECORDER, dir),
         )
+        assertEquals(
+            dir.resolve("border-beam.mp4"),
+            RecordingPaths.file(RecordingPaths.BORDER_BEAM, dir),
+        )
     }
 
     @Test
@@ -49,6 +53,7 @@ class RecordingPathsTest {
                 "processing-field.mp4",
                 "thinking-orbs.mp4",
                 "dot-matrix-recorder.mp4",
+                "border-beam.mp4",
             ),
             RecordingPaths.expectedNames(settings),
         )
@@ -85,6 +90,7 @@ class RecordingPathsTest {
                 "processing-field.mp4",
                 "thinking-orbs.mp4",
                 "dot-matrix-recorder.mp4",
+                "border-beam.mp4",
             ),
             RecordingPaths.missingOutputs(dir),
         )
@@ -93,6 +99,7 @@ class RecordingPathsTest {
         Files.write(dir.resolve("processing-field.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("thinking-orbs.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("dot-matrix-recorder.mp4"), ByteArray(2_000))
+        Files.write(dir.resolve("border-beam.mp4"), ByteArray(2_000))
         assertEquals(emptyList<String>(), RecordingPaths.missingOutputs(dir))
     }
 }
