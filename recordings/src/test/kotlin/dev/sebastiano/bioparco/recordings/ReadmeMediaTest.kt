@@ -54,6 +54,19 @@ class ReadmeMediaTest {
     }
 
     @Test
+    fun bothReadmesMustLinkTheSameMp4(@TempDir root: Path) {
+        val other = "https://static.example.com/other.mp4"
+        repo(
+            root,
+            rootEntry = "![New]($PREVIEW)\n\n[mp4]($PLAYABLE_MP4)",
+            specimenReadme = "![New]($PREVIEW)\n\n[mp4]($other)",
+        )
+        val problems = ReadmeMedia.problems(root)
+        assertEquals(1, problems.size, "$problems")
+        assertTrue(problems.single().contains("same MP4"), "$problems")
+    }
+
+    @Test
     fun theSpecimenReadmeMediaMustSitUnderTheRecordingSection(@TempDir root: Path) {
         val media = "![New]($PREVIEW)\n\n[mp4]($PLAYABLE_MP4)"
         repo(

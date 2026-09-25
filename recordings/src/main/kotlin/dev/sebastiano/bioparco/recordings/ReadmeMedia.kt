@@ -41,12 +41,22 @@ object ReadmeMedia {
                 recording == null -> add("$module/README.md has no `## Recording` section")
                 else -> addAll(check("$module/README.md `## Recording`", recording))
             }
-            val rootPreview = entry?.let { webpImage.find(it)?.groupValues?.get(1) }
-            val ownPreview = recording?.let { webpImage.find(it)?.groupValues?.get(1) }
-            if (rootPreview != null && ownPreview != null && rootPreview != ownPreview) {
-                add("README.md and $module/README.md should show the same WebP preview")
+            if (entry != null && recording != null) {
+                if (differ(webpImage, entry, recording)) {
+                    add("README.md and $module/README.md should show the same WebP preview")
+                }
+                if (differ(mp4Link, entry, recording)) {
+                    add("README.md and $module/README.md should link the same MP4")
+                }
             }
         }
+
+    /** True when both texts have a [pattern] match and the first matches differ. */
+    private fun differ(pattern: Regex, a: String, b: String): Boolean {
+        val first = pattern.find(a)?.groupValues?.get(1) ?: return false
+        val second = pattern.find(b)?.groupValues?.get(1) ?: return false
+        return first != second
+    }
 
     private fun check(where: String, text: String): List<String> = buildList {
         if (webpImage.find(text) == null) {
