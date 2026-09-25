@@ -176,20 +176,6 @@ class RetryEligibilityTests(unittest.TestCase):
             with self.assertRaises(watch.GhCommandError):
                 watch.get_pr_checks("21", repo="rock3r/bioparco")
 
-    def test_is_blocking_review_item_ignores_stale_comments(self):
-        created_at = "2026-01-01T00:00:00Z"
-        created_at_seconds = watch.datetime.fromisoformat("2026-01-01T00:00:00+00:00").timestamp()
-        stale_now = created_at_seconds + watch.BLOCKING_REVIEW_ITEM_FRESH_SECONDS + 1
-        item = {
-            "kind": "review_comment",
-            "commit_id": "abc123",
-            "created_at": created_at,
-        }
-
-        self.assertFalse(
-            watch.is_blocking_review_item(item, head_sha="abc123", now_seconds=stale_now)
-        )
-
     def test_recommend_actions_surfaces_merge_conflict(self):
         pr = self._base_pr()
         pr["mergeable"] = "CONFLICTING"
@@ -958,6 +944,49 @@ class RetryEligibilityTests(unittest.TestCase):
 
         self.assertEqual(new_items, [])
 
+    def test_fetch_new_review_items_blocks_on_own_unresolved_threads(self):
+        # The agent authenticates as the owner, so the owner's own open threads
+        # must still block even though they are not surfaced as new items.
+        pr = {"repo": "rock3r/bioparco", "number": 716, "head_sha": "abc123"}
+        state = {
+            "seen_issue_comment_ids": [],
+            "seen_review_comment_ids": [],
+            "seen_review_ids": [],
+            "last_review_poll_at": None,
+        }
+        review_comment_payload = [
+            {
+                "id": 7,
+                "user": {"login": "octocat"},
+                "author_association": "OWNER",
+                "created_at": "2025-01-01T00:00:00Z",
+                "body": "Rename this before merging.",
+                "path": "foo.kt",
+                "line": 1,
+                "commit_id": "abc123",
+                "html_url": "https://example.invalid/comment",
+            }
+        ]
+
+        with patch.object(
+            watch,
+            "gh_api_list_paginated",
+            side_effect=[[], review_comment_payload, []],
+        ), patch.object(
+            watch,
+            "get_unresolved_review_comment_ids",
+            return_value={"ids": {"7"}, "truncated": False},
+        ):
+            new_items, blocking_items = watch.fetch_new_review_items(
+                pr,
+                state,
+                fresh_state=True,
+                authenticated_login="octocat",
+            )
+
+        self.assertEqual(new_items, [])
+        self.assertEqual([item["id"] for item in blocking_items], ["7"])
+
     def test_fetch_new_review_items_does_not_block_on_seen_issue_comment_without_edits(self):
         pr = {
             "repo": "rock3r/bioparco",
@@ -1102,7 +1131,7 @@ class RetryEligibilityTests(unittest.TestCase):
 
         self.assertEqual(normalized[0]["updated_at"], "2026-01-01T01:00:00Z")
 
-    def test_fetch_new_review_items_fallback_heuristic_when_unresolved_lookup_errors(self):
+    def test_fetch_new_review_items_fails_closed_when_unresolved_lookup_errors(self):
         pr = {
             "repo": "rock3r/bioparco",
             "number": 716,
@@ -1145,7 +1174,8 @@ class RetryEligibilityTests(unittest.TestCase):
                 authenticated_login="octocat",
             )
 
-        self.assertEqual(blocking_items, [])
+        # Without thread state an old comment may still be open: block rather than guess.
+        self.assertEqual([item["id"] for item in blocking_items], ["42"])
 
     def test_hung_checks_from_checks_flags_never_started_pending_checks(self):
         checks = [

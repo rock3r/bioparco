@@ -54,9 +54,15 @@ passive wait. Use it when the harness returns tool output only after the command
 only when the harness can read streamed output while the command runs. `--max-session-minutes` (default 90) limits
 both modes.
 
-The output is JSON lines. In `--once`, `--snapshot`, and `--retry-failed-now`, the top-level object has `actions`. In
-`--watch`, read `payload.snapshot.actions` on `snapshot` events and `payload.actions` on `stop` events. Other useful
-fields are `checks` (pending, failed, passed and skipping counts, plus `all_terminal`), `failed_runs` (with
+The output is JSON lines. Where the actions are depends on the mode:
+
+| Mode | Read the actions from |
+|---|---|
+| `--once`, `--snapshot` | top-level `actions` |
+| `--retry-failed-now` | `snapshot.actions`. The top level reports the rerun: `rerun_attempted`, `rerun_count`, `reason`. |
+| `--watch` | `payload.snapshot.actions` on `snapshot` events, `payload.actions` on `stop` events |
+
+Other useful snapshot fields are `checks` (pending, failed, passed and skipping counts, plus `all_terminal`), `failed_runs` (with
 `retry_eligible`), `codex_gate`, `hung_checks`, `new_review_items`, `blocking_review_items`, and `retry_state`.
 
 `blocking_review_items` lists unresolved inline comments that need action. While it is not empty, the watcher never
@@ -108,9 +114,12 @@ Every push starts a new Codex review. Push once per fix cycle, when all of these
 2. Codex is not in the middle of a review, so its comments arrive in the same batch.
 3. `./gradlew check` is green.
 
-Start fixing branch-caused failures as soon as you have diagnosed them. Only the push waits. If the PR is
-`CONFLICTING` or `DIRTY`, rebase onto `origin/main`, resolve the conflicts, fold in any outstanding review fixes, run
-`check`, and push once.
+Start fixing branch-caused failures as soon as you have diagnosed them. Only the push waits. Pushing follows the
+approval rules in AGENTS.md: push the PR branch only when the owner has authorised this PR's push and merge.
+
+If the PR is `CONFLICTING` or `DIRTY`, merge `origin/main` into the PR branch. That keeps history intact. Resolve the
+conflicts, fold in any outstanding review fixes, run `check`, and push once. Rebasing rewrites the branch's history
+and needs a force push, so only rebase when the owner asks for it.
 
 After the push, resolve every bot thread on GitHub. If nothing changed for a comment, reply with the reason first. No
 bot thread may be open at merge time.
