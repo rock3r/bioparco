@@ -1543,6 +1543,25 @@ class SkippingChecksTests(unittest.TestCase):
         )
         self.assertIn("diagnose_skipping_checks", actions)
 
+    def test_codex_review_summary_status_comment_is_not_actionable(self):
+        # Codex edits this status table on every review; it never carries a finding.
+        item = {
+            "kind": "issue_comment",
+            "author": "chatgpt-codex-connector[bot]",
+            "body": "<!-- codex-pull-request-review-summary -->\n\n## Codex Review Summary\n",
+        }
+
+        self.assertFalse(watch.is_actionable_review_bot_item(item))
+
+    def test_codex_findings_are_still_actionable(self):
+        item = {
+            "kind": "review_comment",
+            "author": "chatgpt-codex-connector[bot]",
+            "body": "**P2** Avoid wrapping the initial stripe onto the right edge",
+        }
+
+        self.assertTrue(watch.is_actionable_review_bot_item(item))
+
     def test_summarize_checks_ignores_jobs_expected_to_skip_on_prs(self):
         # bioparco's recordings job only runs on pushes to main and v* tags.
         checks = [

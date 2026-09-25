@@ -95,7 +95,8 @@ when it is done. The watcher reads the reactions into `codex_gate.reviewing` and
 - Reaction gone, no comments: Codex is satisfied.
 - Reaction gone, comments posted: triage them like any other review finding.
 
-Codex also posts a "Codex Review Summary" status table as a PR comment. It is not a finding.
+Codex also keeps a "Codex Review Summary" status table as a PR comment and edits it on every review. It is not a
+finding, so the watcher ignores it.
 
 Trusted humans are authors with the `OWNER`, `MEMBER`, or `COLLABORATOR` association.
 

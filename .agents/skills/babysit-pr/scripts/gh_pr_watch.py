@@ -95,6 +95,10 @@ HUNG_CHECK_THRESHOLDS_SECONDS = {
 # failure analysis, CI workflow failures are usually deterministic
 # lint/static-analysis/code issues, while E2E failures are more likely to be
 # transient and worth one or more reruns.
+# Codex keeps one "Codex Review Summary" status table on the PR and edits it on every review.
+# It never carries a finding, so it must not surface as a review item.
+STATUS_ONLY_BOT_COMMENT_MARKER = "<!-- codex-pull-request-review-summary -->"
+
 # Jobs that are skipped on every PR by design. bioparco's `recordings` job only runs on
 # pushes to main and on v* tags, so a skipped run on a PR is normal, not a blocker.
 EXPECTED_SKIPPED_CHECK_NAMES = {
@@ -1012,6 +1016,8 @@ def is_pr_af_review_item(item, pr_af_review_ids=None, pr_af_check_present=True):
 
 def is_actionable_review_bot_item(item, pr_af_review_ids=None, pr_af_check_present=True):
     author = str(item.get("author") or "")
+    if STATUS_ONLY_BOT_COMMENT_MARKER in str(item.get("body") or ""):
+        return False
     if author.lower() == GITHUB_ACTIONS_BOT_LOGIN:
         return is_pr_af_review_item(
             item,
