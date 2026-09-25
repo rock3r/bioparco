@@ -139,5 +139,5 @@ Config-cache hygiene (does not need a display; `--dry-run` still stores the task
 A stored entry with "cannot serialize Gradle script object references" means the
 `doLast` expected-files check captured `rootProject` / script objects again.
 
-Spectre 0.6.0 from Maven Central. Helpers ride along as `testRuntimeOnly`
+Spectre 0.7.1 from Maven Central. Helpers ride along as `testRuntimeOnly`
 (`spectre-recording-macos` / `-linux` / `-windows`).

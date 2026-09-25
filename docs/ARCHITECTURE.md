@@ -45,5 +45,5 @@ JetBrains Runtime is nicer for fonts; Temurin 21 still runs the catalog.
 
 ## Spectre
 
-Recording tests depend on Spectre 0.6.0 from Maven Central (`spectre-core`,
+Recording tests depend on Spectre 0.7.1 from Maven Central (`spectre-core`,
 `spectre-testing`, `spectre-recording`, plus the platform helper artifacts).

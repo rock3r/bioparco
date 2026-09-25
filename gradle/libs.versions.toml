@@ -2,7 +2,7 @@
 kotlin = "2.4.20"
 composeMultiplatform = "1.12.0"
 jewel = "0.41.0-262.10968.63"
-spectre = "0.6.0"
+spectre = "0.7.1"
 detekt = "2.0.0-alpha.6"
 ktfmt = "0.27.0"
 composeRules = "0.6.6"
