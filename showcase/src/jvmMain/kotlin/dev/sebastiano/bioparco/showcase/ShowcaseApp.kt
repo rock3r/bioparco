@@ -1,5 +1,6 @@
 package dev.sebastiano.bioparco.showcase
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -41,7 +42,9 @@ private enum class SpecimenRoute {
 @Composable
 fun ShowcaseApp(modifier: Modifier = Modifier) {
     var route by remember { mutableStateOf(SpecimenRoute.Catalog) }
-    Column(modifier.fillMaxSize()) {
+    // Jewel themes the text but not the window. Without this, the dark theme's light text sits
+    // on the platform's light window background.
+    Column(modifier.fillMaxSize().background(JewelTheme.globalColors.panelBackground)) {
         when (route) {
             SpecimenRoute.Catalog ->
                 Catalog(
