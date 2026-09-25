@@ -89,7 +89,10 @@ fun recordingStripesProgram(startedAtMs: Long, nowMs: () -> Long): DotProgram =
             for (col in 0 until GRID) {
                 val index = row * GRID + col
                 presence[index] = DotGlyphs.Record.presence(row, col)
-                val ahead = (front - stripeCoordinate(row, col)).mod(STRIPE_PERIOD)
+                // Before the first stripe reaches a dot there is nothing to repeat: only wrap
+                // once the front has passed it, so no earlier band shows on the right at start.
+                val passed = front - stripeCoordinate(row, col)
+                val ahead = if (passed < 0f) passed else passed.mod(STRIPE_PERIOD)
                 brightness[index] = maxOf(STRIPE_FLOOR, band(ahead))
             }
         }
