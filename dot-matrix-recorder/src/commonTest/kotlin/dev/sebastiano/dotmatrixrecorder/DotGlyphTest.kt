@@ -36,7 +36,7 @@ class DotGlyphTest {
     @Test
     fun redGlyphsKeepTheCornersHidden() {
         // The record icon is a round 21-dot grid. Anything drawn in it must fit that disc.
-        val red = listOf(DotGlyphs.Record) + (1..3).map(DotGlyphs::digit)
+        val red = listOf(DotGlyphs.Record, DotGlyphs.Flash) + (1..3).map(DotGlyphs::digit)
         val corners = listOf(0 to 0, 0 to 4, 4 to 0, 4 to 4)
         for (glyph in red) {
             for ((row, col) in corners) assertEquals(0f, glyph.presence(row, col))

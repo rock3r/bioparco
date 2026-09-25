@@ -45,6 +45,9 @@ class DotGlyph private constructor(private val lit: FloatArray, private val show
 object DotGlyphs {
     val Record = DotGlyph.parse(" ... ", ".###.", ".###.", ".###.", " ... ")
 
+    /** Every lens dot lit: the beat between "1" and recording. */
+    val Flash = DotGlyph.parse(" ### ", "#####", "#####", "#####", " ### ")
+
     val Screenshot = DotGlyph.parse(".###.", "#...#", "#...#", "#...#", ".###.")
 
     val Restart = DotGlyph.parse(" ... ", "..#..", ".###.", "..#..", " ... ")
@@ -56,8 +59,9 @@ object DotGlyphs {
 
     private val digits =
         mapOf(
-            3 to DotGlyph.parse(" ### ", "....#", "..##.", "....#", " ### "),
-            2 to DotGlyph.parse(" ### ", "....#", "..##.", ".#...", " ### "),
+            // Read dot by dot off the reference video, including its odd, symmetric "3".
+            3 to DotGlyph.parse(" ### ", "#...#", "..##.", "#...#", " ### "),
+            2 to DotGlyph.parse(" ### ", "...##", ".###.", "##...", " ### "),
             1 to DotGlyph.parse(" .#. ", ".##..", "..#..", "..#..", " ### "),
         )
 

@@ -12,18 +12,20 @@ class RecorderStateTest {
     }
 
     @Test
-    fun countdownShowsThreeTwoOneThenStartsRecordingOnTheBoundary() {
+    fun countdownShowsThreeTwoOneThenFlashesThenStartsRecordingOnTheBoundary() {
         val counting = RecorderState.CountingDown(startedAtMs = 1_000)
         assertEquals(3, counting.countdownDigit(nowMs = 1_000))
-        assertEquals(3, counting.countdownDigit(nowMs = 1_999))
-        assertEquals(2, counting.countdownDigit(nowMs = 2_000))
-        assertEquals(1, counting.countdownDigit(nowMs = 3_999))
-
-        assertEquals(counting, counting.reduce(RecorderEvent.Tick(nowMs = 3_999)))
+        assertEquals(3, counting.countdownDigit(nowMs = 1_799))
+        assertEquals(2, counting.countdownDigit(nowMs = 1_800))
+        assertEquals(1, counting.countdownDigit(nowMs = 2_600))
+        assertEquals(1, counting.countdownDigit(nowMs = 3_399))
+        // The last beat is the all-dots flash, still part of the countdown.
+        assertNull(counting.countdownDigit(nowMs = 3_400))
+        assertEquals(counting, counting.reduce(RecorderEvent.Tick(nowMs = 3_599)))
         // A late frame must not eat the first recorded second.
         assertEquals(
-            RecorderState.Recording(startedAtMs = 4_000),
-            counting.reduce(RecorderEvent.Tick(nowMs = 4_250)),
+            RecorderState.Recording(startedAtMs = 3_600),
+            counting.reduce(RecorderEvent.Tick(nowMs = 3_850)),
         )
     }
 

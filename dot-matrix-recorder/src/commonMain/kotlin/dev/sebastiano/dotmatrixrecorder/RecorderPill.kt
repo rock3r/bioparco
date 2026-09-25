@@ -7,16 +7,14 @@ import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.SizeTransform
-import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
@@ -69,21 +67,34 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
 import kotlin.time.TimeSource
 import kotlinx.coroutines.delay
 
-private val Red = Color(0xFFF5143C)
-private val Ink = Color(0xFFF2F2F2)
-private val Muted = Color(0xFF6B6B6B)
-private val Surface = Color(0xFF030303)
-private val Rim = Color(0xFF3A3A3A)
-private val RowHighlight = Color(0xFF161616)
+// Sampled from the reference video.
+private val Red = Color(0xFFEA113F)
+private val Ink = Color.White
+private val Muted = Color(0xFF616161)
+private val Surface = Color.Black
+private val Rim = Color(0xFF3F3F3F)
+private val RowHighlight = Color(0xFF0D0D0D)
+
+/** Restart and Delete keep their unlit dots darker than the lens and the screenshot frame. */
+private const val SECONDARY_DIM_ALPHA = 0.14f
 
 private val LabelStyle = TextStyle(color = Ink, fontSize = 15.sp, fontFeatureSettings = "tnum")
 
+// Proportions measured on the reference against the 5×5 lens.
 private val PillHeight = 44.dp
 private val PillRadius = PillHeight / 2
 private val MenuRadius = 16.dp
+private val RowHeight = 41.dp
+private val MenuInset = 8.dp
+
+/** The dock is exactly as tall as the two-row menu, so opening it only makes it wider. */
+private val DockWidth = 55.dp
+private val DockRadius = DockWidth / 2
+private val DockIconInset = MenuInset + (RowHeight - IconSize) / 2
 
 /** Hover grace before collapsing, so the morph cannot flicker under a still pointer. */
 private const val COLLAPSE_DELAY_MS = 220L
@@ -211,8 +222,13 @@ private fun MorphingChrome(look: Look, actions: RecorderActions, modifier: Modif
     val radius =
         animateDpAsState(
             targetValue =
-                if (look.face == Face.Dock || look.face == Face.Pill) PillRadius else MenuRadius,
-            animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow),
+                when (look.face) {
+                    Face.Dock -> DockRadius
+                    Face.Pill -> PillRadius
+                    Face.Menu,
+                    Face.RecordingMenu -> MenuRadius
+                },
+            animationSpec = MorphSpec,
             label = "radius",
         )
     Box(modifier.drawBehind { drawChrome(radius.value.toPx()) }) {
@@ -251,13 +267,13 @@ private fun DockFace(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.width(PillHeight).padding(vertical = 11.dp),
+        modifier = modifier.width(DockWidth).padding(vertical = DockIconInset),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        verticalArrangement = Arrangement.spacedBy(RowHeight - IconSize),
     ) {
-        DotMatrix(
-            glyph = DotGlyphs.Record,
-            tint = Red,
+        LensIcon(
+            state = look.state,
+            nowMs = actions.nowMs,
             modifier =
                 Modifier.size(IconSize)
                     .focusRequester(primary)
@@ -298,7 +314,7 @@ private fun MenuFace(
             },
             clickLabel = if (counting == null) "Start recording" else "Cancel countdown",
             tag = RecorderTags.RECORD,
-            icon = { LensIcon(look.state, actions.nowMs) },
+            icon = { hovered -> LensIcon(look.state, actions.nowMs, hovered = hovered) },
             modifier = Modifier.focusRequester(primary),
         ) {
             Crossfade(
@@ -342,7 +358,9 @@ private fun RecordingMenuFace(
             onClick = { actions.send(RecorderEvent.RestartPressed(actions.nowMs())) },
             clickLabel = "Restart recording",
             tag = RecorderTags.RESTART,
-            icon = { DotMatrix(DotGlyphs.Restart, Ink, Modifier.size(IconSize)) },
+            icon = {
+                DotMatrix(DotGlyphs.Restart, Ink, Modifier.size(IconSize), SECONDARY_DIM_ALPHA)
+            },
         ) {
             BasicText("Restart", style = LabelStyle)
         }
@@ -350,7 +368,9 @@ private fun RecordingMenuFace(
             onClick = { actions.send(RecorderEvent.DeletePressed) },
             clickLabel = "Delete recording",
             tag = RecorderTags.DELETE,
-            icon = { DotMatrix(DotGlyphs.Delete, Ink, Modifier.size(IconSize)) },
+            icon = {
+                DotMatrix(DotGlyphs.Delete, Ink, Modifier.size(IconSize), SECONDARY_DIM_ALPHA)
+            },
         ) {
             BasicText("Delete", style = LabelStyle)
         }
@@ -361,9 +381,9 @@ private fun RecordingMenuFace(
 private fun PillFace(look: Look, actions: RecorderActions, modifier: Modifier = Modifier) {
     val counting = look.state is RecorderState.CountingDown
     Row(
-        modifier = modifier.height(PillHeight).padding(start = 13.dp, end = 17.dp),
+        modifier = modifier.height(PillHeight).padding(horizontal = 13.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         LensIcon(look.state, actions.nowMs)
         BasicText(
@@ -375,12 +395,7 @@ private fun PillFace(look: Look, actions: RecorderActions, modifier: Modifier = 
 
 @Composable
 private fun MenuColumn(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-    Column(
-        modifier = modifier.width(IntrinsicSize.Max).padding(6.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        content()
-    }
+    Column(modifier = modifier.width(IntrinsicSize.Max).padding(MenuInset)) { content() }
 }
 
 @Composable
@@ -388,7 +403,7 @@ private fun MenuRow(
     onClick: () -> Unit,
     clickLabel: String,
     tag: String,
-    icon: @Composable () -> Unit,
+    icon: @Composable (highlighted: Boolean) -> Unit,
     modifier: Modifier = Modifier,
     label: @Composable () -> Unit,
 ) {
@@ -401,12 +416,12 @@ private fun MenuRow(
         modifier =
             modifier
                 .fillMaxWidth()
-                .height(38.dp)
+                .height(RowHeight)
                 .drawBehind {
                     drawRoundRect(
                         color = RowHighlight,
                         alpha = highlight.value,
-                        cornerRadius = CornerRadius(10.dp.toPx()),
+                        cornerRadius = CornerRadius(11.dp.toPx()),
                     )
                 }
                 .clickable(
@@ -418,24 +433,36 @@ private fun MenuRow(
                 )
                 .pointerHoverIcon(PointerIcon.Hand)
                 .testTag(tag)
-                .padding(start = 8.dp, end = 16.dp),
+                .padding(horizontal = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.size(IconSize), contentAlignment = Alignment.Center) { icon() }
+        Box(Modifier.size(IconSize), contentAlignment = Alignment.Center) {
+            icon(hovered || focused)
+        }
         Spacer(Modifier.width(12.dp))
         label()
     }
 }
 
-/** The red lens: still at rest, 3-2-1 during the countdown, a sweeping band while recording. */
+/**
+ * The red lens: a shimmering rest, one stripe sweep when Record is [hovered], 3-2-1 and a flash
+ * during the countdown, and scrolling diagonal stripes while recording.
+ */
 @Composable
-private fun LensIcon(state: RecorderState, nowMs: () -> Long, modifier: Modifier = Modifier) {
+private fun LensIcon(
+    state: RecorderState,
+    nowMs: () -> Long,
+    modifier: Modifier = Modifier,
+    hovered: Boolean = false,
+) {
+    val sweep = state == RecorderState.Idle && hovered
     val program =
-        remember(state, nowMs) {
+        remember(state, nowMs, sweep) {
             when (state) {
-                RecorderState.Idle -> DotGlyphs.Record.asProgram()
+                RecorderState.Idle ->
+                    if (sweep) hoverSweepProgram(nowMs(), nowMs) else restingLensProgram(nowMs)
                 is RecorderState.CountingDown -> countdownProgram(state, nowMs)
-                is RecorderState.Recording -> recordingWaveProgram(nowMs)
+                is RecorderState.Recording -> recordingStripesProgram(state.startedAtMs, nowMs)
             }
         }
     DotMatrix(program = program, tint = Red, modifier = modifier.size(IconSize))
@@ -459,30 +486,40 @@ private fun DrawScope.drawChrome(radiusPx: Float) {
     )
 }
 
+/** The reference morphs in about 200 ms, fast at first and settling late. */
+private val MorphSpec = tween<Dp>(durationMillis = 200, easing = LinearOutSlowInEasing)
+
 private fun AnimatedContentTransitionScope<Look>.morphTransform(): ContentTransform =
-    (fadeIn(tween(durationMillis = 200, delayMillis = 60)) togetherWith
-            fadeOut(tween(durationMillis = 110)))
+    (fadeIn(tween(durationMillis = 150, delayMillis = 40)) togetherWith
+            fadeOut(tween(durationMillis = 90)))
         .using(
             SizeTransform(clip = true) { _, _ ->
-                spring(dampingRatio = 0.82f, stiffness = Spring.StiffnessMediumLow)
+                tween(durationMillis = 200, easing = LinearOutSlowInEasing)
             }
         )
 
+/** On stop or delete the pill cuts out, the spot stays empty briefly, then the dock fades in. */
 private fun AnimatedContentTransitionScope<Look>.dismissTransform(): ContentTransform =
-    (fadeIn(tween(durationMillis = 260, delayMillis = 220)) +
-        scaleIn(tween(durationMillis = 320, delayMillis = 220), initialScale = 0.9f)) togetherWith
-        (fadeOut(tween(durationMillis = 200)) +
-            scaleOut(tween(durationMillis = 220), targetScale = 0.94f)) using
+    (fadeIn(tween(durationMillis = 140, delayMillis = 270)) +
+        scaleIn(tween(durationMillis = 200, delayMillis = 270), initialScale = 0.94f)) togetherWith
+        fadeOut(tween(durationMillis = 60)) using
         SizeTransform(clip = false)
 
 /** 0 when this child is fully shown, 1 when it is fully gone. Read it in the draw phase. */
 @Composable
 private fun AnimatedVisibilityScope.rememberBlurProgress(): State<Float> =
-    transition.animateFloat(transitionSpec = { tween(220) }, label = "blur") {
+    transition.animateFloat(transitionSpec = { tween(160) }, label = "blur") {
         if (it == EnterExitState.Visible) 0f else 1f
     }
 
 private fun Modifier.blurBy(max: Dp, progress: () -> Float): Modifier = graphicsLayer {
-    val radius = progress() * max.toPx()
-    renderEffect = if (radius > 0.3f) BlurEffect(radius, radius, TileMode.Decal) else null
+    // A smoothly shrinking blur radius stalled single frames by ~100-140 ms near the end of each
+    // fade (seen with androidx.tracing: no app code ran in the gap, and no GC or safepoint).
+    // Without the blur, or with only a few fixed radii, the stalls go away. The likely cause is
+    // Skia building a new GPU blur program for each new blur size. Small radii snap to no blur.
+    val step = BlurStep.toPx()
+    val radius = (progress() * max.toPx() / step).roundToInt() * step
+    renderEffect = if (radius >= step) BlurEffect(radius, radius, TileMode.Decal) else null
 }
+
+private val BlurStep = 2.dp

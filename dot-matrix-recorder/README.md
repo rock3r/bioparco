@@ -2,7 +2,7 @@
 
 A floating record/screenshot control. Every icon is a 5×5 grid of dots. At rest it is a small
 vertical pill. When you hover it, it opens into a menu. Record counts down 3, 2, 1 on the red
-lens. Then the pill folds into a timer while a band of light sweeps across the lens.
+lens. Then the pill folds into a timer while diagonal stripes scroll across the lens.
 
 Standalone:
 
@@ -26,7 +26,7 @@ Regenerate with `./gradlew :recordings:recordSpecimens`. See [docs/RECORDING.md]
 |---|---|---|
 | Idle | Vertical pill: lens and screenshot frame | Record, Screenshot |
 | Counting down | Horizontal pill: digit and a grey `00:00` | Grey `00:00` (click to cancel), Screenshot |
-| Recording | Horizontal pill: sweeping lens and timer | Timer (click to stop), Restart, Delete |
+| Recording | Horizontal pill: striped lens and timer | Timer (click to stop), Restart, Delete |
 
 Stop and Delete both send the pill back to idle. Nothing is actually captured: the
 specimen is the control, not a screen recorder.
@@ -44,6 +44,19 @@ specimen is the control, not a screen recorder.
 - A second `AnimatedContent`, keyed on a session counter, blurs the whole pill out on Stop
   or Delete and brings the idle pill back.
 
+## Matching the reference
+
+The dot states were measured frame by frame on the 4K reference video, not eyeballed:
+
+- Recording shows diagonal stripes. They are 3.5 columns wide, repeat every 7.7 columns, scroll
+  at 6.6 columns per second, and each lower row runs 0.33 columns ahead of the row above.
+- Hovering Record runs one stripe across the resting lens, then returns to rest.
+- The countdown shows each digit for 800 ms, then flashes every dot for 200 ms. The "3" is
+  the reference's own shape, not a textbook 3.
+- At rest, the dim ring shimmers very slightly.
+- Colours, the dock size (as tall as the two-row menu), row heights, and the ~200 ms morphs come
+  from the same measurements.
+
 ## Credit
 
 The design is by [Sasha Birukoff](https://x.com/sashabirukoff), from the
@@ -57,6 +70,9 @@ Compose rebuild from that video. It does not use the original code or assets.
   redrew while no size animation was running (seen in `ImageComposeScene` renders).
 - Each face gets a frozen snapshot of the state (`Look`). Without it, the face that is leaving
   would show the new state while it fades out.
+- The fade blur uses a few fixed radii and snaps small ones to no blur. A smoothly shrinking
+  radius caused ~100 ms frame stalls near the end of each fade, with no app code, GC or
+  safepoint in the gap. Tracing with androidx.tracing and removing the blur pinned it down.
 - Collapsing waits 220 ms after the pointer leaves. Without the wait, the pill can flicker when
   the outline shrinks under a pointer that has not moved.
 - The record lens hides its four corner dots, so it reads as round. The countdown digits are
