@@ -16,6 +16,7 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.animation)
             implementation(compose.ui)
+            implementation(libs.jewel.int.ui.standalone)
         }
         jvmMain.dependencies { implementation(compose.desktop.currentOs) }
         commonTest.dependencies { implementation(kotlin("test")) }

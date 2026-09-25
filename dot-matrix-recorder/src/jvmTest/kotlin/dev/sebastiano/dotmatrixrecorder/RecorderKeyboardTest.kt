@@ -8,6 +8,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.v2.runComposeUiTest
 import kotlin.test.Test
+import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 
 @OptIn(ExperimentalTestApi::class)
 class RecorderKeyboardTest {
@@ -15,7 +16,7 @@ class RecorderKeyboardTest {
     fun focusSurvivesTheDockOpeningIntoTheMenu() = runComposeUiTest {
         // The lens never stops animating (it shimmers at rest), so idling must not chase frames.
         mainClock.autoAdvance = false
-        setContent { RecorderPill() }
+        setContent { IntUiTheme(isDark = true) { RecorderPill() } }
 
         onNodeWithTag(RecorderTags.DOCK_RECORD)
             .performSemanticsAction(SemanticsActions.RequestFocus)
@@ -29,7 +30,7 @@ class RecorderKeyboardTest {
     fun focusFollowsTheControlsFromCountdownToRecording() = runComposeUiTest {
         // The lens never stops animating, so idling must not chase the frame clock.
         mainClock.autoAdvance = false
-        setContent { RecorderPill() }
+        setContent { IntUiTheme(isDark = true) { RecorderPill() } }
         onNodeWithTag(RecorderTags.DOCK_RECORD)
             .performSemanticsAction(SemanticsActions.RequestFocus)
         mainClock.advanceTimeBy(1_000)

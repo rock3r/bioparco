@@ -4,13 +4,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,6 +19,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
+import org.jetbrains.jewel.ui.component.SegmentedControl
+import org.jetbrains.jewel.ui.component.SegmentedControlButtonData
+import org.jetbrains.jewel.ui.component.Text
 
 @Composable
 fun App(modifier: Modifier = Modifier) {
@@ -31,6 +30,16 @@ fun App(modifier: Modifier = Modifier) {
     var dark by remember { mutableStateOf(systemDark) }
     val colors = if (dark) DarkGrabbyColors else LightGrabbyColors
 
+    IntUiTheme(isDark = dark) { GrabbyScene(dark, colors, { dark = it }, modifier) }
+}
+
+@Composable
+private fun GrabbyScene(
+    dark: Boolean,
+    colors: GrabbyColors,
+    onDarkChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Box(
         modifier =
             modifier.fillMaxSize().drawBehind {
@@ -71,28 +80,22 @@ fun App(modifier: Modifier = Modifier) {
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
             )
-            Surface(
-                color = colors.toggleSurface,
-                shape = RoundedCornerShape(20.dp),
+            SegmentedControl(
+                buttons =
+                    listOf(
+                        SegmentedControlButtonData(
+                            selected = dark,
+                            content = { Text("Dark") },
+                            onSelect = { onDarkChange(true) },
+                        ),
+                        SegmentedControlButtonData(
+                            selected = !dark,
+                            content = { Text("Light") },
+                            onSelect = { onDarkChange(false) },
+                        ),
+                    ),
                 modifier = Modifier.padding(top = 8.dp),
-            ) {
-                Row(modifier = Modifier.padding(horizontal = 6.dp)) {
-                    TextButton(onClick = { dark = true }) {
-                        Text(
-                            "Dark",
-                            color = if (dark) colors.number else colors.hint,
-                            fontWeight = if (dark) FontWeight.SemiBold else FontWeight.Normal,
-                        )
-                    }
-                    TextButton(onClick = { dark = false }) {
-                        Text(
-                            "Light",
-                            color = if (!dark) colors.number else colors.hint,
-                            fontWeight = if (!dark) FontWeight.SemiBold else FontWeight.Normal,
-                        )
-                    }
-                }
-            }
+            )
         }
     }
 }

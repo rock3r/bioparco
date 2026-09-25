@@ -30,7 +30,12 @@ recordings --> grabby-stepper
 ## Invariants
 
 - Specimens stay independently runnable (`:module:run`) and embeddable (`App()` / `ChatApp()` / processing-field `App()`).
-- The showcase owns Jewel chrome. Specimens keep their own look.
+- UI controls and text are Jewel components everywhere, in the showcase and in every specimen.
+  Specimens keep their own palettes and motion; Jewel only supplies the widgets.
+- No Compose Material. The root build excludes `org.jetbrains.compose.material`, which
+  `compose.desktop.currentOs` would otherwise pull in.
+- A specimen's public `App()` wraps itself in `IntUiTheme`, so it works standalone, inside the
+  showcase, and in Spectre recording windows alike.
 - Motion-critical reads stay in `graphicsLayer` / `offset` lambdas, not composition.
 - Recordings attach to a real titled window and write MP4s under `build/recordings/`.
 

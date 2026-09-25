@@ -16,7 +16,7 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.animation)
             implementation(compose.ui)
-            implementation(compose.material3)
+            implementation(libs.jewel.int.ui.standalone)
         }
         jvmMain.dependencies { implementation(compose.desktop.currentOs) }
     }

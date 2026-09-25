@@ -32,7 +32,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
@@ -70,6 +69,7 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
 import kotlin.time.TimeSource
 import kotlinx.coroutines.delay
+import org.jetbrains.jewel.ui.component.Text
 
 // Sampled from the reference video.
 private val Red = Color(0xFFEA113F)
@@ -134,6 +134,8 @@ private class RecorderActions(
  * Collapsed it is a vertical pill. Hover opens it into a menu. Record counts down 3, 2, 1 on the
  * lens, then the pill collapses to a timer. Hover again to stop (click the timer), restart, or
  * delete.
+ *
+ * Its labels are Jewel `Text`, so it needs a Jewel theme (for example `IntUiTheme`) around it.
  */
 @Composable
 fun RecorderPill(modifier: Modifier = Modifier) {
@@ -322,8 +324,8 @@ private fun MenuFace(
                 animationSpec = tween(200),
                 label = "record",
             ) {
-                if (it) BasicText("00:00", style = LabelStyle.copy(color = Muted))
-                else BasicText("Record", style = LabelStyle)
+                if (it) Text("00:00", style = LabelStyle.copy(color = Muted))
+                else Text("Record", style = LabelStyle)
             }
         }
         MenuRow(
@@ -332,7 +334,7 @@ private fun MenuFace(
             tag = RecorderTags.SCREENSHOT,
             icon = { ShutterIcon(look.shotAtMs, actions.nowMs, Modifier.size(IconSize)) },
         ) {
-            BasicText("Screenshot", style = LabelStyle)
+            Text("Screenshot", style = LabelStyle)
         }
     }
 }
@@ -352,7 +354,7 @@ private fun RecordingMenuFace(
             icon = { LensIcon(look.state, actions.nowMs) },
             modifier = Modifier.focusRequester(primary),
         ) {
-            BasicText(formatTimer(look.seconds * 1_000), style = LabelStyle)
+            Text(formatTimer(look.seconds * 1_000), style = LabelStyle)
         }
         MenuRow(
             onClick = { actions.send(RecorderEvent.RestartPressed(actions.nowMs())) },
@@ -362,7 +364,7 @@ private fun RecordingMenuFace(
                 DotMatrix(DotGlyphs.Restart, Ink, Modifier.size(IconSize), SECONDARY_DIM_ALPHA)
             },
         ) {
-            BasicText("Restart", style = LabelStyle)
+            Text("Restart", style = LabelStyle)
         }
         MenuRow(
             onClick = { actions.send(RecorderEvent.DeletePressed) },
@@ -372,7 +374,7 @@ private fun RecordingMenuFace(
                 DotMatrix(DotGlyphs.Delete, Ink, Modifier.size(IconSize), SECONDARY_DIM_ALPHA)
             },
         ) {
-            BasicText("Delete", style = LabelStyle)
+            Text("Delete", style = LabelStyle)
         }
     }
 }
@@ -386,7 +388,7 @@ private fun PillFace(look: Look, actions: RecorderActions, modifier: Modifier = 
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         LensIcon(look.state, actions.nowMs)
-        BasicText(
+        Text(
             text = formatTimer(look.seconds * 1_000),
             style = if (counting) LabelStyle.copy(color = Muted) else LabelStyle,
         )
