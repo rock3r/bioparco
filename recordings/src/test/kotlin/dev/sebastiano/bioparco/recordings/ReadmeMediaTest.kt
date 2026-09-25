@@ -67,6 +67,29 @@ class ReadmeMediaTest {
     }
 
     @Test
+    fun mediaInsideHtmlCommentsDoesNotCount(@TempDir root: Path) {
+        val hidden = "<!-- ![New]($PREVIEW)\n\n[mp4]($PLAYABLE_MP4) -->"
+        repo(root, rootEntry = hidden, specimenReadme = hidden)
+        val problems = ReadmeMedia.problems(root)
+        assertEquals(4, problems.count { it.contains("has no") }, "$problems")
+    }
+
+    @Test
+    fun latestReleaseDownloadsAreRejected(@TempDir root: Path) {
+        val latest = "https://github.com/rock3r/bioparco/releases/latest/download/new-specimen.mp4"
+        val media = "![New]($PREVIEW)\n\n[mp4]($latest)"
+        repo(root, rootEntry = media, specimenReadme = media)
+        assertEquals(2, ReadmeMedia.problems(root).count { it.contains("downloads") })
+    }
+
+    @Test
+    fun anMp4WrittenAsAnImageIsNotALink(@TempDir root: Path) {
+        val media = "![New]($PREVIEW)\n\n![mp4]($PLAYABLE_MP4)"
+        repo(root, rootEntry = media, specimenReadme = media)
+        assertEquals(2, ReadmeMedia.problems(root).count { it.contains("no MP4 link") })
+    }
+
+    @Test
     fun theSpecimenReadmeMediaMustSitUnderTheRecordingSection(@TempDir root: Path) {
         val media = "![New]($PREVIEW)\n\n[mp4]($PLAYABLE_MP4)"
         repo(

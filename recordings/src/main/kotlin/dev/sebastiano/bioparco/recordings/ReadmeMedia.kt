@@ -10,17 +10,19 @@ import java.nio.file.Path
  */
 object ReadmeMedia {
     private val webpImage = Regex("""!\[[^\]]*]\((https?://[^)\s]+\.webp)\)""")
-    private val mp4Link = Regex("""\[[^\]]*]\((https?://[^)\s]+\.mp4)\)""")
+    // A link, not an image: `![...](...mp4)` renders as a broken image, not a playable video.
+    private val mp4Link = Regex("""(?<!!)\[[^\]]*]\((https?://[^)\s]+\.mp4)\)""")
+    private val htmlComment = Regex("""<!--[\s\S]*?-->""")
 
     /** Hosts that serve MP4s as attachments, so a browser downloads them instead of playing. */
     private val downloadingHost =
         Regex(
-            """^https://(raw\.githubusercontent\.com/|github\.com/[^/]+/[^/]+/releases/download/)"""
+            """^https://(raw\.githubusercontent\.com/|github\.com/[^/]+/[^/]+/releases/(latest/)?download/)"""
         )
 
     /** Human-readable problems, empty when every specimen is covered. */
     fun problems(root: Path): List<String> {
-        val rootReadme = Files.readString(root.resolve("README.md"))
+        val rootReadme = rendered(Files.readString(root.resolve("README.md")))
         return RecordingPaths.specimenModules(root.resolve("settings.gradle.kts")).flatMap {
             problemsFor(it, rootReadme, root.resolve(it).resolve("README.md"))
         }
@@ -35,7 +37,9 @@ object ReadmeMedia {
                 addAll(check("README.md entry for $module", entry))
             }
             val recording =
-                own.takeIf(Files::isRegularFile)?.let { recordingSection(Files.readString(it)) }
+                own.takeIf(Files::isRegularFile)?.let {
+                    recordingSection(rendered(Files.readString(it)))
+                }
             when {
                 !Files.isRegularFile(own) -> add("$module/README.md is missing")
                 recording == null -> add("$module/README.md has no `## Recording` section")
@@ -50,6 +54,9 @@ object ReadmeMedia {
                 }
             }
         }
+
+    /** [markdown] without HTML comments, which GitHub does not render. */
+    private fun rendered(markdown: String): String = markdown.replace(htmlComment, "")
 
     /** True when both texts have a [pattern] match and the first matches differ. */
     private fun differ(pattern: Regex, a: String, b: String): Boolean {
