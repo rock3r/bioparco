@@ -107,3 +107,4 @@ Working on `main` is allowed only when the owner has said so for that task.
 
 - `using-git-worktree`
 - `addressing-detekt-violations`
+- `babysit-pr`
