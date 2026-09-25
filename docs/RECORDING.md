@@ -13,10 +13,10 @@ to two places:
 
 `raw.githubusercontent.com` serves these files as `application/octet-stream` with
 `X-Content-Type-Options: nosniff`, so a browser downloads them instead of playing them.
-README entries therefore link copies hosted on static.sebastiano.dev instead: an animated
-WebP preview (`image/webp`, renders inline) and the MP4 (`video/mp4`, plays in the
-browser). Uploading there needs the owner's upload token, so the owner adds these links;
-a new specimen's PR can ship with the raw MP4 link until then.
+README entries therefore link copies hosted somewhere that serves real content types: an
+animated WebP preview (`image/webp`, which GitHub renders inline) and the MP4
+(`video/mp4`, which plays in the browser). Any static host works. Upload the two files and
+link them. bioparco's copies live on static.sebastiano.dev.
 
 Do not put `<video>` inside a markdown `| table |` cell: GitHub strips it.
 
