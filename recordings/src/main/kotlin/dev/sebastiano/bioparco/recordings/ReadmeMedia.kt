@@ -12,12 +12,14 @@ object ReadmeMedia {
     private val webpImage = Regex("""!\[[^\]]*]\((https?://[^)\s]+\.webp)\)""")
     // A link, not an image: `![...](...mp4)` renders as a broken image, not a playable video.
     private val mp4Link = Regex("""(?<!!)\[[^\]]*]\((https?://[^)\s]+\.mp4)\)""")
-    private val htmlComment = Regex("""<!--[\s\S]*?-->""")
+    // Markdown GitHub shows as source, not as media: HTML comments, fenced blocks, code spans.
+    private val unrendered = Regex("""<!--[\s\S]*?-->|(?m)^(```|~~~)[\s\S]*?^\1[^\n]*$|`[^`\n]*`""")
 
     /** Hosts that serve MP4s as attachments, so a browser downloads them instead of playing. */
     private val downloadingHost =
         Regex(
-            """^https://(raw\.githubusercontent\.com/|github\.com/[^/]+/[^/]+/releases/(latest/)?download/)"""
+            """^https?://(raw\.githubusercontent\.com/|github\.com/[^/]+/[^/]+/releases/(latest/)?download/)""",
+            RegexOption.IGNORE_CASE,
         )
 
     /** Human-readable problems, empty when every specimen is covered. */
@@ -55,8 +57,8 @@ object ReadmeMedia {
             }
         }
 
-    /** [markdown] without HTML comments, which GitHub does not render. */
-    private fun rendered(markdown: String): String = markdown.replace(htmlComment, "")
+    /** [markdown] without the parts GitHub does not render as media. */
+    private fun rendered(markdown: String): String = markdown.replace(unrendered, "")
 
     /** True when both texts have a [pattern] match and the first matches differ. */
     private fun differ(pattern: Regex, a: String, b: String): Boolean {

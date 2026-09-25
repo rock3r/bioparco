@@ -90,6 +90,22 @@ class ReadmeMediaTest {
     }
 
     @Test
+    fun plainHttpReleaseDownloadsAreRejected(@TempDir root: Path) {
+        val http = "http://github.com/rock3r/bioparco/releases/download/recordings/new-specimen.mp4"
+        val media = "![New]($PREVIEW)\n\n[mp4]($http)"
+        repo(root, rootEntry = media, specimenReadme = media)
+        assertEquals(2, ReadmeMedia.problems(root).count { it.contains("downloads") })
+    }
+
+    @Test
+    fun mediaShownOnlyAsCodeDoesNotCount(@TempDir root: Path) {
+        val fenced = "```md\n![New]($PREVIEW)\n[mp4]($PLAYABLE_MP4)\n```"
+        val inline = "`![New]($PREVIEW)` and `[mp4]($PLAYABLE_MP4)`"
+        repo(root, rootEntry = fenced, specimenReadme = inline)
+        assertEquals(4, ReadmeMedia.problems(root).count { it.contains("has no") })
+    }
+
+    @Test
     fun theSpecimenReadmeMediaMustSitUnderTheRecordingSection(@TempDir root: Path) {
         val media = "![New]($PREVIEW)\n\n[mp4]($PLAYABLE_MP4)"
         repo(
