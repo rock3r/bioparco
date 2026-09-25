@@ -18,6 +18,10 @@ animated WebP preview (`image/webp`, which GitHub renders inline) and the MP4
 (`video/mp4`, which plays in the browser). Any static host works. Upload the two files and
 link them. bioparco's copies live on static.sebastiano.dev.
 
+These hosted copies are snapshots. CI does not update them. After a tag re-records a
+specimen whose motion changed, upload the new WebP and MP4 and update its README links by
+hand.
+
 Do not put `<video>` inside a markdown `| table |` cell: GitHub strips it.
 
 **Tag `vX.Y.Z` to refresh the movies.** That is the intentional signal. The `recordings`
