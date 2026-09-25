@@ -13,30 +13,43 @@ to two places:
 
 `raw.githubusercontent.com` serves these files as `application/octet-stream` with
 `X-Content-Type-Options: nosniff`, so a browser downloads them instead of playing them.
-README entries therefore link copies hosted somewhere that serves real content types: an
-animated WebP preview (`image/webp`, which GitHub renders inline) and the MP4
-(`video/mp4`, which plays in the browser). Any static host works. Upload the two files and
-link them. bioparco's copies live on static.sebastiano.dev.
+The READMEs therefore link a third copy.
 
-Every specimen shows the same WebP and MP4 in its root README entry and in its own
-`README.md`, under `## Recording`. `ReadmeMediaTest` checks this in `./gradlew check`.
+## README media
 
-These hosted copies are snapshots. CI does not update them. After a tag re-records a
-specimen whose motion changed, upload the new WebP and MP4 and update its README links by
-hand.
+Every run of the `recordings` job also publishes each specimen's media to stable URLs on
+static.sebastiano.dev, overwriting the previous run's files:
+
+- `https://static.sebastiano.dev/stable/bioparco/<specimen>.webp`: an animated WebP preview (`image/webp`, which GitHub renders inline)
+- `https://static.sebastiano.dev/stable/bioparco/<specimen>.mp4`: the recording (`video/mp4`, which plays in the browser)
+
+The URLs never change, so the READMEs always show the latest recording. After an upload,
+Cloudflare's edge serves the previous file for at most 60 seconds.
+
+Every specimen shows both, in its root README entry and in its own `README.md` under
+`## Recording`. `ReadmeMediaTest` requires exactly these URLs in `./gradlew check`.
+
+The job cuts each preview from the MP4 with `recordings/previews/make-previews.sh`.
+[`recordings/previews/previews.tsv`](../recordings/previews/previews.tsv) sets the frame rate,
+width, length and crop per specimen. Tune a preview there, not by uploading by hand. To try
+a change locally, run the script on a folder of MP4s; it needs `ffmpeg` and `img2webp`.
+
+Uploads use the `STATIC_UPLOAD_TOKEN` Actions secret, a token scoped to the `bioparco`
+namespace.
 
 Do not put `<video>` inside a markdown `| table |` cell: GitHub strips it.
 
 **Tag `vX.Y.Z` to refresh the recordings.** That is the intentional signal. The
 `recordings` CI job records under `xvfb-run`, fails if any specimen MP4 is missing or
-empty, then uploads every `*.mp4` to the floating `recordings` release (`--clobber` /
-delete-asset) and force-pushes `recordings-assets`. A push to `main` is a backup feed of
-the same job. On a version tag the job also attaches the same MP4s to that GitHub Release
-for archival.
+empty, publishes the README media, then uploads every `*.mp4` to the floating
+`recordings` release (`--clobber` / delete-asset) and force-pushes `recordings-assets`. A
+push to `main` is a backup feed of the same job. On a version tag the job also attaches
+the same MP4s to that GitHub Release for archival.
 
-The job does not touch the README. Its links point at the hosted snapshots, so after a
-tag, re-host the WebP and MP4 of each specimen whose motion changed and update those
-links. The CI MP4 is the source for both files.
+**A new specimen** needs its stable URLs filled before its README links work. Run the CI
+workflow on the specimen's branch (`gh workflow run CI --ref <branch>`). A manual run
+records and publishes the README media, but leaves the release and `recordings-assets`
+alone.
 
 You do not need Coso, Screen Recording, a seated monitor, or a local Gradle recording
 run to get the recordings. Local regeneration is optional: useful when iterating on
@@ -93,9 +106,8 @@ If capture permission is missing, Spectre fails fast on purpose.
 
 ## Publish the movies
 
-Happy path: `git tag vX.Y.Z && git push origin vX.Y.Z`. CI refreshes the release and
-`recordings-assets`. Then refresh the hosted README snapshots for any specimen whose motion
-changed (see the top of this page). Do not `gh release upload` by hand unless the job is
+Happy path: `git tag vX.Y.Z && git push origin vX.Y.Z`. CI refreshes the README media,
+the release and `recordings-assets`. Do not `gh release upload` by hand unless the job is
 down.
 
 Emergency local publish:

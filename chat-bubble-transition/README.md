@@ -14,9 +14,9 @@ Or open it from the [showcase](../README.md).
 
 ## Recording
 
-![Chat bubble transition](https://static.sebastiano.dev/public/a54aef31-be29-455f-baf6-bbd62f3a559a.webp)
+![Chat bubble transition](https://static.sebastiano.dev/stable/bioparco/chat-bubble-transition.webp)
 
-[mp4](https://static.sebastiano.dev/public/a16ba9a3-15ed-4ea8-ae6a-7fa97945d28b.mp4)
+[mp4](https://static.sebastiano.dev/stable/bioparco/chat-bubble-transition.mp4)
 
 Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. See
 [docs/RECORDING.md](../docs/RECORDING.md).

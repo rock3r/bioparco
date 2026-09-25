@@ -14,9 +14,9 @@ Or open it from the [showcase](../README.md).
 
 ## Recording
 
-![Processing field](https://static.sebastiano.dev/public/95f54b64-486b-4270-a3a2-bc27ee39ee77.webp)
+![Processing field](https://static.sebastiano.dev/stable/bioparco/processing-field.webp)
 
-[mp4](https://static.sebastiano.dev/public/2509f71b-ae97-425e-9c53-cb88fc3702c9.mp4)
+[mp4](https://static.sebastiano.dev/stable/bioparco/processing-field.mp4)
 
 Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. See
 [docs/RECORDING.md](../docs/RECORDING.md).

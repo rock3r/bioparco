@@ -46,11 +46,12 @@ Use the local `using-git-worktree` skill when setting up an isolated workspace.
 
 ### Every Specimen Shows Its Animation
 
-Each specimen carries an animated WebP preview and an MP4 link in **two** places: its entry
-in the root README and its own `README.md`, under `## Recording`. Both show the same WebP.
-The MP4 must play in the browser, so never link `raw.githubusercontent.com` or GitHub
-release downloads: those download instead. Host the files anywhere that serves `image/webp`
-and `video/mp4`, and link them. See [docs/RECORDING.md](docs/RECORDING.md).
+Each specimen shows its animated WebP preview and links its MP4 in **two** places: its entry
+in the root README and its own `README.md`, under `## Recording`. Both use the stable URLs
+`https://static.sebastiano.dev/stable/bioparco/<specimen>.webp` and `.mp4`, which the `recordings` CI job overwrites on every run, so the
+READMEs never go stale. Never link one-off uploads, `raw.githubusercontent.com` or GitHub
+release downloads. Tune a preview in `recordings/previews/previews.tsv`. See
+[docs/RECORDING.md](docs/RECORDING.md).
 
 `ReadmeMediaTest` in `:recordings` enforces this as part of `./gradlew check`, so a new
 specimen cannot land without its preview.
@@ -62,8 +63,8 @@ specimen cannot land without its preview.
 
 `./gradlew :recordings:recordSpecimens` is **not** part of `check`. The recordings
 come from the `recordings` CI job on `v*` tags (`xvfb-run`; a push to `main` is a
-backup feed). The README links hosted WebP and MP4 snapshots of them, which CI does not
-update: see [docs/RECORDING.md](docs/RECORDING.md). Local regeneration is optional.
+backup feed). The same job publishes the README media: see
+[docs/RECORDING.md](docs/RECORDING.md). Local regeneration is optional.
 
 **Always run `./gradlew check` before the actual push.**
 

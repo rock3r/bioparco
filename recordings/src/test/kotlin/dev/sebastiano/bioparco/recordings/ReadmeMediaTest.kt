@@ -15,122 +15,66 @@ class ReadmeMediaTest {
     }
 
     @Test
+    fun aCompleteSpecimenPasses(@TempDir root: Path) {
+        repo(root, rootEntry = MEDIA, specimenReadme = MEDIA)
+        assertEquals(emptyList<String>(), problems(root))
+    }
+
+    @Test
     fun aSpecimenWithoutAPreviewIsReported(@TempDir root: Path) {
-        repo(root, rootEntry = "[mp4]($PLAYABLE_MP4)", specimenReadme = "[mp4]($PLAYABLE_MP4)")
-        val problems = ReadmeMedia.problems(root)
-        assertTrue(problems.any { it.contains("README.md") && it.contains("WebP") }, "$problems")
-        assertTrue(
-            problems.any { it.contains("new-specimen/README.md") && it.contains("WebP") },
-            "$problems",
-        )
+        val movieOnly = "[mp4]($MOVIE)"
+        repo(root, rootEntry = movieOnly, specimenReadme = movieOnly)
+        val problems = problems(root)
+        assertEquals(2, problems.count { it.contains("preview") }, "$problems")
     }
 
     @Test
-    fun linksThatDownloadInsteadOfPlayingAreReported(@TempDir root: Path) {
-        val raw =
-            "https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/new-specimen.mp4"
-        val release =
-            "https://github.com/rock3r/bioparco/releases/download/recordings/new-specimen.mp4"
-        repo(
-            root,
-            rootEntry = "![New]($PREVIEW)\n\n[mp4]($raw)",
-            specimenReadme = "![New]($PREVIEW)\n\n[mp4]($release)",
-        )
-        val problems = ReadmeMedia.problems(root)
-        assertEquals(2, problems.count { it.contains("downloads") }, "$problems")
-    }
-
-    @Test
-    fun bothReadmesMustShowTheSamePreview(@TempDir root: Path) {
-        val other = "https://static.example.com/other.webp"
-        repo(
-            root,
-            rootEntry = "![New]($PREVIEW)\n\n[mp4]($PLAYABLE_MP4)",
-            specimenReadme = "![New]($other)\n\n[mp4]($PLAYABLE_MP4)",
-        )
-        val problems = ReadmeMedia.problems(root)
-        assertEquals(1, problems.size, "$problems")
-        assertTrue(problems.single().contains("same"), "$problems")
-    }
-
-    @Test
-    fun bothReadmesMustLinkTheSameMp4(@TempDir root: Path) {
-        val other = "https://static.example.com/other.mp4"
-        repo(
-            root,
-            rootEntry = "![New]($PREVIEW)\n\n[mp4]($PLAYABLE_MP4)",
-            specimenReadme = "![New]($PREVIEW)\n\n[mp4]($other)",
-        )
-        val problems = ReadmeMedia.problems(root)
-        assertEquals(1, problems.size, "$problems")
-        assertTrue(problems.single().contains("same MP4"), "$problems")
-    }
-
-    @Test
-    fun mediaInsideHtmlCommentsDoesNotCount(@TempDir root: Path) {
-        val hidden = "<!-- ![New]($PREVIEW)\n\n[mp4]($PLAYABLE_MP4) -->"
-        repo(root, rootEntry = hidden, specimenReadme = hidden)
-        val problems = ReadmeMedia.problems(root)
-        assertEquals(4, problems.count { it.contains("has no") }, "$problems")
-    }
-
-    @Test
-    fun latestReleaseDownloadsAreRejected(@TempDir root: Path) {
-        val latest = "https://github.com/rock3r/bioparco/releases/latest/download/new-specimen.mp4"
-        val media = "![New]($PREVIEW)\n\n[mp4]($latest)"
-        repo(root, rootEntry = media, specimenReadme = media)
-        assertEquals(2, ReadmeMedia.problems(root).count { it.contains("downloads") })
+    fun anyOtherUrlIsReported(@TempDir root: Path) {
+        // An old one-off upload, or a link that downloads instead of playing.
+        val stale =
+            "![New](https://static.example.com/public/1234.webp)\n\n" +
+                "[mp4](https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/new-specimen.mp4)"
+        repo(root, rootEntry = stale, specimenReadme = MEDIA)
+        val problems = problems(root)
+        assertEquals(2, problems.size, "$problems")
+        assertTrue(problems.all { it.startsWith("README.md entry") }, "$problems")
     }
 
     @Test
     fun anMp4WrittenAsAnImageIsNotALink(@TempDir root: Path) {
-        val media = "![New]($PREVIEW)\n\n![mp4]($PLAYABLE_MP4)"
-        repo(root, rootEntry = media, specimenReadme = media)
-        assertEquals(2, ReadmeMedia.problems(root).count { it.contains("no MP4 link") })
+        val asImage = "![New]($PREVIEW)\n\n![mp4]($MOVIE)"
+        repo(root, rootEntry = asImage, specimenReadme = asImage)
+        assertEquals(2, problems(root).count { it.contains("does not link") })
     }
 
     @Test
-    fun plainHttpReleaseDownloadsAreRejected(@TempDir root: Path) {
-        val http = "http://github.com/rock3r/bioparco/releases/download/recordings/new-specimen.mp4"
-        val media = "![New]($PREVIEW)\n\n[mp4]($http)"
-        repo(root, rootEntry = media, specimenReadme = media)
-        assertEquals(2, ReadmeMedia.problems(root).count { it.contains("downloads") })
+    fun mediaInsideHtmlCommentsDoesNotCount(@TempDir root: Path) {
+        val hidden = "<!-- $MEDIA -->"
+        repo(root, rootEntry = hidden, specimenReadme = hidden)
+        assertEquals(4, problems(root).size)
     }
 
     @Test
     fun mediaShownOnlyAsCodeDoesNotCount(@TempDir root: Path) {
-        val fenced = "```md\n![New]($PREVIEW)\n[mp4]($PLAYABLE_MP4)\n```"
-        val inline = "`![New]($PREVIEW)` and `[mp4]($PLAYABLE_MP4)`"
-        repo(root, rootEntry = fenced, specimenReadme = inline)
-        assertEquals(4, ReadmeMedia.problems(root).count { it.contains("has no") })
-    }
-
-    @Test
-    fun mediaInsideMultiBacktickSpansDoesNotCount(@TempDir root: Path) {
-        val spans = "``![New]($PREVIEW)`` and ```[mp4]($PLAYABLE_MP4)```"
-        repo(root, rootEntry = spans, specimenReadme = spans)
-        assertEquals(4, ReadmeMedia.problems(root).count { it.contains("has no") })
+        val fenced = "```md\n$MEDIA\n```"
+        val spans = "``![New]($PREVIEW)`` and `[mp4]($MOVIE)`"
+        repo(root, rootEntry = fenced, specimenReadme = spans)
+        assertEquals(4, problems(root).size)
     }
 
     @Test
     fun theSpecimenReadmeMediaMustSitUnderTheRecordingSection(@TempDir root: Path) {
-        val media = "![New]($PREVIEW)\n\n[mp4]($PLAYABLE_MP4)"
         repo(
             root,
-            rootEntry = media,
-            specimenReadme = "## Concepts\n\n$media",
+            rootEntry = MEDIA,
+            specimenReadme = "## Concepts\n\n$MEDIA",
             recordingHeading = false,
         )
-        val problems = ReadmeMedia.problems(root)
+        val problems = problems(root)
         assertTrue(problems.any { it.contains("## Recording") }, "$problems")
     }
 
-    @Test
-    fun aCompleteSpecimenPasses(@TempDir root: Path) {
-        val media = "![New]($PREVIEW)\n\n[mp4]($PLAYABLE_MP4)"
-        repo(root, rootEntry = media, specimenReadme = media)
-        assertEquals(emptyList<String>(), ReadmeMedia.problems(root))
-    }
+    private fun problems(root: Path) = ReadmeMedia.problems(root, mediaBase = BASE)
 
     private fun repo(
         root: Path,
@@ -155,7 +99,9 @@ class ReadmeMediaTest {
     }
 
     private companion object {
-        const val PREVIEW = "https://static.example.com/new.webp"
-        const val PLAYABLE_MP4 = "https://static.example.com/new.mp4"
+        const val BASE = "https://static.example.com/stable/test/"
+        const val PREVIEW = "${BASE}new-specimen.webp"
+        const val MOVIE = "${BASE}new-specimen.mp4"
+        const val MEDIA = "![New]($PREVIEW)\n\n[mp4]($MOVIE)"
     }
 }
