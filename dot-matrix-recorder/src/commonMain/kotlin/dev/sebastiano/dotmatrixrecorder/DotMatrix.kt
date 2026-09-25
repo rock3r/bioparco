@@ -12,14 +12,36 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.dp
+import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.exp
-import kotlin.math.floor
+import kotlin.math.sin
 
-/** Time for a dot to cover about two thirds of the way to its new level. */
-private const val DOT_EASE_MS = 55f
-private const val DIM_ALPHA = 0.22f
+/** Time for a dot to cover about two thirds of the way to its new level (~100 ms to settle). */
+private const val DOT_EASE_MS = 35f
+internal const val DIM_ALPHA = 0.22f
 private const val SETTLED = 0.003f
+
+// The recording stripes, measured frame by frame on the reference. Units are dot columns.
+private const val STRIPE_SPEED = 6.6f // columns per second
+private const val STRIPE_PERIOD = 7.7f // from one band to the next
+private const val STRIPE_WIDTH = 3.5f
+private const val STRIPE_SKEW = 0.33f // each lower row runs this far ahead of the one above
+private const val STRIPE_EDGE = 0.35f
+private const val STRIPE_FLOOR = 0.1f // unlit dots glow a little brighter while recording
+
+/** How lit a dot is when the band's leading edge is [ahead] columns past it. */
+private fun band(ahead: Float): Float =
+    smoothstep(-STRIPE_EDGE, STRIPE_EDGE, ahead) *
+        (1f - smoothstep(STRIPE_WIDTH - STRIPE_EDGE, STRIPE_WIDTH + STRIPE_EDGE, ahead))
+
+private fun smoothstep(from: Float, to: Float, x: Float): Float {
+    val t = ((x - from) / (to - from)).coerceIn(0f, 1f)
+    return t * t * (3f - 2f * t)
+}
+
+/** Where a dot sits along the stripe direction: lower rows come first. */
+private fun stripeCoordinate(row: Int, col: Int): Float = col - STRIPE_SKEW * row
 
 /**
  * Something that paints a 5×5 target into [brightness] and [presence] (25 slots each).
@@ -45,28 +67,70 @@ internal fun DotGlyph.copyInto(brightness: FloatArray, presence: FloatArray) {
     }
 }
 
-/** 3, 2, 1 drawn on the record lens while [state] counts down. */
+/** 3, 2, 1 drawn on the record lens while [state] counts down, then a flash of every dot. */
 fun countdownProgram(state: RecorderState, nowMs: () -> Long): DotProgram =
     DotProgram { brightness, presence ->
-        DotGlyphs.digit(state.countdownDigit(nowMs()) ?: 1).copyInto(brightness, presence)
+        val digit = state.countdownDigit(nowMs())
+        (if (digit == null) DotGlyphs.Flash else DotGlyphs.digit(digit)).copyInto(
+            brightness,
+            presence,
+        )
         true
     }
 
-/** A soft band of light sweeping across the lens, left to right, while recording. */
-fun recordingWaveProgram(nowMs: () -> Long): DotProgram = DotProgram { brightness, presence ->
+/**
+ * Diagonal stripes scrolling left to right across the lens while recording. The first stripe enters
+ * from the left at [startedAtMs], straight after the countdown flash.
+ */
+fun recordingStripesProgram(startedAtMs: Long, nowMs: () -> Long): DotProgram =
+    DotProgram { brightness, presence ->
+        val front = FIRST_STRIPE_COORDINATE + (nowMs() - startedAtMs) / 1_000f * STRIPE_SPEED
+        for (row in 0 until GRID) {
+            for (col in 0 until GRID) {
+                val index = row * GRID + col
+                presence[index] = DotGlyphs.Record.presence(row, col)
+                val ahead = (front - stripeCoordinate(row, col)).mod(STRIPE_PERIOD)
+                brightness[index] = maxOf(STRIPE_FLOOR, band(ahead))
+            }
+        }
+        true
+    }
+
+/** One stripe crossing the lens when Record is hovered, then back to the resting lens. */
+fun hoverSweepProgram(startedAtMs: Long, nowMs: () -> Long): DotProgram =
+    DotProgram { brightness, presence ->
+        val front = FIRST_STRIPE_COORDINATE + (nowMs() - startedAtMs) / 1_000f * STRIPE_SPEED
+        if (front - STRIPE_WIDTH - STRIPE_EDGE > GRID - 1) {
+            DotGlyphs.Record.copyInto(brightness, presence)
+            return@DotProgram false
+        }
+        for (row in 0 until GRID) {
+            for (col in 0 until GRID) {
+                val index = row * GRID + col
+                presence[index] = DotGlyphs.Record.presence(row, col)
+                brightness[index] = band(front - stripeCoordinate(row, col))
+            }
+        }
+        true
+    }
+
+private val FIRST_STRIPE_COORDINATE = stripeCoordinate(row = GRID - 1, col = 0) - STRIPE_EDGE
+
+/** The resting lens. Its dim ring shimmers very slightly, like the reference. */
+fun restingLensProgram(nowMs: () -> Long): DotProgram = DotProgram { brightness, presence ->
+    DotGlyphs.Record.copyInto(brightness, presence)
     val seconds = nowMs() / 1_000f
-    for (row in 0 until GRID) {
-        for (col in 0 until GRID) {
-            val index = row * GRID + col
-            presence[index] = DotGlyphs.Record.presence(row, col)
-            // The band leads with the middle row, so the front reads as a curve, not a wall.
-            val phase = seconds * 0.8f - col * 0.16f + abs(row - 2) * 0.09f
-            val x = (phase - floor(phase)) - 0.5f
-            brightness[index] = exp(-(x * x) / 0.05f)
+    for (index in brightness.indices) {
+        if (brightness[index] == 0f && presence[index] > 0f) {
+            // A slow, per-dot twinkle between the dim level and a touch above it.
+            val phase = (index * 2.399f) % (2f * PI.toFloat())
+            brightness[index] = SHIMMER * (0.5f + 0.5f * sin(seconds * 1.7f + phase))
         }
     }
     true
 }
+
+private const val SHIMMER = 0.07f
 
 /** The screenshot frame snapping shut and open again after [shotAtMs]. */
 fun shutterProgram(shotAtMs: Long, nowMs: () -> Long): DotProgram =
@@ -92,7 +156,12 @@ private val ShutterCore = DotGlyph.parse(".....", ".....", "..#..", ".....", "..
  * The frame loop only writes a draw-phase tick; nothing here recomposes per frame.
  */
 @Composable
-fun DotMatrix(program: DotProgram, tint: Color, modifier: Modifier = Modifier) {
+fun DotMatrix(
+    program: DotProgram,
+    tint: Color,
+    modifier: Modifier = Modifier,
+    dimAlpha: Float = DIM_ALPHA,
+) {
     val levels = remember { DotLevels() }
     val tick = remember { mutableLongStateOf(0L) }
     LaunchedEffect(program) {
@@ -112,7 +181,7 @@ fun DotMatrix(program: DotProgram, tint: Color, modifier: Modifier = Modifier) {
         val pitch = size.minDimension / GRID
         val radius = pitch * 0.34f
         val origin = Offset((size.width - pitch * GRID) / 2f, (size.height - pitch * GRID) / 2f)
-        val dim = tint.copy(alpha = tint.alpha * DIM_ALPHA)
+        val dim = tint.copy(alpha = tint.alpha * dimAlpha)
         for (row in 0 until GRID) {
             for (col in 0 until GRID) {
                 val index = row * GRID + col
@@ -133,8 +202,18 @@ fun DotMatrix(program: DotProgram, tint: Color, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun DotMatrix(glyph: DotGlyph, tint: Color, modifier: Modifier = Modifier) {
-    DotMatrix(program = remember(glyph) { glyph.asProgram() }, tint = tint, modifier = modifier)
+fun DotMatrix(
+    glyph: DotGlyph,
+    tint: Color,
+    modifier: Modifier = Modifier,
+    dimAlpha: Float = DIM_ALPHA,
+) {
+    DotMatrix(
+        program = remember(glyph) { glyph.asProgram() },
+        tint = tint,
+        modifier = modifier,
+        dimAlpha = dimAlpha,
+    )
 }
 
 private class DotLevels {

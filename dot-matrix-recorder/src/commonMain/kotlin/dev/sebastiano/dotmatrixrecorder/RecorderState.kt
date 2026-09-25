@@ -1,9 +1,13 @@
 package dev.sebastiano.dotmatrixrecorder
 
-/** How long the 3, 2, 1 countdown lasts before recording starts. */
-const val COUNTDOWN_MS: Long = 3_000L
+/** How long each of the 3, 2, 1 digits stays on the lens. Measured from the reference video. */
+private const val MS_PER_DIGIT = 800L
 
-private const val MS_PER_DIGIT = COUNTDOWN_MS / 3
+/** The all-dots flash between "1" and recording. */
+private const val FLASH_MS = 200L
+
+/** How long the countdown lasts, flash included, before recording starts. */
+const val COUNTDOWN_MS: Long = MS_PER_DIGIT * 3 + FLASH_MS
 
 /** What the recorder is doing. Time is always passed in, so this stays plain and testable. */
 sealed interface RecorderState {
@@ -44,11 +48,11 @@ fun RecorderState.reduce(event: RecorderEvent): RecorderState =
             }
     }
 
-/** 3, 2 or 1 while counting down; `null` otherwise. */
+/** 3, 2 or 1 while counting down; `null` during the closing flash and outside the countdown. */
 fun RecorderState.countdownDigit(nowMs: Long): Int? {
     if (this !is RecorderState.CountingDown) return null
-    val step = ((nowMs - startedAtMs) / MS_PER_DIGIT).coerceIn(0, 2)
-    return 3 - step.toInt()
+    val step = ((nowMs - startedAtMs).coerceAtLeast(0) / MS_PER_DIGIT).toInt()
+    return if (step < 3) 3 - step else null
 }
 
 fun RecorderState.elapsedMs(nowMs: Long): Long =

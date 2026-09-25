@@ -13,6 +13,8 @@ import kotlin.test.Test
 class RecorderKeyboardTest {
     @Test
     fun focusSurvivesTheDockOpeningIntoTheMenu() = runComposeUiTest {
+        // The lens never stops animating (it shimmers at rest), so idling must not chase frames.
+        mainClock.autoAdvance = false
         setContent { RecorderPill() }
 
         onNodeWithTag(RecorderTags.DOCK_RECORD)
@@ -25,7 +27,7 @@ class RecorderKeyboardTest {
 
     @Test
     fun focusFollowsTheControlsFromCountdownToRecording() = runComposeUiTest {
-        // The recording lens animates forever, so idling must not chase the frame clock.
+        // The lens never stops animating, so idling must not chase the frame clock.
         mainClock.autoAdvance = false
         setContent { RecorderPill() }
         onNodeWithTag(RecorderTags.DOCK_RECORD)
