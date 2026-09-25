@@ -47,6 +47,7 @@ list):
 - `recordings/build/recordings/chat-bubble-transition.mp4`
 - `recordings/build/recordings/processing-field.mp4`
 - `recordings/build/recordings/thinking-orbs.mp4`
+- `recordings/build/recordings/dot-matrix-recorder.mp4`
 
 ### Linux / Xvfb
 
@@ -92,6 +93,7 @@ README embed URLs (stable, inline-playable):
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/chat-bubble-transition.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/processing-field.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/thinking-orbs.mp4
+- https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/dot-matrix-recorder.mp4
 
 ## What the tests do
 
@@ -113,12 +115,12 @@ a push to `main`) runs them under `xvfb-run` on Ubuntu and uploads every MP4 to 
 floating release. A skipped or empty recording fails the job instead of publishing a
 partial set.
 
-### Prove all four MP4s
+### Prove all five MP4s
 
 On the `recordings` CI job, the "Record specimens" step must list every enclosure
-as `PASSED` (`ChatBubbleRecordingTest`, `GrabbyStepperRecordingTest`,
-`ProcessingFieldRecordingTest`, `ThinkingOrbsRecordingTest`) and
-`recordings/build/recordings/` must contain four files each larger than 1 KB. The task
+as `PASSED` (`ChatBubbleRecordingTest`, `DotMatrixRecorderRecordingTest`,
+`GrabbyStepperRecordingTest`, `ProcessingFieldRecordingTest`, `ThinkingOrbsRecordingTest`)
+and `recordings/build/recordings/` must contain five files each larger than 1 KB. The task
 fails closed if any name is missing.
 
 Locally, same gate under Xvfb:
@@ -137,5 +139,5 @@ Config-cache hygiene (does not need a display; `--dry-run` still stores the task
 A stored entry with "cannot serialize Gradle script object references" means the
 `doLast` expected-files check captured `rootProject` / script objects again.
 
-Spectre 0.6.0 from Maven Central. Helpers ride along as `testRuntimeOnly`
+Spectre 0.7.1 from Maven Central. Helpers ride along as `testRuntimeOnly`
 (`spectre-recording-macos` / `-linux` / `-windows`).

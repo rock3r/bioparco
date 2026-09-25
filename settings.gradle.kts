@@ -35,6 +35,8 @@ include(":processing-field")
 
 include(":thinking-orbs")
 
+include(":dot-matrix-recorder")
+
 include(":showcase")
 
 include(":recordings")

@@ -7,11 +7,13 @@ showcase  -->  grabby-stepper
           \->  chat-bubble-transition
           \->  processing-field
           \->  thinking-orbs
+          \->  dot-matrix-recorder
 
 recordings --> grabby-stepper
            \->  chat-bubble-transition
            \->  processing-field
            \->  thinking-orbs
+           \->  dot-matrix-recorder
            \->  Spectre (Maven Central)
 ```
 
@@ -22,6 +24,7 @@ recordings --> grabby-stepper
 | `:chat-bubble-transition` | Specimen 2. Library + standalone `run`. |
 | `:processing-field` | Specimen 3. Library + standalone `run`. |
 | `:thinking-orbs` | Specimen 4. Library + standalone `run`. |
+| `:dot-matrix-recorder` | Specimen 5. Library + standalone `run`. |
 | `:recordings` | Spectre-driven recording tests. Not part of `check`. |
 
 ## Invariants
@@ -42,5 +45,5 @@ JetBrains Runtime is nicer for fonts; Temurin 21 still runs the catalog.
 
 ## Spectre
 
-Recording tests depend on Spectre 0.6.0 from Maven Central (`spectre-core`,
+Recording tests depend on Spectre 0.7.1 from Maven Central (`spectre-core`,
 `spectre-testing`, `spectre-recording`, plus the platform helper artifacts).
