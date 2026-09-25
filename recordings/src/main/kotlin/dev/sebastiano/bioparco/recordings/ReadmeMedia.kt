@@ -61,7 +61,16 @@ object ReadmeMedia {
             if (link.findAll(text).none { it.groupValues[1] == movie }) {
                 add("$where does not link the recording `[mp4]($movie)`")
             }
+            // Anything else that looks like media here is a leftover that would go stale.
+            val urls = (image.findAll(text) + link.findAll(text)).map { it.groupValues[1] }
+            urls
+                .filter { isMedia(it) && it != preview && it != movie }
+                .distinct()
+                .forEach { add("$where still shows $it; use only the stable URLs") }
         }
+
+    private fun isMedia(url: String): Boolean =
+        url.substringBefore('?').lowercase().let { it.endsWith(".webp") || it.endsWith(".mp4") }
 
     /** [markdown] without the parts GitHub does not render as media. */
     private fun rendered(markdown: String): String = markdown.replace(unrendered, "")

@@ -36,8 +36,22 @@ class ReadmeMediaTest {
                 "[mp4](https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/new-specimen.mp4)"
         repo(root, rootEntry = stale, specimenReadme = MEDIA)
         val problems = problems(root)
-        assertEquals(2, problems.size, "$problems")
+        // Both stable URLs are missing, and both wrong URLs are named.
+        assertEquals(4, problems.size, "$problems")
         assertTrue(problems.all { it.startsWith("README.md entry") }, "$problems")
+        assertTrue(problems.any { it.contains("public/1234.webp") }, "$problems")
+        assertTrue(problems.any { it.contains("raw.githubusercontent.com") }, "$problems")
+    }
+
+    @Test
+    fun leftoverMediaNextToTheStableUrlsIsReported(@TempDir root: Path) {
+        val leftovers =
+            "$MEDIA\n\n![Old](https://static.example.com/public/1234.webp)\n\n" +
+                "[old mp4](https://static.example.com/public/1234.mp4)"
+        repo(root, rootEntry = MEDIA, specimenReadme = leftovers)
+        val problems = problems(root)
+        assertEquals(2, problems.size, "$problems")
+        assertTrue(problems.all { it.contains("public/1234") }, "$problems")
     }
 
     @Test
