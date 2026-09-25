@@ -142,3 +142,9 @@ internal val lineBreathe: List<Pair<Float, Float>> =
         0.80f to 1.30f,
         1f to 0.80f,
     )
+
+internal val lineSpike: List<Pair<Float, Float>> =
+    listOf(0f to 0.80f, 0.25f to 1.30f, 0.50f to 0.90f, 0.75f to 1.40f, 1f to 0.80f)
+
+internal val lineSpike2: List<Pair<Float, Float>> =
+    listOf(0f to 1.20f, 0.25f to 0.70f, 0.50f to 1.40f, 0.75f to 0.80f, 1f to 1.20f)
