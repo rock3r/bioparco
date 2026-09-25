@@ -11,7 +11,7 @@ fun main() {
         Window(
             onCloseRequest = ::exitApplication,
             title = "Dot-matrix recorder",
-            state = rememberWindowState(size = DpSize(520.dp, 520.dp)),
+            state = rememberWindowState(size = DpSize(360.dp, 280.dp)),
         ) {
             App()
         }

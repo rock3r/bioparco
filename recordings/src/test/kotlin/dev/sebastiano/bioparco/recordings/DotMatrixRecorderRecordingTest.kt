@@ -4,6 +4,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import dev.sebastiano.dotmatrixrecorder.App
 import dev.sebastiano.dotmatrixrecorder.RecorderTags
+import dev.sebastiano.spectre.core.AutomatorNode
 import dev.sebastiano.spectre.core.ComposeAutomator
 import dev.sebastiano.spectre.recording.AutoRecorder
 import dev.sebastiano.spectre.recording.screencapturekit.asTitledWindow
@@ -26,7 +27,8 @@ class DotMatrixRecorderRecordingTest {
         val window =
             SpecimenWindow(
                 title = "bioparco · dot-matrix recorder",
-                size = DpSize(520.dp, 520.dp),
+                // Just enough room for the tallest face (the recording menu) and the hint.
+                size = DpSize(360.dp, 280.dp),
             ) {
                 App()
             }
@@ -37,22 +39,21 @@ class DotMatrixRecorderRecordingTest {
             val handle = AutoRecorder().startWindow(window.frame().asTitledWindow(), output)
             try {
                 val pill = automator.waitForNode(tag = RecorderTags.PILL)
-                val center = pill.centerOnScreen
-                // Park the pointer beside the pill, then glide in so the hover reads.
-                automator.moveTo(center.x - 160, center.y)
+                // Park the pointer in the gap left of the pill, then glide in so the hover reads.
+                automator.parkBeside(pill)
                 delay(900)
                 automator.moveTo(pill)
                 delay(900)
                 automator.click(automator.waitForNode(tag = RecorderTags.RECORD))
                 // 3, 2, 1, then the menu turns into timer, restart, delete.
                 delay(3_900)
-                automator.moveTo(center.x - 160, center.y)
+                automator.parkBeside(automator.waitForNode(tag = RecorderTags.PILL))
                 delay(3_000)
                 automator.moveTo(automator.waitForNode(tag = RecorderTags.PILL))
                 delay(900)
                 automator.click(automator.waitForNode(tag = RecorderTags.STOP))
                 delay(700)
-                automator.moveTo(center.x - 160, center.y)
+                automator.parkBeside(automator.waitForNode(tag = RecorderTags.PILL))
                 delay(1_200)
             } finally {
                 handle.stop()
@@ -62,4 +63,10 @@ class DotMatrixRecorderRecordingTest {
         }
         assertTrue(Files.size(output) > 1_000, "expected a non-empty $output")
     }
+}
+
+/** Moves the pointer just outside the left edge of [node], wherever the pill has grown to. */
+private suspend fun ComposeAutomator.parkBeside(node: AutomatorNode) {
+    val bounds = node.boundsOnScreen
+    moveTo(bounds.x - 24, bounds.y + bounds.height / 2)
 }

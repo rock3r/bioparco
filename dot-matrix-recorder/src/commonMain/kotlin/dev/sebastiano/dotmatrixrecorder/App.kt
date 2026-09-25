@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -19,8 +20,15 @@ fun App(modifier: Modifier = Modifier) {
         RecorderPill(Modifier.align(Alignment.Center))
         BasicText(
             text = "Hover the pill. Record counts down; hover again to stop, restart, or delete.",
-            style = TextStyle(color = Color(0xFF4A4A4A), fontSize = 12.sp),
-            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 20.dp),
+            style =
+                TextStyle(
+                    color = Color(0xFF4A4A4A),
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Center,
+                ),
+            modifier =
+                Modifier.align(Alignment.BottomCenter)
+                    .padding(horizontal = 24.dp, vertical = 14.dp),
         )
     }
 }
