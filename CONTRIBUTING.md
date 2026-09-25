@@ -9,9 +9,10 @@ New specimens should:
 - be a Gradle submodule imported by `:showcase`
 - ship a README with concepts, references, and the tricky bits
 - grow a Spectre recording test next to the others in `:recordings`
-- after it lands, tag `vX.Y.Z` so CI re-cuts the recordings, then host a WebP preview and
-  the MP4 and link them from the README (see [docs/RECORDING.md](docs/RECORDING.md)). Do not
-  `gh release upload` in the happy path.
+- show its animation: an animated WebP preview and a playable MP4 link, in both its root
+  README entry and its own README (see [docs/RECORDING.md](docs/RECORDING.md)).
+  `./gradlew check` fails without them. Make them from a local Spectre recording or the CI
+  one. Do not `gh release upload` in the happy path.
 
 ## Pull requests
 

@@ -20,9 +20,9 @@ an eye for detail, and the passion to care about these things.
 
 **Seb** ([rock3r](https://github.com/rock3r)) · [Vishal’s original](https://x.com/iamvishal16_ios/status/2100596660032172287)
 
-![Grabby stepper](https://static.sebastiano.dev/public/74d7fbbb-0f95-4660-9a99-4977907ad265.webp)
+![Grabby stepper](https://static.sebastiano.dev/public/591216f5-6742-4352-99e5-5153377f94df.webp)
 
-[mp4](https://static.sebastiano.dev/public/c07c7530-b94a-47f9-80c6-b9cff3007dbe.mp4)
+[mp4](https://static.sebastiano.dev/public/5de810a2-d521-4e4c-80d2-a872b96468a7.mp4)
 
 ### [Chat bubble transition](chat-bubble-transition/)
 
@@ -36,15 +36,15 @@ an eye for detail, and the passion to care about these things.
 
 **Chris** ([c5inco](https://github.com/c5inco)) · [Haplo ProcessingField](https://github.com/haplollc/ProcessingField)
 
-![Processing field](https://static.sebastiano.dev/public/9ba8d684-f078-4601-a788-cbc43ee77a3e.webp)
+![Processing field](https://static.sebastiano.dev/public/95f54b64-486b-4270-a3a2-bc27ee39ee77.webp)
 
-[mp4](https://static.sebastiano.dev/public/0f1a3f5f-cc47-4291-bc08-e0d852e4abfb.mp4)
+[mp4](https://static.sebastiano.dev/public/2509f71b-ae97-425e-9c53-cb88fc3702c9.mp4)
 
 ### [Thinking Orbs](thinking-orbs/)
 
 **Chris** · [Haplo ThinkingOrbs](https://github.com/haplollc/ThinkingOrbs)
 
-![Thinking Orbs](https://static.sebastiano.dev/public/47905992-e9e5-4826-9d75-2b9c205de570.webp)
+![Thinking Orbs](https://static.sebastiano.dev/public/f9cb4a37-fd43-4dfc-8370-80750de8f85f.webp)
 
 [mp4](https://static.sebastiano.dev/public/a87a0cc8-46cf-4154-8f27-8279a215a757.mp4)
 
