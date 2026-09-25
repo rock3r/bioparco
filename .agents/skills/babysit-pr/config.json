@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "local_gate": "./gradlew check",
+  "required_checks": ["check"],
+  "expected_skipped_checks": ["recordings"]
+}
