@@ -225,6 +225,24 @@ class BeamMathTest {
         assertEquals(frozen + 0.1f, clock.seconds, 0.02f)
     }
 
+    @Test
+    fun playbackResumesFromAPauseWithoutBackdatingTheFade() {
+        val clock = BeamPlaybackClock()
+        clock.onFrame(nanos(0.0), active = true)
+        clock.onFrame(nanos(0.1), active = true)
+        val faded = clock.opacity
+        val seconds = clock.seconds
+
+        clock.pause()
+        clock.onFrame(nanos(30.0), active = true)
+        assertEquals(faded, clock.opacity, TOLERANCE)
+        assertEquals(seconds, clock.seconds, TOLERANCE)
+
+        clock.onFrame(nanos(30.3), active = true)
+        assertEquals(faded + 0.5f, clock.opacity, TOLERANCE)
+        assertEquals(seconds + 0.3f, clock.seconds, TOLERANCE)
+    }
+
     private fun assertMatrix(expected: FloatArray, actual: FloatArray) {
         assertEquals(expected.size, actual.size)
         expected.indices.forEach { index ->

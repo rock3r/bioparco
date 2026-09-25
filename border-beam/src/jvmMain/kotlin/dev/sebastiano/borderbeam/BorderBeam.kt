@@ -43,7 +43,10 @@ fun BorderBeam(
     LaunchedEffect(playback) {
         while (isActive) {
             // A zero-strength beam draws nothing, so stop asking for frames until it can show.
-            if (strengthNow.value <= 0f) snapshotFlow { strengthNow.value > 0f }.first { it }
+            if (strengthNow.value <= 0f) {
+                playback.pause()
+                snapshotFlow { strengthNow.value > 0f }.first { it }
+            }
             withFrameNanos { frameNanos ->
                 playback.onFrame(frameNanos, activeNow.value)
                 seconds.floatValue = playback.seconds
