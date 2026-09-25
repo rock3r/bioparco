@@ -149,9 +149,16 @@ Stop the review loop and ask the owner when any of these hold:
 
 ## Post-merge cleanup
 
-When the PR is merged (`stop_pr_closed`), clean up local state. Skip any step whose branch or worktree does not exist.
+`stop_pr_closed` fires for a PR that was closed without merging, too. Clean up only when the PR was merged: check
+`pr.merged` in the snapshot, or run `gh pr view <n> --json mergedAt` and confirm that `mergedAt` is set. For a PR
+that was closed without merging, keep everything and tell the owner.
 
-1. If you are on the PR branch, switch to `main`.
+Run every step from the main checkout, never from inside the PR's worktree. Skip any step whose worktree or branch
+does not exist.
+
+1. If `git worktree list` shows the PR branch in a linked worktree, run `git worktree remove <path>`. Git refuses
+   when the worktree has uncommitted changes. Do not force it; tell the owner instead. Remove the worktree before
+   deleting the branch, because Git will not delete a branch that a worktree still uses.
 2. Delete the local branch only when nothing would be lost. Squash merges leave the branch looking unmerged, so
    `git branch -d` refuses and `git branch -D` is needed. Force-deleting a branch is a destructive history change, so
    first prove that the local tip is exactly the head that was merged:
@@ -162,7 +169,4 @@ When the PR is merged (`stop_pr_closed`), clean up local state. Skip any step wh
    ```
 
    If the local tip differs, it has commits that were never merged. Keep the branch, and tell the owner.
-3. If `git worktree list` shows the branch in a worktree, run `git worktree remove <path>` from the main checkout,
-   never from inside the worktree you are removing. `git worktree remove` refuses when the worktree has uncommitted
-   changes. Do not force it; tell the owner instead.
-4. Run `git pull --ff-only` on `main`.
+3. Run `git pull --ff-only` on `main` in the main checkout.
