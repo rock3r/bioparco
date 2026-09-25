@@ -16,6 +16,8 @@ jobs:
           distribution: jetbrains
           java-version: "25"
       - uses: gradle/actions/setup-gradle@v4
+      - name: PR watcher tests
+        run: python3 -m unittest discover -s .agents/skills/babysit-pr/scripts -p 'test_*.py'
       - run: ./gradlew check
 
   recordings:
