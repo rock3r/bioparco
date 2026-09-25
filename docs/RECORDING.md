@@ -8,8 +8,14 @@ to two places:
 
 - the floating GitHub Release named [`recordings`](https://github.com/rock3r/bioparco/releases/tag/recordings)
   (download / archive; browsers treat these URLs as attachments)
-- the `recordings-assets` branch under `media/*.mp4`, which
-  `raw.githubusercontent.com` serves as `video/mp4` for README `<video>` tags
+- the `recordings-assets` branch under `media/*.mp4`, at stable
+  `raw.githubusercontent.com` URLs
+
+`raw.githubusercontent.com` serves these files as `application/octet-stream` with
+`X-Content-Type-Options: nosniff`, so a browser downloads them instead of playing them.
+For a README entry that plays, upload an animated WebP preview and the MP4 to
+static.sebastiano.dev (the `pr-asset-upload` skill), which serves them as `image/webp`
+and `video/mp4`.
 
 Do not put `<video>` inside a markdown `| table |` cell: GitHub strips it.
 
@@ -87,9 +93,9 @@ gh release view recordings || gh release create recordings --title "specimen rec
 gh release upload recordings recordings/build/recordings/*.mp4 --clobber
 ```
 
-Also refresh `recordings-assets` (`media/*.mp4`) so README `<video>` tags keep playing.
+Also refresh `recordings-assets` (`media/*.mp4`) so the stable download URLs stay current.
 
-README embed URLs (stable, inline-playable):
+Stable download URLs:
 
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/grabby-stepper.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/chat-bubble-transition.mp4

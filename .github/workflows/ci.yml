@@ -92,7 +92,7 @@ jobs:
             echo "No MP4s under $dir — nothing to publish to recordings-assets." >&2
             exit 1
           fi
-          # README embeds need raw.githubusercontent.com (video/mp4, not attachment).
+          # Stable raw.githubusercontent.com URLs. They download (octet-stream); they do not play inline.
           # Bearer extraheaders are ignored by git-over-HTTPS; git then prompts
           # for a username and dies with exit 128. Use gh as the credential helper.
           work=$(mktemp -d)
