@@ -49,6 +49,8 @@ import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -111,6 +113,8 @@ private class RecorderActions(
     val nowMs: () -> Long,
     val send: (RecorderEvent) -> Unit,
     val shoot: () -> Unit,
+    /** True while keyboard focus is on one of the pill's controls. */
+    val focusInside: () -> Boolean,
 )
 
 /**
@@ -146,6 +150,10 @@ fun RecorderPill(modifier: Modifier = Modifier) {
         }
     }
 
+    val interaction = remember { MutableInteractionSource() }
+    val hovered by interaction.collectIsHoveredAsState()
+    var focused by remember { mutableStateOf(false) }
+
     val actions =
         remember(nowMs) {
             RecorderActions(
@@ -156,12 +164,10 @@ fun RecorderPill(modifier: Modifier = Modifier) {
                     state = next
                 },
                 shoot = { shotAtMs = nowMs() },
+                focusInside = { focused },
             )
         }
 
-    val interaction = remember { MutableInteractionSource() }
-    val hovered by interaction.collectIsHoveredAsState()
-    var focused by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
     LaunchedEffect(hovered, focused) {
         if (hovered || focused) {
@@ -218,11 +224,18 @@ private fun MorphingChrome(look: Look, actions: RecorderActions, modifier: Modif
             label = "face",
         ) { faceLook ->
             val blur = rememberBlurProgress()
+            // Removing a focused control clears focus from the whole window. When the face
+            // changes under keyboard focus, hand it to the new face's main control instead, so
+            // the pill stays open and reachable. The pill face is only shown without focus.
+            val primary = remember { FocusRequester() }
+            LaunchedEffect(Unit) {
+                if (faceLook.face != Face.Pill && actions.focusInside()) primary.requestFocus()
+            }
             Box(Modifier.blurBy(max = 6.dp) { blur.value }) {
                 when (faceLook.face) {
-                    Face.Dock -> DockFace(faceLook, actions)
-                    Face.Menu -> MenuFace(faceLook, actions)
-                    Face.RecordingMenu -> RecordingMenuFace(faceLook, actions)
+                    Face.Dock -> DockFace(faceLook, actions, primary)
+                    Face.Menu -> MenuFace(faceLook, actions, primary)
+                    Face.RecordingMenu -> RecordingMenuFace(faceLook, actions, primary)
                     Face.Pill -> PillFace(faceLook, actions)
                 }
             }
@@ -231,7 +244,12 @@ private fun MorphingChrome(look: Look, actions: RecorderActions, modifier: Modif
 }
 
 @Composable
-private fun DockFace(look: Look, actions: RecorderActions, modifier: Modifier = Modifier) {
+private fun DockFace(
+    look: Look,
+    actions: RecorderActions,
+    primary: FocusRequester,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier = modifier.width(PillHeight).padding(vertical = 11.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -242,6 +260,7 @@ private fun DockFace(look: Look, actions: RecorderActions, modifier: Modifier = 
             tint = Red,
             modifier =
                 Modifier.size(IconSize)
+                    .focusRequester(primary)
                     .clickable(onClickLabel = "Record", role = Role.Button) {
                         actions.send(RecorderEvent.RecordPressed(actions.nowMs()))
                     }
@@ -262,7 +281,12 @@ private fun DockFace(look: Look, actions: RecorderActions, modifier: Modifier = 
 }
 
 @Composable
-private fun MenuFace(look: Look, actions: RecorderActions, modifier: Modifier = Modifier) {
+private fun MenuFace(
+    look: Look,
+    actions: RecorderActions,
+    primary: FocusRequester,
+    modifier: Modifier = Modifier,
+) {
     val counting = look.state as? RecorderState.CountingDown
     MenuColumn(modifier) {
         MenuRow(
@@ -275,6 +299,7 @@ private fun MenuFace(look: Look, actions: RecorderActions, modifier: Modifier = 
             clickLabel = if (counting == null) "Start recording" else "Cancel countdown",
             tag = RecorderTags.RECORD,
             icon = { LensIcon(look.state, actions.nowMs) },
+            modifier = Modifier.focusRequester(primary),
         ) {
             Crossfade(
                 targetState = counting != null,
@@ -297,13 +322,19 @@ private fun MenuFace(look: Look, actions: RecorderActions, modifier: Modifier = 
 }
 
 @Composable
-private fun RecordingMenuFace(look: Look, actions: RecorderActions, modifier: Modifier = Modifier) {
+private fun RecordingMenuFace(
+    look: Look,
+    actions: RecorderActions,
+    primary: FocusRequester,
+    modifier: Modifier = Modifier,
+) {
     MenuColumn(modifier) {
         MenuRow(
             onClick = { actions.send(RecorderEvent.StopPressed) },
             clickLabel = "Stop recording",
             tag = RecorderTags.STOP,
             icon = { LensIcon(look.state, actions.nowMs) },
+            modifier = Modifier.focusRequester(primary),
         ) {
             BasicText(formatTimer(look.seconds * 1_000), style = LabelStyle)
         }
