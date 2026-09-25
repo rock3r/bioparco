@@ -388,3 +388,57 @@ internal fun derivedInnerBlobs(variant: BeamColorVariant): List<BeamBlob> {
         blob.copy(a = alpha, rx = blob.rx * 0.9f, ry = blob.ry * 0.9f)
     }
 }
+
+/** `PULSE_INNER_SIZES`: pulse-inner `::before` radii, one per border blob. */
+private val pulseInnerSizes: List<Pair<Float, Float>> =
+    listOf(
+        65f to 35f,
+        55f to 30f,
+        35f to 65f,
+        15f to 30f,
+        173f to 28f,
+        80f to 22f,
+        69f to 28f,
+        22f to 38f,
+        47f to 44f,
+    )
+
+/** `PULSE_INNER_BLOOM`: palette index, region, quadrant and radii of the pulse-inner bloom. */
+private data class PulseBloomEntry(
+    val index: Int,
+    val region: Int,
+    val corner: BeamCorner,
+    val rx: Float,
+    val ry: Float,
+)
+
+private val pulseInnerBloomTable: List<PulseBloomEntry> =
+    listOf(
+        PulseBloomEntry(0, 1, BeamCorner.Tl, 84f, 48f),
+        PulseBloomEntry(1, 2, BeamCorner.Tl, 72f, 42f),
+        PulseBloomEntry(2, 3, BeamCorner.Bl, 48f, 84f),
+        PulseBloomEntry(4, 2, BeamCorner.Br, 216f, 38f),
+        PulseBloomEntry(5, 3, BeamCorner.Br, 102f, 31f),
+        PulseBloomEntry(6, 1, BeamCorner.Tr, 89f, 38f),
+        PulseBloomEntry(8, 3, BeamCorner.Tr, 62f, 58f),
+    )
+
+/** Pulse-inner `::before`: the border blobs at their smaller inner sizes. */
+internal fun pulseInnerBlobs(variant: BeamColorVariant): List<BeamBlob> =
+    borderBlobs(variant).mapIndexed { index, blob ->
+        val (rx, ry) = pulseInnerSizes[index]
+        blob.copy(rx = rx, ry = ry)
+    }
+
+/** Pulse-inner bloom: seven border colors at wider sizes, at their palette positions. */
+internal fun pulseInnerBloomBlobs(variant: BeamColorVariant): List<BeamBlob> {
+    val palette = borderBlobs(variant)
+    return pulseInnerBloomTable.map { entry ->
+        palette[entry.index].copy(
+            rx = entry.rx,
+            ry = entry.ry,
+            region = entry.region,
+            corner = entry.corner,
+        )
+    }
+}

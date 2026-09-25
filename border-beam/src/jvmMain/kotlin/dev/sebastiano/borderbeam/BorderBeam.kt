@@ -50,7 +50,7 @@ fun BorderBeam(
         modifier.drawWithContent {
             val time = seconds.floatValue
             val opacity = fade.floatValue
-            drawBeamBehind(size, colorVariant, theme, strength, time, opacity)
+            drawBeamBehind(size, colorVariant, theme, strength, time, opacity, borderRadius.toPx())
             drawContent()
             drawBeamFront(size, colorVariant, theme, strength, time, opacity, borderRadius.toPx())
         },
@@ -65,9 +65,10 @@ private fun DrawScope.drawBeamBehind(
     strength: Float,
     seconds: Float,
     fade: Float,
+    radius: Float,
 ) {
     if (size != BeamSize.PulseOutside || fade <= 0.002f || strength <= 0f) return
-    drawPulseHalo(variant, theme, strength, seconds, fade)
+    drawPulseHalo(variant, theme, strength, seconds, fade, radius)
 }
 
 private fun DrawScope.drawBeamFront(

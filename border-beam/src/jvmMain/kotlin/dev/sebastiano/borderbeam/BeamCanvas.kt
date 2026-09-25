@@ -13,9 +13,7 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
-import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
@@ -52,66 +50,16 @@ internal fun colorMatrix4x5(hueDegrees: Float, brightness: Float, saturation: Fl
     )
 }
 
-internal fun DrawScope.withFilteredLayer(
-    alpha: Float,
-    colorMatrix: FloatArray?,
-    blurPx: Float,
-    outset: Float = 0f,
-    blendMode: BlendMode = BlendMode.SrcOver,
-    block: DrawScope.() -> Unit,
-) {
-    if (alpha <= 0.002f) return
-    val paint =
-        Paint().apply {
-            this.alpha = alpha.coerceIn(0f, 1f)
-            this.blendMode = blendMode
-            if (colorMatrix != null) {
-                colorFilter = ColorFilter.colorMatrix(ColorMatrix(colorMatrix))
-            }
-            if (blurPx > 0.5f) {
-                // CSS blur() is a Gaussian std-deviation, but a 1px ring at that sigma
-                // collapses under Skia. Callers pass a larger sigma when the aura must read.
-                skiaPaint.maskFilter = MaskFilter.makeBlur(FilterBlurMode.NORMAL, blurPx, true)
-            }
-        }
-    val bounds = Rect(-outset, -outset, size.width + outset, size.height + outset)
-    drawIntoCanvas { canvas -> canvas.saveLayer(bounds, paint) }
-    try {
-        block()
-    } finally {
-        drawIntoCanvas { canvas -> canvas.restore() }
-    }
-}
-
-internal fun DrawScope.drawSoftEllipse(
-    center: Offset,
-    radiusX: Float,
-    radiusY: Float,
-    color: Color,
-) {
-    if (radiusX < 0.4f || radiusY < 0.4f || color.alpha <= 0.004f) return
-    val brush =
-        Brush.radialGradient(
-            colors = listOf(color, color.copy(alpha = 0f)),
-            center = Offset.Zero,
-            radius = 1f,
-        )
-    translate(center.x, center.y) {
-        scale(radiusX, radiusY, pivot = Offset.Zero) {
-            drawCircle(brush = brush, radius = 1f, center = Offset.Zero)
-        }
-    }
-}
-
 /** Paints CSS `radial-gradient` blobs, first on top. [scale] turns CSS px radii into pixels. */
 internal fun DrawScope.drawBlobList(blobs: List<BeamBlob>, scale: Float = 1f) {
     for (index in blobs.lastIndex downTo 0) {
         val blob = blobs[index]
-        drawSoftEllipse(
+        val color = Color(blob.r, blob.g, blob.b).copy(alpha = blob.a.coerceIn(0f, 1f))
+        drawEllipseGradient(
             center = Offset(blob.x * size.width, blob.y * size.height),
             radiusX = blob.rx * scale,
             radiusY = blob.ry * scale,
-            color = Color(blob.r / 255f, blob.g / 255f, blob.b / 255f, blob.a.coerceIn(0f, 1f)),
+            stops = arrayOf(0f to color, 1f to color.copy(alpha = 0f)),
         )
     }
 }
@@ -140,60 +88,6 @@ internal fun DrawScope.drawConicWash(
             blendMode = blendMode,
         )
     }
-}
-
-internal fun DrawScope.drawEllipseMask(center: Offset, radiusX: Float, radiusY: Float) {
-    if (radiusX < 0.4f || radiusY < 0.4f) return
-    val brush =
-        Brush.radialGradient(
-            colorStops =
-                arrayOf(
-                    0f to Color.White,
-                    0.45f to Color.White.copy(alpha = 0.5f),
-                    1f to Color.Transparent,
-                ),
-            center = Offset.Zero,
-            radius = 1f,
-        )
-    val cover = maxOf(size.width, size.height) / minOf(radiusX, radiusY) * 2f
-    translate(center.x, center.y) {
-        scale(radiusX, radiusY, pivot = Offset.Zero) {
-            drawRect(
-                brush = brush,
-                topLeft = Offset(-cover, -cover),
-                size = Size(cover * 2f, cover * 2f),
-                blendMode = BlendMode.DstIn,
-            )
-        }
-    }
-}
-
-internal fun DrawScope.clipRounded(radius: Float, block: DrawScope.() -> Unit) {
-    val path =
-        Path().apply {
-            addRoundRect(RoundRect(Rect(0f, 0f, size.width, size.height), CornerRadius(radius)))
-        }
-    clipPath(path, block = block)
-}
-
-internal fun DrawScope.clipRing(radius: Float, band: Float, block: DrawScope.() -> Unit) {
-    val outer =
-        Path().apply {
-            addRoundRect(RoundRect(Rect(0f, 0f, size.width, size.height), CornerRadius(radius)))
-        }
-    val inset = band.coerceAtLeast(0.75f)
-    val innerRadius = (radius - inset).coerceAtLeast(0f)
-    val inner =
-        Path().apply {
-            addRoundRect(
-                RoundRect(
-                    Rect(inset, inset, size.width - inset, size.height - inset),
-                    CornerRadius(innerRadius),
-                )
-            )
-        }
-    val ring = Path().apply { op(outer, inner, PathOperation.Difference) }
-    clipPath(ring, block = block)
 }
 
 internal fun DrawScope.roundedPath(inset: Float, radius: Float): Path =
@@ -313,6 +207,7 @@ internal inline fun DrawScope.withLayer(
     colorMatrix: FloatArray? = null,
     blurSigma: Float = 0f,
     blendMode: BlendMode = BlendMode.SrcOver,
+    outset: Float = 0f,
     block: DrawScope.() -> Unit,
 ) {
     if (alpha <= MIN_LAYER_ALPHA) return
@@ -326,7 +221,7 @@ internal inline fun DrawScope.withLayer(
                     ImageFilter.makeBlur(blurSigma, blurSigma, FilterTileMode.DECAL)
             }
         }
-    drawIntoCanvas { canvas -> canvas.saveLayer(Rect(Offset.Zero, size), paint) }
+    drawIntoCanvas { canvas -> canvas.saveLayer(Rect(Offset.Zero, size).inflate(outset), paint) }
     try {
         block()
     } finally {
