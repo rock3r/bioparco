@@ -17,11 +17,14 @@ object RecordingPaths {
     private val includePattern = Regex("""include\(":([^"]+)"\)""")
 
     fun expectedNames(settingsFile: Path = settingsGradleKts()): List<String> =
+        specimenModules(settingsFile).map { "$it.mp4" }
+
+    /** The specimen modules included in [settingsFile], in include order. */
+    fun specimenModules(settingsFile: Path = settingsGradleKts()): List<String> =
         includePattern
             .findAll(Files.readString(settingsFile))
             .map { it.groupValues[1] }
             .filter { it !in houseModules }
-            .map { "$it.mp4" }
             .toList()
 
     fun settingsGradleKts(start: Path = Path.of("").toAbsolutePath()): Path {

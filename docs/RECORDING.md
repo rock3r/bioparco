@@ -18,6 +18,9 @@ animated WebP preview (`image/webp`, which GitHub renders inline) and the MP4
 (`video/mp4`, which plays in the browser). Any static host works. Upload the two files and
 link them. bioparco's copies live on static.sebastiano.dev.
 
+Every specimen shows the same WebP and MP4 in its root README entry and in its own
+`README.md`, under `## Recording`. `ReadmeMediaTest` checks this in `./gradlew check`.
+
 These hosted copies are snapshots. CI does not update them. After a tag re-records a
 specimen whose motion changed, upload the new WebP and MP4 and update its README links by
 hand.

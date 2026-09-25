@@ -44,6 +44,17 @@ Plans belong in `.plans/` at the repo root, which should stay gitignored.
 
 Use the local `using-git-worktree` skill when setting up an isolated workspace.
 
+### Every Specimen Shows Its Animation
+
+Each specimen carries an animated WebP preview and an MP4 link in **two** places: its entry
+in the root README and its own `README.md`, under `## Recording`. Both show the same WebP.
+The MP4 must play in the browser, so never link `raw.githubusercontent.com` or GitHub
+release downloads: those download instead. Host the files anywhere that serves `image/webp`
+and `video/mp4`, and link them. See [docs/RECORDING.md](docs/RECORDING.md).
+
+`ReadmeMediaTest` in `:recordings` enforces this as part of `./gradlew check`, so a new
+specimen cannot land without its preview.
+
 ### Pre-push checklist
 
 - [ ] `./gradlew check` passes (detekt + ktfmt + unit tests).

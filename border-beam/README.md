@@ -13,9 +13,14 @@ Standalone:
 
 Or open it from the [showcase](../README.md).
 
-Recording:
+## Recording
 
-https://github.com/rock3r/bioparco/releases/download/recordings/border-beam.mp4
+![Border beam](https://static.sebastiano.dev/public/81fb11e5-0b99-4baf-8bd8-7ea269d75bdc.webp)
+
+[mp4](https://static.sebastiano.dev/public/f284f1c3-b80b-458e-af76-6632575a5f42.mp4)
+
+Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. See
+[docs/RECORDING.md](../docs/RECORDING.md).
 
 ## Credit and license
 

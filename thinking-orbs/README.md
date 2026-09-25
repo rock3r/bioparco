@@ -12,9 +12,14 @@ Standalone:
 
 Or open it from the [showcase](../README.md).
 
-Recording:
+## Recording
 
-https://github.com/rock3r/bioparco/releases/download/recordings/thinking-orbs.mp4
+![Thinking Orbs](https://static.sebastiano.dev/public/47905992-e9e5-4826-9d75-2b9c205de570.webp)
+
+[mp4](https://static.sebastiano.dev/public/a87a0cc8-46cf-4154-8f27-8279a215a757.mp4)
+
+Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. See
+[docs/RECORDING.md](../docs/RECORDING.md).
 
 ## Designs
 
