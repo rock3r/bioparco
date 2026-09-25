@@ -84,6 +84,27 @@ class RecordingPathsTest {
     }
 
     @Test
+    fun specimenModulesReadEveryIncludeForm(@TempDir dir: Path) {
+        Files.writeString(
+            dir.resolve("settings.gradle.kts"),
+            """
+            include(":alpha", ":beta")
+            include ( ":gamma" )
+            include(
+                ":delta",
+                ":showcase",
+            )
+            include(":recordings")
+            """
+                .trimIndent(),
+        )
+        assertEquals(
+            listOf("alpha", "beta", "gamma", "delta"),
+            RecordingPaths.specimenModules(dir.resolve("settings.gradle.kts")),
+        )
+    }
+
+    @Test
     fun missingOutputsReportsAbsentAndTinyFiles(@TempDir dir: Path) {
         assertEquals(RecordingPaths.expectedNames(), RecordingPaths.missingOutputs(dir))
 

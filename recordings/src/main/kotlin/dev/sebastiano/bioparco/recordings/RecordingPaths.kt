@@ -14,16 +14,18 @@ object RecordingPaths {
     const val MIN_USABLE_BYTES = 1_000L
 
     private val houseModules = setOf("showcase", "recordings")
-    private val includePattern = Regex("""include\(":([^"]+)"\)""")
+    // Every `include(...)` call, with any whitespace and any number of project paths.
+    private val includeCall = Regex("""\binclude\s*\(([^)]*)\)""")
+    private val projectPath = Regex(""""\s*:?([^"]+?)\s*"""")
 
     fun expectedNames(settingsFile: Path = settingsGradleKts()): List<String> =
         specimenModules(settingsFile).map { "$it.mp4" }
 
     /** The specimen modules included in [settingsFile], in include order. */
     fun specimenModules(settingsFile: Path = settingsGradleKts()): List<String> =
-        includePattern
+        includeCall
             .findAll(Files.readString(settingsFile))
-            .map { it.groupValues[1] }
+            .flatMap { call -> projectPath.findAll(call.groupValues[1]).map { it.groupValues[1] } }
             .filter { it !in houseModules }
             .toList()
 

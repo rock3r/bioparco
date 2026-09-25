@@ -54,13 +54,31 @@ class ReadmeMediaTest {
     }
 
     @Test
+    fun theSpecimenReadmeMediaMustSitUnderTheRecordingSection(@TempDir root: Path) {
+        val media = "![New]($PREVIEW)\n\n[mp4]($PLAYABLE_MP4)"
+        repo(
+            root,
+            rootEntry = media,
+            specimenReadme = "## Concepts\n\n$media",
+            recordingHeading = false,
+        )
+        val problems = ReadmeMedia.problems(root)
+        assertTrue(problems.any { it.contains("## Recording") }, "$problems")
+    }
+
+    @Test
     fun aCompleteSpecimenPasses(@TempDir root: Path) {
         val media = "![New]($PREVIEW)\n\n[mp4]($PLAYABLE_MP4)"
         repo(root, rootEntry = media, specimenReadme = media)
         assertEquals(emptyList<String>(), ReadmeMedia.problems(root))
     }
 
-    private fun repo(root: Path, rootEntry: String, specimenReadme: String) {
+    private fun repo(
+        root: Path,
+        rootEntry: String,
+        specimenReadme: String,
+        recordingHeading: Boolean = true,
+    ) {
         Files.writeString(
             root.resolve("settings.gradle.kts"),
             "include(\":new-specimen\")\ninclude(\":showcase\")\ninclude(\":recordings\")\n",
@@ -70,7 +88,11 @@ class ReadmeMediaTest {
             "# Repo\n\n## Enclosures\n\n### [New](new-specimen/)\n\n$rootEntry\n\n## Run the showcase\n",
         )
         Files.createDirectories(root.resolve("new-specimen"))
-        Files.writeString(root.resolve("new-specimen/README.md"), "# New\n\n$specimenReadme\n")
+        val heading = if (recordingHeading) "## Recording\n\n" else ""
+        Files.writeString(
+            root.resolve("new-specimen/README.md"),
+            "# New\n\n$heading$specimenReadme\n",
+        )
     }
 
     private companion object {
