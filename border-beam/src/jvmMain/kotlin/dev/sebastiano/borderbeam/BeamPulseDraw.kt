@@ -89,11 +89,10 @@ internal fun DrawScope.drawPulseFront(
             }
         }
         withLayer(alpha = layerOpacity(pulse.look.bloom, variant, strength, fade)) {
-            clipPath(ring) {
-                withLayer(colorMatrix = pulse.filter, blurSigma = INNER_BLOOM_BLUR * density) {
-                    drawPulseBlobs(pulse, pulseInnerBloomBlobs(variant), box, frozen = true)
-                }
+            withLayer(colorMatrix = pulse.filter, blurSigma = INNER_BLOOM_BLUR * density) {
+                drawPulseBlobs(pulse, pulseInnerBloomBlobs(variant), box, frozen = true)
             }
+            maskTo(ring)
         }
     }
 }

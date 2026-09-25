@@ -7,12 +7,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 
 /**
@@ -37,8 +39,11 @@ fun BorderBeam(
     val seconds = remember { mutableFloatStateOf(0f) }
     val fade = remember { mutableFloatStateOf(0f) }
     val activeNow = rememberUpdatedState(active)
+    val strengthNow = rememberUpdatedState(strength)
     LaunchedEffect(playback) {
         while (isActive) {
+            // A zero-strength beam draws nothing, so stop asking for frames until it can show.
+            if (strengthNow.value <= 0f) snapshotFlow { strengthNow.value > 0f }.first { it }
             withFrameNanos { frameNanos ->
                 playback.onFrame(frameNanos, activeNow.value)
                 seconds.floatValue = playback.seconds

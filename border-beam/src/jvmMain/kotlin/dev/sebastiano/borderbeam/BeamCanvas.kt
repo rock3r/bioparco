@@ -230,3 +230,11 @@ internal inline fun DrawScope.withLayer(
 }
 
 internal const val MIN_LAYER_ALPHA = 0.002f
+
+/**
+ * Keeps only the part of the current layer inside [path], like a CSS mask applied after the
+ * filters. A clip set before a filtered layer would also cut the filter's input.
+ */
+internal fun DrawScope.maskTo(path: Path) {
+    withLayer(blendMode = BlendMode.DstIn) { drawPath(path, Color.White) }
+}
