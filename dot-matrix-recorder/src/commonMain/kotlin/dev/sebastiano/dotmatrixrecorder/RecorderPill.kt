@@ -514,14 +514,24 @@ private fun AnimatedVisibilityScope.rememberBlurProgress(): State<Float> =
         if (it == EnterExitState.Visible) 0f else 1f
     }
 
+/**
+ * Blurs while a face fades, strongest when [progress] is 1.
+ *
+ * The radius only takes whole multiples of [BLUR_STEP_PX], and anything below one step is no blur.
+ * Skia (m150, Ganesh) picks a GPU blur program from `ceil(3 * sigma)` and compiles it synchronously
+ * the first time it is drawn. A radius that shrank smoothly to zero walked through several programs
+ * and stalled frames by ~100 ms. A few fixed radii mean a few programs, all met in the first fade.
+ * Steps are in pixels, not dp, so every display density gets the same programs.
+ *
+ * Measured with a frame probe over two or three Spectre runs per variant:
+ * - fixed radii: recording start had no long frames;
+ * - a continuous radius kept inside one Skia program band (6.5–14 px): 43–51 ms stalls;
+ * - no blur at all: no long frames.
+ */
 private fun Modifier.blurBy(max: Dp, progress: () -> Float): Modifier = graphicsLayer {
-    // A smoothly shrinking blur radius stalled single frames by ~100-140 ms near the end of each
-    // fade (seen with androidx.tracing: no app code ran in the gap, and no GC or safepoint).
-    // Without the blur, or with only a few fixed radii, the stalls go away. The likely cause is
-    // Skia building a new GPU blur program for each new blur size. Small radii snap to no blur.
-    val step = BlurStep.toPx()
-    val radius = (progress() * max.toPx() / step).roundToInt() * step
-    renderEffect = if (radius >= step) BlurEffect(radius, radius, TileMode.Decal) else null
+    val steps = (progress() * max.toPx() / BLUR_STEP_PX).roundToInt()
+    val radius = steps * BLUR_STEP_PX
+    renderEffect = if (steps > 0) BlurEffect(radius, radius, TileMode.Decal) else null
 }
 
-private val BlurStep = 2.dp
+private const val BLUR_STEP_PX = 4f
