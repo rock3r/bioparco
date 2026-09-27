@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 @Stable
 class CarouselState internal constructor(private val scope: CoroutineScope) {
     private val animatable = Animatable(0f)
+    private val target = SlotTarget()
     private var dragPosition = 0f
     private var dragStart = 0f
     private var scrollAccumulator = 0f
@@ -30,8 +31,8 @@ class CarouselState internal constructor(private val scope: CoroutineScope) {
 
     /** Moves one card to the right for a positive [direction], to the left for a negative one. */
     fun step(direction: Int) {
-        val target = (animatable.value.roundToInt() + direction.sign).toFloat()
-        scope.launch { animatable.animateTo(target, settleSpring) }
+        val slot = target.step(animatable.value, direction).toFloat()
+        scope.launch { animatable.animateTo(slot, settleSpring) }
     }
 
     /** Wheel and trackpad scrolling. A mouse notch is one card; trackpad deltas add up to one. */
@@ -45,6 +46,7 @@ class CarouselState internal constructor(private val scope: CoroutineScope) {
 
     internal fun dragStarted() {
         dragStart = animatable.value
+        target.clear()
         dragPosition = animatable.value
         scope.launch { animatable.stop() }
     }
@@ -58,8 +60,9 @@ class CarouselState internal constructor(private val scope: CoroutineScope) {
 
     /** [velocity] in slots per second, positive when the cards were moving left. */
     internal fun dragEnded(velocity: Float) {
-        val target = settleTarget(dragPosition, velocity, dragStart)
-        scope.launch { animatable.animateTo(target, settleSpring, initialVelocity = velocity) }
+        val slot = settleTarget(dragPosition, velocity, dragStart)
+        target.settleAt(slot.roundToInt())
+        scope.launch { animatable.animateTo(slot, settleSpring, initialVelocity = velocity) }
     }
 
     private companion object {
