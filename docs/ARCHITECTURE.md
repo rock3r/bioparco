@@ -11,6 +11,7 @@ showcase  -->  grabby-stepper
           \->  border-beam
           \->  achievement-badge
           \->  component-anatomy
+          \->  scroll-effects
 
 recordings --> grabby-stepper
            \->  chat-bubble-transition
@@ -20,6 +21,7 @@ recordings --> grabby-stepper
            \->  border-beam
            \->  achievement-badge
            \->  component-anatomy
+           \->  scroll-effects
            \->  Spectre (Maven Central)
 ```
 
@@ -34,6 +36,7 @@ recordings --> grabby-stepper
 | `:border-beam` | Specimen 6. Library + standalone `run`. |
 | `:achievement-badge` | Specimen 7. Library + standalone `run`. |
 | `:component-anatomy` | Specimen 8. Library + standalone `run`. |
+| `:scroll-effects` | Specimen 9. Library + standalone `run`. |
 | `:recordings` | Spectre-driven recording tests. Not part of `check`. |
 
 ## Invariants

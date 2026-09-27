@@ -26,6 +26,7 @@ import dev.sebastiano.componentanatomy.App as ComponentAnatomyApp
 import dev.sebastiano.dotmatrixrecorder.App as DotMatrixRecorderApp
 import dev.sebastiano.grabbystepper.App
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
+import dev.sebastiano.scrolleffects.App as ScrollEffectsApp
 import dev.sebastiano.thinkingorbs.App as ThinkingOrbsApp
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.DefaultButton
@@ -43,6 +44,7 @@ private enum class SpecimenRoute {
     BorderBeam,
     AchievementBadge,
     ComponentAnatomy,
+    ScrollEffects,
 }
 
 @Composable
@@ -62,6 +64,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenBorderBeam = { route = SpecimenRoute.BorderBeam },
                     onOpenAchievementBadge = { route = SpecimenRoute.AchievementBadge },
                     onOpenComponentAnatomy = { route = SpecimenRoute.ComponentAnatomy },
+                    onOpenScrollEffects = { route = SpecimenRoute.ScrollEffects },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -128,6 +131,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     ComponentAnatomyApp()
                 }
+            SpecimenRoute.ScrollEffects ->
+                SpecimenHost(
+                    title = "Scroll effects",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    ScrollEffectsApp()
+                }
         }
     }
 }
@@ -142,6 +153,7 @@ private fun Catalog(
     onOpenBorderBeam: () -> Unit,
     onOpenAchievementBadge: () -> Unit,
     onOpenComponentAnatomy: () -> Unit,
+    onOpenScrollEffects: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -211,6 +223,14 @@ private fun Catalog(
                     "to the beat. After Jae (@Jaenam97).",
             testTag = "open-component-anatomy",
             onOpen = onOpenComponentAnatomy,
+        )
+        SpecimenCard(
+            name = "Scroll effects",
+            summary =
+                "A card carousel with six ways to leave the centre: stretch, bulge, drum, " +
+                    "shatter, Thanos and glitch. After sucodee (@sucodeee).",
+            testTag = "open-scroll-effects",
+            onOpen = onOpenScrollEffects,
         )
     }
 }

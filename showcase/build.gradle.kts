@@ -23,6 +23,7 @@ kotlin {
             implementation(project(":border-beam"))
             implementation(project(":achievement-badge"))
             implementation(project(":component-anatomy"))
+            implementation(project(":scroll-effects"))
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)

@@ -20,6 +20,7 @@ dependencies {
     implementation(project(":border-beam"))
     implementation(project(":achievement-badge"))
     implementation(project(":component-anatomy"))
+    implementation(project(":scroll-effects"))
 
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.spectre.core)

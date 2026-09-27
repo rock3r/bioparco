@@ -43,6 +43,8 @@ include(":achievement-badge")
 
 include(":component-anatomy")
 
+include(":scroll-effects")
+
 include(":showcase")
 
 include(":recordings")

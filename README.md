@@ -80,6 +80,14 @@ an eye for detail, and the passion to care about these things.
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/component-anatomy.mp4)
 
+### [Scroll effects](scroll-effects/)
+
+**Seb** · [sucodee](https://x.com/sucodeee)’s [scroll effects](https://x.com/sucodeee/status/2104191756350713967)
+
+![Scroll effects](https://static.sebastiano.dev/stable/bioparco/scroll-effects.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/scroll-effects.mp4)
+
 Recordings are generated automatically with [Spectre](https://spectre.sebastiano.dev).
 README previews are animated, lower quality WebPs; original mp4 files are the full clips.
 
@@ -103,6 +111,7 @@ Or visit one enclosure directly:
 ./gradlew :border-beam:run
 ./gradlew :achievement-badge:run
 ./gradlew :component-anatomy:run
+./gradlew :scroll-effects:run
 ...
 ```
 
