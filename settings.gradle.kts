@@ -41,6 +41,8 @@ include(":border-beam")
 
 include(":achievement-badge")
 
+include(":component-anatomy")
+
 include(":showcase")
 
 include(":recordings")

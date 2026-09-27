@@ -19,6 +19,7 @@ dependencies {
     implementation(project(":dot-matrix-recorder"))
     implementation(project(":border-beam"))
     implementation(project(":achievement-badge"))
+    implementation(project(":component-anatomy"))
 
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.spectre.core)

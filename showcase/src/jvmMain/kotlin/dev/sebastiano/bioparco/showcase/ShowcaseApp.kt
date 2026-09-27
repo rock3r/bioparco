@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import chatbubble.ChatApp
 import dev.sebastiano.achievementbadge.App as AchievementBadgeApp
 import dev.sebastiano.borderbeam.App as BorderBeamApp
+import dev.sebastiano.componentanatomy.App as ComponentAnatomyApp
 import dev.sebastiano.dotmatrixrecorder.App as DotMatrixRecorderApp
 import dev.sebastiano.grabbystepper.App
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
@@ -41,6 +42,7 @@ private enum class SpecimenRoute {
     DotMatrixRecorder,
     BorderBeam,
     AchievementBadge,
+    ComponentAnatomy,
 }
 
 @Composable
@@ -59,6 +61,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenDotMatrixRecorder = { route = SpecimenRoute.DotMatrixRecorder },
                     onOpenBorderBeam = { route = SpecimenRoute.BorderBeam },
                     onOpenAchievementBadge = { route = SpecimenRoute.AchievementBadge },
+                    onOpenComponentAnatomy = { route = SpecimenRoute.ComponentAnatomy },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -117,6 +120,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     AchievementBadgeApp()
                 }
+            SpecimenRoute.ComponentAnatomy ->
+                SpecimenHost(
+                    title = "Component anatomy",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    ComponentAnatomyApp()
+                }
         }
     }
 }
@@ -130,6 +141,7 @@ private fun Catalog(
     onOpenDotMatrixRecorder: () -> Unit,
     onOpenBorderBeam: () -> Unit,
     onOpenAchievementBadge: () -> Unit,
+    onOpenComponentAnatomy: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -191,6 +203,14 @@ private fun Catalog(
                     "itself up. After Adrian (@adriankuleszo).",
             testTag = "open-achievement-badge",
             onOpen = onOpenAchievementBadge,
+        )
+        SpecimenCard(
+            name = "Component anatomy",
+            summary =
+                "A Jewel button taken apart into the layers it really paints, touring its states " +
+                    "to the beat. After Jae (@Jaenam97).",
+            testTag = "open-component-anatomy",
+            onOpen = onOpenComponentAnatomy,
         )
     }
 }
