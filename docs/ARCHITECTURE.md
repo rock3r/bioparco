@@ -10,6 +10,7 @@ showcase  -->  grabby-stepper
           \->  dot-matrix-recorder
           \->  border-beam
           \->  achievement-badge
+          \->  component-anatomy
 
 recordings --> grabby-stepper
            \->  chat-bubble-transition
@@ -18,6 +19,7 @@ recordings --> grabby-stepper
            \->  dot-matrix-recorder
            \->  border-beam
            \->  achievement-badge
+           \->  component-anatomy
            \->  Spectre (Maven Central)
 ```
 
@@ -31,6 +33,7 @@ recordings --> grabby-stepper
 | `:dot-matrix-recorder` | Specimen 5. Library + standalone `run`. |
 | `:border-beam` | Specimen 6. Library + standalone `run`. |
 | `:achievement-badge` | Specimen 7. Library + standalone `run`. |
+| `:component-anatomy` | Specimen 8. Library + standalone `run`. |
 | `:recordings` | Spectre-driven recording tests. Not part of `check`. |
 
 ## Invariants

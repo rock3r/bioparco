@@ -72,6 +72,14 @@ an eye for detail, and the passion to care about these things.
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/achievement-badge.mp4)
 
+### [Component anatomy](component-anatomy/)
+
+**Seb** · [Jae](https://x.com/Jaenam97)’s [Badge Tech exploded view](https://x.com/Jaenam97/status/2104201809132990900)
+
+![Component anatomy](https://static.sebastiano.dev/stable/bioparco/component-anatomy.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/component-anatomy.mp4)
+
 Recordings are generated automatically with [Spectre](https://spectre.sebastiano.dev).
 README previews are animated, lower quality WebPs; original mp4 files are the full clips.
 
@@ -94,6 +102,7 @@ Or visit one enclosure directly:
 ./gradlew :dot-matrix-recorder:run
 ./gradlew :border-beam:run
 ./gradlew :achievement-badge:run
+./gradlew :component-anatomy:run
 ...
 ```
 
