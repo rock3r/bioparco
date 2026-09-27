@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -136,7 +137,19 @@ class AnatomyStage(private val scope: CoroutineScope) {
                 if (!musicOn) return@launch
                 player?.stop()
                 // Carry on from the beat we are on, so the picture does not skip.
-                withContext(Dispatchers.IO) { groove.start(beats) }
+                val from = beats
+                try {
+                    withContext(Dispatchers.IO) { groove.start(from) }
+                } catch (cancelled: CancellationException) {
+                    // The stage went away while the line was opening. Do not leave it playing.
+                    groove.stop()
+                    throw cancelled
+                }
+                if (!musicOn) {
+                    // Music was turned off while the line was opening.
+                    groove.stop()
+                    return@launch
+                }
                 player = groove
             }
         } else {

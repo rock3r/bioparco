@@ -137,19 +137,20 @@ private fun Modifier.layerIn3d(
         val open = stage.explode.coerceIn(0f, 1f)
         val glow = tracker.glow(part, stage.beats)
         val ghost = lerp(AnatomyColors.ghost, AnatomyColors.accent, glow)
-        val inset = GHOST_OUTSET.toPx() / SCALE
+        val scale = geometry.scale
+        val inset = GHOST_OUTSET.toPx() / scale
         drawRoundRect(
             color = ghost,
             alpha = open * (GHOST_ALPHA + (1 - GHOST_ALPHA) * glow),
             topLeft = Offset(-inset, -inset),
             size = Size(size.width + 2 * inset, size.height + 2 * inset),
-            cornerRadius = CornerRadius(GHOST_RADIUS.toPx() / SCALE),
+            cornerRadius = CornerRadius(GHOST_RADIUS.toPx() / scale),
             style =
                 Stroke(
-                    width = GHOST_STROKE.toPx() / SCALE,
+                    width = GHOST_STROKE.toPx() / scale,
                     pathEffect =
                         PathEffect.dashPathEffect(
-                            floatArrayOf(4f / SCALE * density, 3f / SCALE * density)
+                            floatArrayOf(4f / scale * density, 3f / scale * density)
                         ),
                 ),
         )
@@ -338,7 +339,7 @@ private class StackGeometry(private val stage: AnatomyStage, private val density
      */
     val stackOrigin: Offset
         get() {
-            val shift = with(density) { STACK_SHIFT.toPx() } * stage.explode.coerceIn(0f, 1f)
+            val shift = with(density) { STACK_SHIFT.toPx() } * fit * stage.explode.coerceIn(0f, 1f)
             return Offset(
                 (stageSize.width - layerSize.width) / 2 + shift,
                 (stageSize.height - layerSize.height) / 2,
@@ -346,13 +347,26 @@ private class StackGeometry(private val stage: AnatomyStage, private val density
         }
 
     var labelHeights = FloatArray(0)
-    private val spacing = with(density) { LAYER_SPACING.toPx() }
+    private val fullWidth = with(density) { FULL_WIDTH.toPx() }
+
+    /**
+     * How much of the full-size stage fits. The showcase is narrower than the standalone window, so
+     * the stack shrinks, closes up and moves in to leave the labels their room.
+     */
+    private val fit: Float
+        get() = (stageSize.width / fullWidth).coerceIn(MIN_FIT, 1f)
+
+    val scale: Float
+        get() = SCALE * fit
+
+    private val spacing: Float
+        get() = with(density) { LAYER_SPACING.toPx() } * fit
 
     private fun view() =
         Axonometry(
             yawDegrees = stage.yawDegrees,
             pitchDegrees = stage.pitchDegrees,
-            scale = SCALE,
+            scale = scale,
             cameraDistance = with(density) { CAMERA.toPx() },
         )
 
@@ -380,7 +394,7 @@ private class StackGeometry(private val stage: AnatomyStage, private val density
                 max(
                     stackOrigin.x +
                         layerSize.width / 2 +
-                        layerSize.width * SCALE / 2 +
+                        layerSize.width * scale / 2 +
                         LABEL_GAP.toPx(),
                     anchors.maxOf { it.x } + LABEL_GAP.toPx() / 2,
                 )
@@ -480,6 +494,8 @@ private const val RGB_MASK = 0xFFFFFF
 private const val COLOR_MILLIS = 180
 private val STACK_SHIFT = (-170).dp
 private val LAYER_SPACING = 72.dp
+private val FULL_WIDTH = 1000.dp
+private const val MIN_FIT = 0.55f
 private val CAMERA = 2400.dp
 private val GHOST_OUTSET = 10.dp
 private val GHOST_RADIUS = 14.dp

@@ -1,5 +1,6 @@
 package dev.sebastiano.componentanatomy
 
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.DataLine
@@ -362,9 +363,8 @@ object GrooveSynth {
  * line's own frame counter, so the picture follows what you hear.
  */
 class GroovePlayer(private val pcm: ShortArray) {
-    @Volatile private var running = false
-    private var line: SourceDataLine? = null
-    private var thread: Thread? = null
+    private var running: AtomicBoolean? = null
+    @Volatile private var line: SourceDataLine? = null
     private var startBeat = 0.0
 
     fun start(fromBeat: Double) {
@@ -374,35 +374,38 @@ class GroovePlayer(private val pcm: ShortArray) {
         output.start()
         startBeat = fromBeat
         line = output
-        running = true
         val frames = pcm.size / GrooveSynth.CHANNELS
         val loopBeats = AnatomyTimeline.BEATS_PER_LOOP.toDouble()
         val beatInLoop = ((fromBeat % loopBeats) + loopBeats) % loopBeats
         var cursor = (beatInLoop / BEATS_PER_SECOND * GrooveSynth.SAMPLE_RATE).toInt() % frames
-        thread =
-            Thread(
-                    {
-                        val chunk = ByteArray(CHUNK_FRAMES * FRAME_BYTES)
-                        while (running) {
-                            for (i in 0 until CHUNK_FRAMES) {
-                                for (channel in 0 until GrooveSynth.CHANNELS) {
-                                    val sample =
-                                        pcm[cursor * GrooveSynth.CHANNELS + channel].toInt()
-                                    val at = i * FRAME_BYTES + channel * 2
-                                    chunk[at] = sample.toByte()
-                                    chunk[at + 1] = (sample shr 8).toByte()
-                                }
-                                cursor = (cursor + 1) % frames
+        val running = AtomicBoolean(true)
+        this.running = running
+        Thread(
+                {
+                    val chunk = ByteArray(CHUNK_FRAMES * FRAME_BYTES)
+                    while (running.get()) {
+                        for (i in 0 until CHUNK_FRAMES) {
+                            for (channel in 0 until GrooveSynth.CHANNELS) {
+                                val sample = pcm[cursor * GrooveSynth.CHANNELS + channel].toInt()
+                                val at = i * FRAME_BYTES + channel * 2
+                                chunk[at] = sample.toByte()
+                                chunk[at + 1] = (sample shr 8).toByte()
                             }
-                            output.write(chunk, 0, chunk.size)
+                            cursor = (cursor + 1) % frames
                         }
-                    },
-                    "component-anatomy-groove",
-                )
-                .apply {
-                    isDaemon = true
-                    start()
-                }
+                        output.write(chunk, 0, chunk.size)
+                    }
+                    // The writer owns the line, so closing it never blocks the UI thread.
+                    output.stop()
+                    output.flush()
+                    output.close()
+                },
+                "component-anatomy-groove",
+            )
+            .apply {
+                isDaemon = true
+                start()
+            }
     }
 
     /** The beat you are hearing now, or null when nothing plays. */
@@ -412,15 +415,10 @@ class GroovePlayer(private val pcm: ShortArray) {
             output.longFramePosition.toDouble() / GrooveSynth.SAMPLE_RATE * BEATS_PER_SECOND
     }
 
+    /** Asks the writer thread to finish and close the line. Returns at once. */
     fun stop() {
-        running = false
-        thread?.join(JOIN_MILLIS)
-        thread = null
-        line?.run {
-            stop()
-            flush()
-            close()
-        }
+        running?.set(false)
+        running = null
         line = null
     }
 
@@ -428,7 +426,6 @@ class GroovePlayer(private val pcm: ShortArray) {
         private const val BUFFER_FRAMES = 4_096
         private const val CHUNK_FRAMES = 1_024
         private const val FRAME_BYTES = 2 * GrooveSynth.CHANNELS
-        private const val JOIN_MILLIS = 200L
         private val FORMAT =
             AudioFormat(GrooveSynth.SAMPLE_RATE.toFloat(), 16, GrooveSynth.CHANNELS, true, false)
 

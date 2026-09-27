@@ -4,12 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -86,58 +86,66 @@ private fun BeatDots(stage: AnatomyStage) {
     )
 }
 
+/** The controls wrap onto more lines when the host is narrow, as it is in the showcase. */
 @Composable
 private fun Controls(stage: AnatomyStage) {
-    Row(
+    FlowRow(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 28.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(20.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
-        for (state in AnatomyState.entries) {
-            RadioButtonChip(
-                selected = stage.state == state,
-                onClick = { stage.pick(state) },
-                modifier = Modifier.testTag(AnatomyTags.state(state)),
-            ) {
-                Text(state.name)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            for (state in AnatomyState.entries) {
+                RadioButtonChip(
+                    selected = stage.state == state,
+                    onClick = { stage.pick(state) },
+                    modifier = Modifier.testTag(AnatomyTags.state(state)),
+                ) {
+                    Text(state.name)
+                }
             }
         }
-        Box(Modifier.width(12.dp))
-        RadioButtonChip(
-            selected = !stage.outlined,
-            onClick = { stage.pickOutlined(false) },
-            modifier = Modifier.testTag(AnatomyTags.DEFAULT),
-        ) {
-            Text("Default")
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            RadioButtonChip(
+                selected = !stage.outlined,
+                onClick = { stage.pickOutlined(false) },
+                modifier = Modifier.testTag(AnatomyTags.DEFAULT),
+            ) {
+                Text("Default")
+            }
+            RadioButtonChip(
+                selected = stage.outlined,
+                onClick = { stage.pickOutlined(true) },
+                modifier = Modifier.testTag(AnatomyTags.OUTLINED),
+            ) {
+                Text("Outlined")
+            }
         }
-        RadioButtonChip(
-            selected = stage.outlined,
-            onClick = { stage.pickOutlined(true) },
-            modifier = Modifier.testTag(AnatomyTags.OUTLINED),
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("Outlined")
-        }
-        Box(Modifier.width(12.dp))
-        CheckboxRow(
-            text = "Exploded",
-            checked = stage.looksExploded,
-            onCheckedChange = stage::setExploded,
-            modifier = Modifier.testTag(AnatomyTags.EXPLODED),
-        )
-        CheckboxRow(
-            text = "Music",
-            checked = stage.musicOn,
-            onCheckedChange = { on -> stage.setMusic(on) { groove() } },
-            enabled = GroovePlayer.isAvailable,
-            modifier = Modifier.testTag(AnatomyTags.MUSIC),
-        )
-        Box(Modifier.weight(1f))
-        if (!stage.following) {
-            Link(
-                "Back to groovin'",
-                onClick = stage::backToGroovin,
-                modifier = Modifier.testTag(AnatomyTags.BACK_TO_GROOVIN),
+            CheckboxRow(
+                text = "Exploded",
+                checked = stage.looksExploded,
+                onCheckedChange = stage::setExploded,
+                modifier = Modifier.testTag(AnatomyTags.EXPLODED),
             )
+            CheckboxRow(
+                text = "Music",
+                checked = stage.musicOn,
+                onCheckedChange = { on -> stage.setMusic(on) { groove() } },
+                enabled = GroovePlayer.isAvailable,
+                modifier = Modifier.testTag(AnatomyTags.MUSIC),
+            )
+            if (!stage.following) {
+                Link(
+                    "Back to groovin'",
+                    onClick = stage::backToGroovin,
+                    modifier = Modifier.testTag(AnatomyTags.BACK_TO_GROOVIN),
+                )
+            }
         }
     }
 }
