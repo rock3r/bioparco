@@ -72,6 +72,14 @@ an eye for detail, and the passion to care about these things.
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/achievement-badge.mp4)
 
+### [Component anatomy](component-anatomy/)
+
+**Seb** · [Jae](https://x.com/Jaenam97)’s [Badge Tech exploded view](https://x.com/Jaenam97/status/2104201809132990900)
+
+![Component anatomy](https://static.sebastiano.dev/stable/bioparco/component-anatomy.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/component-anatomy.mp4)
+
 ### [Scroll effects](scroll-effects/)
 
 **Seb** · [sucodee](https://x.com/sucodeee)’s [scroll effects](https://x.com/sucodeee/status/2104191756350713967)
@@ -102,6 +110,7 @@ Or visit one enclosure directly:
 ./gradlew :dot-matrix-recorder:run
 ./gradlew :border-beam:run
 ./gradlew :achievement-badge:run
+./gradlew :component-anatomy:run
 ./gradlew :scroll-effects:run
 ...
 ```

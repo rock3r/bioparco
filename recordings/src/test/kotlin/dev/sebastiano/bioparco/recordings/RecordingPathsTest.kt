@@ -46,6 +46,10 @@ class RecordingPathsTest {
             RecordingPaths.file(RecordingPaths.ACHIEVEMENT_BADGE, dir),
         )
         assertEquals(
+            dir.resolve("component-anatomy.mp4"),
+            RecordingPaths.file(RecordingPaths.COMPONENT_ANATOMY, dir),
+        )
+        assertEquals(
             dir.resolve("scroll-effects.mp4"),
             RecordingPaths.file(RecordingPaths.SCROLL_EFFECTS, dir),
         )
@@ -63,6 +67,7 @@ class RecordingPathsTest {
                 "dot-matrix-recorder.mp4",
                 "border-beam.mp4",
                 "achievement-badge.mp4",
+                "component-anatomy.mp4",
                 "scroll-effects.mp4",
             ),
             RecordingPaths.expectedNames(settings),
@@ -141,6 +146,7 @@ class RecordingPathsTest {
                 "dot-matrix-recorder.mp4",
                 "border-beam.mp4",
                 "achievement-badge.mp4",
+                "component-anatomy.mp4",
                 "scroll-effects.mp4",
             ),
             RecordingPaths.missingOutputs(dir),
@@ -152,6 +158,7 @@ class RecordingPathsTest {
         Files.write(dir.resolve("dot-matrix-recorder.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("border-beam.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("achievement-badge.mp4"), ByteArray(2_000))
+        Files.write(dir.resolve("component-anatomy.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("scroll-effects.mp4"), ByteArray(2_000))
         assertEquals(emptyList<String>(), RecordingPaths.missingOutputs(dir))
     }

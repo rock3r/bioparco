@@ -22,6 +22,7 @@ kotlin {
             implementation(project(":dot-matrix-recorder"))
             implementation(project(":border-beam"))
             implementation(project(":achievement-badge"))
+            implementation(project(":component-anatomy"))
             implementation(project(":scroll-effects"))
         }
         jvmMain.dependencies {

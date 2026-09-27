@@ -115,6 +115,7 @@ Working on `main` is allowed only when the owner has said so for that task.
 ./gradlew :dot-matrix-recorder:run
 ./gradlew :border-beam:run
 ./gradlew :achievement-badge:run
+./gradlew :component-anatomy:run
 ./gradlew :scroll-effects:run
 ./gradlew :recordings:recordSpecimens
 ```
