@@ -16,9 +16,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
+import javax.sound.sampled.LineUnavailableException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -89,6 +91,7 @@ class AnatomyStage(private val scope: CoroutineScope) {
         get() = (beats.mod(AnatomyTimeline.BEATS_PER_BAR.toDouble())).toInt()
 
     private var player: GroovePlayer? = null
+    private var musicJob: Job? = null
     private var wallBase = 0.0
     private var wallStart = -1L
 
@@ -129,37 +132,50 @@ class AnatomyStage(private val scope: CoroutineScope) {
         scope.launch { orbitPitch.animateTo(0f, SPRING) }
     }
 
+    /**
+     * Turns the music on or off. Each request gets its own job, and a new request cancels the last
+     * one, so quick toggles can never leave a second player running where nobody can stop it.
+     */
     fun setMusic(on: Boolean, pcm: suspend () -> ShortArray) {
         musicOn = on
-        if (on) {
-            scope.launch {
-                val groove = GroovePlayer(pcm())
-                if (!musicOn) return@launch
-                player?.stop()
-                // Carry on from the beat we are on, so the picture does not skip.
-                val from = beats
-                try {
-                    withContext(Dispatchers.IO) { groove.start(from) }
-                } catch (cancelled: CancellationException) {
-                    // The stage went away while the line was opening. Do not leave it playing.
-                    groove.stop()
-                    throw cancelled
-                }
-                if (!musicOn) {
-                    // Music was turned off while the line was opening.
-                    groove.stop()
-                    return@launch
-                }
-                player = groove
-            }
-        } else {
-            player?.stop()
-            player = null
-            rebaseWallClock(beats)
+        musicJob?.cancel()
+        musicJob = null
+        player?.stop()
+        player = null
+        rebaseWallClock(beats)
+        if (on) musicJob = scope.launch { startMusic(pcm()) }
+    }
+
+    private suspend fun startMusic(pcm: ShortArray) {
+        val groove = GroovePlayer(pcm)
+        // Carry on from the beat we are on, so the picture does not skip.
+        val from = beats
+        try {
+            withContext(Dispatchers.IO) { groove.start(from) }
+        } catch (cancelled: CancellationException) {
+            // A newer request, or the stage going away, cancelled this one while the line was
+            // opening. Do not leave it playing.
+            groove.stop()
+            throw cancelled
+        } catch (failure: LineUnavailableException) {
+            musicFailed(groove, failure)
+            return
+        } catch (failure: IllegalArgumentException) {
+            musicFailed(groove, failure)
+            return
         }
+        player = groove
+    }
+
+    /** The device is busy or gone. Say so by unticking Music, and keep the wall clock. */
+    private fun musicFailed(groove: GroovePlayer, failure: Exception) {
+        System.err.println("Component anatomy: music could not start: $failure")
+        groove.stop()
+        musicOn = false
     }
 
     fun release() {
+        musicJob?.cancel()
         player?.stop()
         player = null
     }

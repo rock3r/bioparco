@@ -370,8 +370,15 @@ class GroovePlayer(private val pcm: ShortArray) {
     fun start(fromBeat: Double) {
         stop()
         val output = AudioSystem.getSourceDataLine(FORMAT)
-        output.open(FORMAT, BUFFER_FRAMES * FRAME_BYTES)
-        output.start()
+        var opened = false
+        try {
+            output.open(FORMAT, BUFFER_FRAMES * FRAME_BYTES)
+            output.start()
+            opened = true
+        } finally {
+            // Do not leak a half-open line; the caller decides what to tell the user.
+            if (!opened) output.close()
+        }
         startBeat = fromBeat
         line = output
         val frames = pcm.size / GrooveSynth.CHANNELS
