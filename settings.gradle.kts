@@ -41,6 +41,8 @@ include(":border-beam")
 
 include(":achievement-badge")
 
+include(":scroll-effects")
+
 include(":showcase")
 
 include(":recordings")
