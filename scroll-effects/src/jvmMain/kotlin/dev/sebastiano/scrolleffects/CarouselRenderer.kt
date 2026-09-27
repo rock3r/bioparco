@@ -18,9 +18,10 @@ import org.jetbrains.skia.VertexMode
 
 /**
  * Draws the [CardLayer]s the scene lays out: each mesh as Skia triangles textured with its card's
- * art, then the Stretch rim and the Glitch bars on top.
+ * art, then the Stretch rim and the Glitch bars on top. It owns native Skia objects, so [close] it
+ * when it leaves composition.
  */
-internal class CarouselRenderer(art: List<ImageBitmap>) {
+internal class CarouselRenderer(art: List<ImageBitmap>) : AutoCloseable {
     private val images = art.map {
         Image.makeFromBitmap(it.asSkiaBitmap().apply { setImmutable() })
     }
@@ -81,6 +82,15 @@ internal class CarouselRenderer(art: List<ImageBitmap>) {
                 canvas.drawRect(Rect.makeXYWH(bar.left, bar.top, bar.width, bar.height), barPaint)
             }
         }
+    }
+
+    override fun close() {
+        texturePaints.forEach { it.close() }
+        shaders.forEach { it.close() }
+        images.forEach { it.close() }
+        plainPaint.close()
+        barPaint.close()
+        glitchEffect.close()
     }
 
     private fun glitchShader(layer: CardLayer, texelsPerPixel: Float, unit: Float): Shader {

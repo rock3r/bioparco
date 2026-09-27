@@ -7,6 +7,7 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -58,6 +59,7 @@ fun ScrollCarousel(effect: CarouselEffect, state: CarouselState, modifier: Modif
                 sampleCards.map { renderCardArt(it, density, measurer, fontFamily, grain) }
             )
         }
+    DisposableEffect(renderer) { onDispose { renderer.close() } }
     val scene = remember { CarouselScene(sampleCards.size) }
     val outgoingScene = remember { CarouselScene(sampleCards.size) }
     val clock = remember { StageClock() }
