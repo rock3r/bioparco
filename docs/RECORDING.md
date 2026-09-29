@@ -87,6 +87,7 @@ list):
 - `recordings/build/recordings/achievement-badge.mp4`
 - `recordings/build/recordings/component-anatomy.mp4`
 - `recordings/build/recordings/scroll-effects.mp4`
+- `recordings/build/recordings/peel-sticker.mp4`
 
 ### Linux / Xvfb
 
@@ -138,6 +139,7 @@ Stable download URLs:
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/achievement-badge.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/component-anatomy.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/scroll-effects.mp4
+- https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/peel-sticker.mp4
 
 ## What the tests do
 
@@ -159,14 +161,14 @@ a push to `main`) runs them under `xvfb-run` on Ubuntu and uploads every MP4 to 
 floating release. A skipped or empty recording fails the job instead of publishing a
 partial set.
 
-### Prove all nine MP4s
+### Prove all ten MP4s
 
 On the `recordings` CI job, the "Record specimens" step must list every enclosure
 as `PASSED` (`AchievementBadgeRecordingTest`, `BorderBeamRecordingTest`, `ChatBubbleRecordingTest`,
 `ComponentAnatomyRecordingTest`, `DotMatrixRecorderRecordingTest`, `GrabbyStepperRecordingTest`,
-`ProcessingFieldRecordingTest`, `ScrollEffectsRecordingTest`, `ThinkingOrbsRecordingTest`) and
-`recordings/build/recordings/` must contain nine files each larger than 1 KB. The task fails closed
-if any name is missing.
+`PeelStickerRecordingTest`, `ProcessingFieldRecordingTest`, `ScrollEffectsRecordingTest`,
+`ThinkingOrbsRecordingTest`) and `recordings/build/recordings/` must contain ten files each larger
+than 1 KB. The task fails closed if any name is missing.
 
 Locally, same gate under Xvfb:
 

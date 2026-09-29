@@ -21,6 +21,7 @@ dependencies {
     implementation(project(":achievement-badge"))
     implementation(project(":component-anatomy"))
     implementation(project(":scroll-effects"))
+    implementation(project(":peel-sticker"))
 
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.spectre.core)

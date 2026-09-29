@@ -25,6 +25,7 @@ import dev.sebastiano.borderbeam.App as BorderBeamApp
 import dev.sebastiano.componentanatomy.App as ComponentAnatomyApp
 import dev.sebastiano.dotmatrixrecorder.App as DotMatrixRecorderApp
 import dev.sebastiano.grabbystepper.App
+import dev.sebastiano.peelsticker.App as PeelStickerApp
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
 import dev.sebastiano.scrolleffects.App as ScrollEffectsApp
 import dev.sebastiano.thinkingorbs.App as ThinkingOrbsApp
@@ -45,6 +46,7 @@ private enum class SpecimenRoute {
     AchievementBadge,
     ComponentAnatomy,
     ScrollEffects,
+    PeelSticker,
 }
 
 @Composable
@@ -65,6 +67,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenAchievementBadge = { route = SpecimenRoute.AchievementBadge },
                     onOpenComponentAnatomy = { route = SpecimenRoute.ComponentAnatomy },
                     onOpenScrollEffects = { route = SpecimenRoute.ScrollEffects },
+                    onOpenPeelSticker = { route = SpecimenRoute.PeelSticker },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -139,6 +142,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     ScrollEffectsApp()
                 }
+            SpecimenRoute.PeelSticker ->
+                SpecimenHost(
+                    title = "Peel sticker",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    PeelStickerApp()
+                }
         }
     }
 }
@@ -154,6 +165,7 @@ private fun Catalog(
     onOpenAchievementBadge: () -> Unit,
     onOpenComponentAnatomy: () -> Unit,
     onOpenScrollEffects: () -> Unit,
+    onOpenPeelSticker: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -231,6 +243,14 @@ private fun Catalog(
                     "shatter, Thanos and glitch. After sucodee (@sucodeee).",
             testTag = "open-scroll-effects",
             onOpen = onOpenScrollEffects,
+        )
+        SpecimenCard(
+            name = "Peel sticker",
+            summary =
+                "A die-cut sticker you peel off by an edge, with five shines under the pointer: " +
+                    "white, sparkle, prism, ripple and halftone. After sucodee (@sucodeee).",
+            testTag = "open-peel-sticker",
+            onOpen = onOpenPeelSticker,
         )
     }
 }

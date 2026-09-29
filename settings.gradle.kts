@@ -45,6 +45,8 @@ include(":component-anatomy")
 
 include(":scroll-effects")
 
+include(":peel-sticker")
+
 include(":showcase")
 
 include(":recordings")
