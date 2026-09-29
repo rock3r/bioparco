@@ -24,7 +24,6 @@ import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.ColorAlphaType
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.ImageInfo
-import org.jetbrains.skia.Paint
 import org.jetbrains.skia.Surface
 
 /**
@@ -78,15 +77,15 @@ internal fun printSticker(
     return result
 }
 
-/** The backing: plain grey inside the die-cut, with the watermark printed mirrored on it. */
+/**
+ * The backing: plain white inside the die-cut, with a faint watermark printed mirrored on it. The
+ * original prints on grey; this keeps its text-to-base contrast, about 1.38:1, on white instead.
+ */
 private fun printBacking(cutMask: Image, measurer: TextMeasurer, fontFamily: FontFamily): Image {
     val size = StickerTexture.SIZE
     val bitmap = ImageBitmap(size, size)
     val canvas = Canvas(bitmap)
-    Paint().use { paint ->
-        paint.color = BACKING
-        canvas.skiaCanvas.drawImage(cutMask, 0f, 0f, paint)
-    }
+    canvas.skiaCanvas.drawImage(cutMask, 0f, 0f)
     val text =
         measurer.measure(
             WATERMARK,
@@ -95,6 +94,8 @@ private fun printBacking(cutMask: Image, measurer: TextMeasurer, fontFamily: Fon
                 fontWeight = FontWeight.SemiBold,
                 fontSize = WATERMARK_SIZE.sp,
             ),
+            // Texels, whatever the window's density.
+            density = Density(1f),
         )
     val extent = Size(size.toFloat(), size.toFloat())
     CanvasDrawScope().draw(Density(1f), LayoutDirection.Ltr, canvas, extent) {
@@ -165,9 +166,10 @@ private const val BORDER = 0.041f
 /** The radius that rounds the border's inside corners, as a share of the picture's box. */
 private const val FILLET = 0.03f
 
-private const val BACKING = 0xFFE2E2E5.toInt()
-private val WATERMARK_INK = Color(0xFFC9C8CD)
-private const val WATERMARK = "bioparco"
-private const val WATERMARK_SIZE = 42f
-private const val WATERMARK_GAP = 70f
+private val WATERMARK_INK = Color(0xFFDBDADF)
+private const val WATERMARK = "Bioparco"
+
+/** In texels. The original's is about 47. */
+private const val WATERMARK_SIZE = 40f
+private const val WATERMARK_GAP = 90f
 private const val WATERMARK_ROW = 150f

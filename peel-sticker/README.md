@@ -41,8 +41,8 @@ lifted part itself.
 
 - The picture is printed once into two 1024 × 1024 textures. The die-cut border is an exact
   distance-transform offset of the picture's coverage, 4.1% of its size, with the inside corners
-  rounded by a closing. The front is the picture on that white border; the back is the grey
-  backing with a mirrored watermark.
+  rounded by a closing. The front is the picture on that white border; the back is a white
+  backing with a faint mirrored watermark, at the original's text-to-base contrast (about 1.4:1).
 - The peel is a side-view curve in plain Kotlin (`PeelCurve`): from the fold axis the sheet stands
   up around a tight curl, rolls back over a looser one, then lies flipped and flat. The shader
   inverts it per pixel, so it draws the backing wherever the sheet has come over, and the face
