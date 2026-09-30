@@ -55,8 +55,10 @@ lifted part itself.
 
 ### Software rendering
 
-Under Xvfb, where the recordings are made, Skia draws on the CPU, and a CPU runtime shader costs
-the same per pixel whatever it computes, because every branch runs for every pixel. Traced with
+Under Xvfb, where the recordings are made, Skia draws on the CPU, where each filtered texture
+sample costs 10 to 20 ns a pixel, and samples after an early `return` still run for every pixel
+(see [docs/TRACING.md](../docs/TRACING.md)). The first shader returned early for the part on the
+table, with all the peel's sampling after it. Traced with
 the house tracing (see [docs/TRACING.md](../docs/TRACING.md)), the first version took 54 ms to draw a still sticker and 147 ms mid
 peel (6 to 8 distinct frames a second in the recording). Now:
 

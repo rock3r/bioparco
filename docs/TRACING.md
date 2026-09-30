@@ -58,9 +58,23 @@ for row in tp.query("select name, count(*) n, avg(dur) / 1e6 ms from slice group
   pixels. To time the pixels, call the same drawing code on a raster `Surface`
   (`Surface.makeRasterN32Premul`), where Skia draws at call time, and trace that. The peel sticker
   was optimised that way.
-- **Skia's CPU backend is not the GPU.** Under Xvfb (the recordings) Skia draws on the CPU. There a
-  runtime shader costs about the same per pixel whatever it computes, because every branch runs
-  for every pixel. A filtered image draw costs far more than a copy onto whole pixels (4.5 ms
-  against 0.07 ms for a 377 px square). A frame that is cheap on a GPU can be slow in a recording.
+- **Skia's CPU backend is not the GPU.** Under Xvfb (the recordings) Skia draws on the CPU, one
+  thread, a batch of pixels at a time through its raster pipeline. A frame that is cheap on a GPU
+  can be slow in a recording. Measured on the Skia in Skiko 0.150.1 (per pixel, 2.1 GHz Xeon):
+
+  | | ns/px |
+  |---|---|
+  | Solid fill, opaque / with alpha | 0.2 / 6 |
+  | Image copy onto whole pixels | 0.5 |
+  | Image drawn filtered (bilinear, fractional offset) | 32 |
+  | Runtime shader returning a constant | 3 |
+  | Filtered texture sample inside a shader | 10–20 each |
+  | 8 × `sin`, `cos`, `sqrt` in a shader (the same maths in a plain Kotlin loop: 181) | 81–88 |
+
+  Skia jumps over an `if` block that no pixel in the batch takes, and over maths after an early
+  `return`, but **not over texture samples after an early `return`**: those run for every pixel
+  (4 samples: 80 ns/px either way, 5 ns/px inside an untaken `if`). Keep samples inside `if`
+  blocks, or give each case its own program. A branch that differs between neighbouring pixels
+  runs both sides.
 - **`ImageComposeScene` redraws everything on every `render()`**, unlike a window, which only
   redraws when something changed. It is fine for comparing costs, not for counting frames.

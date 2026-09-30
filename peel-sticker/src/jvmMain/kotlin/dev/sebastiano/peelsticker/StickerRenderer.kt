@@ -50,7 +50,8 @@ internal class StickerFrame(
  * so [close] it when it leaves composition.
  *
  * Shaders only run where something happens, because Skia's CPU backend (Xvfb, the recordings) pays
- * for every shaded pixel, and runs every branch of a shader for all of them:
+ * for every shaded pixel, and runs texture samples that follow an early `return` for all of them
+ * (see `docs/TRACING.md`):
  * - the table part is a copy of the face pre-scaled to the stage, except around the light;
  * - its shadow is blurred once per layout and cached;
  * - the lifted part is shaded in three bands, each with the smallest program it needs, inside the
@@ -299,7 +300,7 @@ internal class StickerRenderer(private val texture: StickerTexture) : AutoClosea
     /**
      * The lifted sheet, in three bands along the fold, each with the least shader it needs: the
      * flat flap is one texture read, the loose roll adds the curve, and only the thin tight curl
-     * also shows the face. The CPU backend would otherwise run all of it for every pixel.
+     * also shows the face. On the CPU this took the lifted part from about 17 ms to 6 ms.
      */
     private fun drawLifted(
         canvas: Canvas,
@@ -358,8 +359,9 @@ internal class StickerRenderer(private val texture: StickerTexture) : AutoClosea
         if (frame.shine > SHINE_OFF) frame.mode else null
 
     /**
-     * Skia's CPU backend runs every branch of a shader for every pixel, so each layer and shine
-     * gets its own small program, compiled the first time it is drawn.
+     * Each layer and shine gets its own small program, compiled the first time it is drawn: Skia's
+     * CPU backend runs texture samples that follow an early `return` for every pixel, so one shader
+     * for everything paid for the peel's samples on the flat sticker too.
      */
     private fun shaderFor(frame: StickerFrame, key: ProgramKey): Shader {
         val program = programs.getOrPut(key) { RuntimeEffect.makeForShader(peelProgram(key)) }
