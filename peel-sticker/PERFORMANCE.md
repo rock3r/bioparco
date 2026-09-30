@@ -1,7 +1,7 @@
 # Peel sticker performance
 
 How the peel sticker went from 6 to 8 distinct frames a second in its recording to about 20, what
-was measured on the way, and how to check it on a machine with a GPU, which has not been done yet.
+was measured on the way, what a run on a GPU found, and how to check it again.
 
 ## The problem
 
@@ -47,6 +47,7 @@ rest, at rest with the Prism shine, and mid-peel.
 | The lifted shadow blurred in its small surface rather than while scaling up; the lifted part clipped to the hull of where it can land | 7.8 ms | 15 ms | 46 ms |
 | The sticker on whole pixels, drawn as a copy; the shadow scaled up with nearest sampling | 0.2 ms | 14 ms | 29 ms |
 | The lifted part in three bands, each with the least program it needs | 0.3 ms | 12 ms | 14 ms |
+| The fold without seams (below) | 0.2 ms | 12 ms | 16 ms |
 
 Also:
 
@@ -94,17 +95,46 @@ difference; a polynomial `acos` instead of the built-in one barely did (kept, si
 to a hundredth of a pixel); clipping the lifted part to the die-cut's hull rather than the texture's
 box did nothing for the X, whose hull is nearly its box.
 
+## On a GPU
+
+Codex ran the checklist below on an M1 Max (macOS, 120 Hz display, Metal) at commit `96c0887`:
+every specimen traced in its window, on Metal and in software, and recorded both ways.
+
+| Peel sticker, whole run | Metal | Software |
+|---|---|---|
+| `frame`, median | 0.67 ms | 1.5 ms |
+| `frame`, 95th percentile | 7.3 ms; 8.1 ms while peeling, against 8.3 ms a refresh | 12 ms |
+| `lifted shadow`, median | 4.2 ms | 6.1 ms |
+| Frame to frame, median | 8.4 ms, the refresh interval | |
+| Distinct frames a second in the recording | 19 | 10 |
+
+- **The lifted shadow was 96% of the sticker's drawing on Metal, and 92% of the frame.** Compose
+  records a frame's draw calls and plays them back on the GPU later, but the quarter-resolution
+  shadow is rasterised on a CPU surface when it is recorded, whatever the backend. It is now drawn
+  as a blurred layer when the window renders on a GPU: Compose records it and the GPU renders it
+  on playback. The window's render API is read on every draw, so a fallback to software goes back
+  to the quarter-resolution shadow. Drawn in software, the layer costs about 27 ms more a peeling
+  frame; the two shadows differ by at most 3 in 255.
+- **Pale or dotted hairlines ran along the fold**, on Metal and in software alike. There were
+  three:
+  - between the lifted part's bands, where pixels right on a boundary fell in neither band's
+    clip. The shaders now decide the band from the same `q`, and the clips only bound the work;
+  - at the fold's axis, where the table part's anti-aliased edge showed the page through. The
+    tight curl now starts 1.5 px before the axis, over that edge;
+  - at the rim of the curl, where the roll stands edge-on and one pixel spans tens of pixels of
+    the backing. Sampled once, the watermark came and went from pixel to pixel. The print now
+    blends into the paper where the roll squeezes it past about 3 to 1, as a mipmap would, and
+    the rim fades over its last pixel like any anti-aliased edge.
+
+  In software, those fixes cost the lifted part about 1.3 ms a peeling frame.
+- **The first frame is every specimen's slowest**: 50 to 114 ms on Metal, up to 215 ms in
+  software. Shader compilation and, here, printing the first sticker. Not looked into yet.
+
 ## Checking it on a GPU
 
-Not done yet: this was all measured without a GPU. On a GPU Skia draws the shaders there, so most
-of the above matters little, but two changes run on the CPU every frame whatever the backend, and
-could cost more than they save there:
-
-- the lifted part's shadow is shaded and blurred on a CPU raster surface at a quarter of the
-  resolution, then uploaded as a texture;
-- the band and hull clips are paths.
-
-To check:
+The lifted shadow's layer has not been measured on a GPU yet; this is how to. On a GPU Skia draws the shaders there, so most of the software work above matters little. What
+still runs on the CPU every frame is recording the draw calls and the band and hull clips, which
+are paths. To check:
 
 1. Run the specimen with tracing, then peel it several times, hover each shine and press P:
 
@@ -125,8 +155,8 @@ To check:
      (16.7 ms at 60 Hz).
    - The frame-to-frame line shows pacing: while something moves, the median should sit on the
      refresh interval.
-   - `lifted shadow` is the CPU-side shadow. If it is a large share of `frame` while peeling, the
-     GPU path wants the shadow drawn on the GPU instead.
+   - `lifted shadow` on a GPU now only records a layer, so it should be a small share of `frame`.
+     If it is not, the window was not seen as GPU-backed.
 4. For a like-for-like comparison, run it again in software and compare the two summaries:
 
    ```bash
@@ -138,6 +168,3 @@ To check:
    ```bash
    BIOPARCO_TRACE_DIR=/tmp/traces ./gradlew :recordings:recordSpecimens
    ```
-
-The first frame of each trace is slow (up to about 200 ms here): shader compilation and printing
-the first sticker. That has not been looked into yet.

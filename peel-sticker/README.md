@@ -63,7 +63,9 @@ resolution, and the lifted sheet is shaded in bands. The drawing layers and the 
 sticker stay marked as trace sections.
 
 [PERFORMANCE.md](PERFORMANCE.md) has the step-by-step numbers, what they taught, the benchmarks to
-rerun, and how to check it all on a GPU, which has not been done yet.
+rerun, what a run on Metal found, and how to check it on a GPU. On a GPU window the lifted shadow
+is a blurred layer the GPU renders, since the quarter-resolution one is rasterised on the CPU
+whatever the backend.
 
 The layout, colours, the G's geometry and the peel's look were read off the source video frame by
 frame. White and Sparkle do not appear in the video, so those two are this specimen's own reading

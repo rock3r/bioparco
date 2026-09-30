@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
@@ -41,6 +42,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import java.awt.Window
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -51,6 +53,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.skia.Rect
+import org.jetbrains.skiko.GraphicsApi
 
 /**
  * The sticker on its table. Drag it from an edge to peel it; let go and it lays itself back down.
@@ -179,7 +182,8 @@ private fun StickerStage(
                         density = density,
                     )
                 drawIntoCanvas {
-                    renderer.draw(it.skiaCanvas, Rect.makeWH(size.width, size.height), frame)
+                    val bounds = Rect.makeWH(size.width, size.height)
+                    renderer.draw(it.skiaCanvas, bounds, frame, gpu = drawnOnGpu())
                 }
             }
     )
@@ -268,6 +272,20 @@ private class StageLayout(
         }
     }
 }
+
+/**
+ * Whether the windows on screen render on a GPU. Compose Desktop 1.12 does not tell a composable
+ * which window it is in, but a specimen has one window, and asking every draw follows Skiko when it
+ * falls back to software. No window, as in an `ImageComposeScene`, draws in software.
+ */
+private fun drawnOnGpu(): Boolean {
+    val windows = Window.getWindows().filter { it.isShowing && it is ComposeWindow }
+    return windows.isNotEmpty() &&
+        windows.all { (it as ComposeWindow).renderApi !in SoftwareRenderApis }
+}
+
+private val SoftwareRenderApis =
+    setOf(GraphicsApi.SOFTWARE_COMPAT, GraphicsApi.SOFTWARE_FAST, GraphicsApi.UNKNOWN)
 
 /** How far off the die-cut a press still grabs its edge. */
 private val GrabSlop = 8.dp

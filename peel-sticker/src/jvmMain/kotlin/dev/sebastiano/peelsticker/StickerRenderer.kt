@@ -57,6 +57,9 @@ internal class StickerFrame(
  * - the lifted part is shaded in three bands, each with the smallest program it needs, inside the
  *   hull of where the die-cut can land;
  * - the lifted part's shadow is shaded and blurred at a quarter of the resolution.
+ *
+ * That last one runs on the CPU when Compose records the frame, whatever the backend, so on a GPU
+ * the shadow is drawn as a blurred layer instead, which the GPU renders when the frame plays back.
  */
 internal class StickerRenderer(private val texture: StickerTexture) : AutoCloseable {
     private val programs = HashMap<ProgramKey, RuntimeEffect>()
@@ -74,11 +77,13 @@ internal class StickerRenderer(private val texture: StickerTexture) : AutoClosea
      * Each layer is a trace section. Compose records these draws and rasterises them later, so in
      * an app trace they time the recording; drawn straight onto a raster surface they time the
      * pixels. See `docs/TRACING.md`.
+     *
+     * [gpu] says the canvas plays back on a GPU, where the lifted shadow is best left to it.
      */
-    fun draw(canvas: Canvas, bounds: Rect, frame: StickerFrame) =
-        Tracing.section("peel-sticker draw") { drawLayers(canvas, bounds, frame) }
+    fun draw(canvas: Canvas, bounds: Rect, frame: StickerFrame, gpu: Boolean = false) =
+        Tracing.section("peel-sticker draw") { drawLayers(canvas, bounds, frame, gpu) }
 
-    private fun drawLayers(canvas: Canvas, bounds: Rect, frame: StickerFrame) {
+    private fun drawLayers(canvas: Canvas, bounds: Rect, frame: StickerFrame, gpu: Boolean) {
         val side = StickerTexture.SIZE / frame.texScale
         val sticker = Rect.makeXYWH(frame.originX, frame.originY, side, side)
         val fold = frame.fold
@@ -92,7 +97,10 @@ internal class StickerRenderer(private val texture: StickerTexture) : AutoClosea
         if (outline.size < 6) return
         val lifted = clip(boundsOf(outline).inflate(2f), bounds)
         if (lifted.isEmpty) return
-        Tracing.section("lifted shadow") { drawLiftedShadow(canvas, lifted, outline, frame, fold) }
+        Tracing.section("lifted shadow") {
+            if (gpu) drawLiftedShadowLayer(canvas, lifted, outline, frame, fold)
+            else drawLiftedShadow(canvas, lifted, outline, frame, fold)
+        }
         Tracing.section("lifted") { drawLifted(canvas, lifted, outline, frame, fold) }
     }
 
@@ -232,11 +240,8 @@ internal class StickerRenderer(private val texture: StickerTexture) : AutoClosea
         frame: StickerFrame,
         fold: PeelFold,
     ) {
-        val d = frame.density
-        val lift = fold.curve.tight + fold.curve.loose
-        val dx = 1.5f * d + lift * 0.06f
-        val dy = 4f * d + lift * 0.16f
-        val sigma = (5f * d + lift * 0.12f) / SHADOW_SCALE
+        val (dx, dy, fullSigma) = liftedShadowOf(frame, fold)
+        val sigma = fullSigma / SHADOW_SCALE
         val margin = ceil(sigma * 3f)
         val width = ceil(lifted.width / SHADOW_SCALE + margin * 2f).toInt() + 1
         val height = ceil(lifted.height / SHADOW_SCALE + margin * 2f).toInt() + 1
@@ -278,6 +283,41 @@ internal class StickerRenderer(private val texture: StickerTexture) : AutoClosea
         }
     }
 
+    /**
+     * The lifted part's shadow as a layer: its coverage at full resolution, blurred as the layer is
+     * put down. Compose only records it, so on a GPU none of it costs the CPU; in software it
+     * doubles the cost of a peeling frame. The two shadows differ by at most 3 in 255.
+     */
+    private fun drawLiftedShadowLayer(
+        canvas: Canvas,
+        lifted: Rect,
+        outline: FloatArray,
+        frame: StickerFrame,
+        fold: PeelFold,
+    ) {
+        val (dx, dy, sigma) = liftedShadowOf(frame, fold)
+        ImageFilter.makeBlur(sigma, sigma, FilterTileMode.DECAL).use { blur ->
+            Paint().use { layer ->
+                layer.imageFilter = blur
+                layer.alpha = (LIFTED_SHADOW * 255f).toInt()
+                canvas.save()
+                canvas.translate(dx, dy)
+                canvas.saveLayer(lifted, layer)
+                clipToOutline(canvas, outline)
+                shade(canvas, lifted, frame, ProgramKey(COVERAGE, null))
+                canvas.restore()
+                canvas.restore()
+            }
+        }
+    }
+
+    /** How far the lifted part's shadow falls, and how soft it is: it grows as the sheet lifts. */
+    private fun liftedShadowOf(frame: StickerFrame, fold: PeelFold): Triple<Float, Float, Float> {
+        val d = frame.density
+        val lift = fold.curve.tight + fold.curve.loose
+        return Triple(1.5f * d + lift * 0.06f, 4f * d + lift * 0.16f, 5f * d + lift * 0.12f)
+    }
+
     /** One of the two scratch surfaces for the lifted shadow, grown when it is too small. */
     private fun smallSurface(width: Int, height: Int, index: Int): Surface {
         val current = scratch[index]
@@ -301,6 +341,13 @@ internal class StickerRenderer(private val texture: StickerTexture) : AutoClosea
      * The lifted sheet, in three bands along the fold, each with the least shader it needs: the
      * flat flap is one texture read, the loose roll adds the curve, and only the thin tight curl
      * also shows the face. On the CPU this took the lifted part from about 17 ms to 6 ms.
+     *
+     * The shaders decide which band a pixel is in, from the same `q` in each, so every pixel is
+     * drawn exactly once: split by clips alone, pixels right on a band boundary fell in neither and
+     * left a dotted seam. The clips only bound the work, half a pixel wider than their band: both
+     * they and the shaders test pixel centres. The tight curl starts [CURL_OVERLAP] before the
+     * axis, laying its face over the table part's anti-aliased edge, so the fold has no seam
+     * either.
      */
     private fun drawLifted(
         canvas: Canvas,
@@ -309,20 +356,21 @@ internal class StickerRenderer(private val texture: StickerTexture) : AutoClosea
         frame: StickerFrame,
         fold: PeelFold,
     ) {
-        val tight = fold.curve.tight
-        val rollStart = tight - fold.curve.loose
+        val curlStart = -CURL_OVERLAP
+        val rollStart = fold.curve.tight - fold.curve.loose
         val bands =
             listOf(
-                Triple(-FAR, rollStart, ProgramKey(LIFTED_FLAT, null)),
-                Triple(rollStart, 0f, ProgramKey(LIFTED_ROLL, null)),
-                Triple(0f, tight, ProgramKey(LIFTED, shineOf(frame))),
+                Triple(-FAR, minOf(rollStart, curlStart), ProgramKey(LIFTED_FLAT, null)),
+                Triple(rollStart, curlStart, ProgramKey(LIFTED_ROLL, null)),
+                // To the rim, which fades out over the half pixel past `tight`.
+                Triple(curlStart, fold.curve.tight + 0.5f, ProgramKey(LIFTED, shineOf(frame))),
             )
         for ((from, to, key) in bands) {
             if (to <= from) continue
             canvas.save()
             clipToOutline(canvas, outline)
-            clipToBand(canvas, fold, from, to)
-            shade(canvas, lifted, frame, key)
+            clipToBand(canvas, fold, from - BAND_MARGIN, to + BAND_MARGIN)
+            shade(canvas, lifted, frame, key, from, to)
             canvas.restore()
         }
     }
@@ -347,8 +395,15 @@ internal class StickerRenderer(private val texture: StickerTexture) : AutoClosea
         canvas.translate(-fold.axisX - dx, -fold.axisY - dy)
     }
 
-    private fun shade(canvas: Canvas, area: Rect, frame: StickerFrame, key: ProgramKey) {
-        shaderFor(frame, key).use { shader ->
+    private fun shade(
+        canvas: Canvas,
+        area: Rect,
+        frame: StickerFrame,
+        key: ProgramKey,
+        bandFrom: Float = -FAR,
+        bandTo: Float = FAR,
+    ) {
+        shaderFor(frame, key, bandFrom, bandTo).use { shader ->
             paint.shader = shader
             canvas.drawRect(area, paint)
             paint.shader = null
@@ -363,7 +418,12 @@ internal class StickerRenderer(private val texture: StickerTexture) : AutoClosea
      * CPU backend runs texture samples that follow an early `return` for every pixel, so one shader
      * for everything paid for the peel's samples on the flat sticker too.
      */
-    private fun shaderFor(frame: StickerFrame, key: ProgramKey): Shader {
+    private fun shaderFor(
+        frame: StickerFrame,
+        key: ProgramKey,
+        bandFrom: Float,
+        bandTo: Float,
+    ): Shader {
         val program = programs.getOrPut(key) { RuntimeEffect.makeForShader(peelProgram(key)) }
         val builder = RuntimeShaderBuilder(program)
         val fold = frame.fold
@@ -377,6 +437,7 @@ internal class StickerRenderer(private val texture: StickerTexture) : AutoClosea
         builder.uniform("shine", frame.shine)
         builder.uniform("time", frame.time)
         builder.uniform("span", StickerTexture.CUT)
+        builder.uniform("band", bandFrom, bandTo)
         builder.child("front", front)
         builder.child("back", back)
         return builder.makeShader().also { builder.close() }
@@ -398,6 +459,12 @@ internal class StickerRenderer(private val texture: StickerTexture) : AutoClosea
         const val SHADOW_SCALE = 4f
         const val SCRATCH_SLACK = 32
         const val SHINE_OFF = 0.001f
+
+        /** How far before the axis the tight curl starts, in stage pixels. */
+        const val CURL_OVERLAP = 1.5f
+
+        /** How much wider than its band a band's clip is, in stage pixels. */
+        const val BAND_MARGIN = 0.5f
         const val FAR = 1e5f
 
         /** How far each shine reaches from the light, as a share of the die-cut. */
@@ -524,6 +591,8 @@ private val PROGRAM_HEAD =
     uniform float shine;
     uniform float time;
     uniform float span;
+    // The range of q, the distance along the fold from its axis, a lifted band draws.
+    uniform float2 band;
 
     const float HALF_PI = 1.5707963;
     const float TAU = 6.2831853;
@@ -540,6 +609,17 @@ private val PROGRAM_HEAD =
         float a = abs(x);
         float r = sqrt(1.0 - a) * (1.5707288 + a * (-0.2121144 + a * (0.0742610 - 0.0187293 * a)));
         return x < 0.0 ? 3.14159265 - r : r;
+    }
+
+    // How much of the backing's print shows where the roll has turned to cos(phi) = c. Towards the
+    // top of the roll one pixel spans ever more of the backing, up to tens of pixels at the rim;
+    // sampled once, the watermark there came and went from pixel to pixel, a dotted line along
+    // the fold. Past about 3 to 1 the print blends into the paper, as a mipmap would blend it.
+    float legible(float c) { return smoothstep(0.12, 0.35, sqrt(max(1.0 - c * c, 0.0))); }
+
+    float4 backing(float2 t, float printed) {
+        float4 b = back.eval(t);
+        return float4(mix(float3(b.a), b.rgb, printed), b.a);
     }
     """
         .trimIndent()
@@ -645,6 +725,12 @@ private val LIFTED_MAIN =
     """
     half4 main(float2 p) {
         float q = dot(p - axis, dir);
+        if (q < band.x || q >= band.y) return half4(0.0);
+        // The curl's rim, where the sheet stands upright at q = tight, fades over its last pixel
+        // like any anti-aliased edge; cut off hard, it read as a dotted line along the fold.
+        float rim = clamp(tight + 0.5 - q, 0.0, 1.0);
+        if (rim <= 0.0) return half4(0.0);
+        q = min(q, tight);
         float2 foot = p - dir * q;
         float tightEnd = HALF_PI * tight;
         float looseEnd = tightEnd + HALF_PI * loose;
@@ -653,29 +739,35 @@ private val LIFTED_MAIN =
         if (q <= tight) {
             float depth;
             float light;
+            float printed = 1.0;
             if (loose > 0.0 && q >= tight - loose) {
                 // c = cos(phi), phi being how far round the loose curl the sheet has rolled.
                 float c = clamp((q - tight + loose) / loose, -1.0, 1.0);
                 depth = tightEnd + loose * fastAcos(c);
+                // Shaded from a pixel inside the rim: sin(phi) falls to 0 within the last pixel,
+                // and all that shade in one pixel read as a dashed dark line along the fold.
+                float lit = clamp((min(q, tight - 1.0) - tight + loose) / loose, -1.0, 1.0);
                 // A soft highlight where phi is about half a radian, where cos(phi) is 0.88.
-                float bump = max(0.0, 1.0 - (c - 0.8776) * (c - 0.8776) / 0.09);
-                light = 0.84 + 0.14 * sqrt(1.0 - c * c) + 0.06 * bump * bump;
+                float bump = max(0.0, 1.0 - (lit - 0.8776) * (lit - 0.8776) / 0.09);
+                light = 0.84 + 0.14 * sqrt(1.0 - lit * lit) + 0.06 * bump * bump;
+                printed = legible(c);
             } else {
                 depth = looseEnd + (tight - loose - q);
                 light = 0.98;
             }
-            float4 b = back.eval(tex(foot + dir * depth));
+            float4 b = backing(tex(foot + dir * depth), printed);
             top = float4(min(b.rgb * light, float3(b.a)), b.a);
         }
 
         float4 under = float4(0.0);
-        if (tight > 0.0 && q >= 0.0 && q <= tight) {
-            float s = q / tight;
+        // From the band's start, a little before the axis, so the face overlaps the table's edge.
+        if (tight > 0.0 && q <= tight) {
+            float s = clamp(q / tight, -1.0, 1.0);
             float4 f = face(tex(foot + dir * tight * (HALF_PI - fastAcos(s))));
             under = float4(f.rgb * (0.55 + 0.45 * sqrt(1.0 - s * s)), f.a);
         }
 
-        return half4(top + under * (1.0 - top.a));
+        return half4((top + under * (1.0 - top.a)) * rim);
     }
     """
         .trimIndent()
@@ -685,9 +777,12 @@ private val FLAT_MAIN =
     """
     half4 main(float2 p) {
         float q = dot(p - axis, dir);
-        float depth = HALF_PI * (tight + loose) + (tight - loose - q);
-        float4 b = back.eval(tex(p + dir * (depth - q)));
-        return half4(min(b.rgb * 0.98, float3(b.a)), b.a);
+        if (q >= band.x && q < band.y) {
+            float depth = HALF_PI * (tight + loose) + (tight - loose - q);
+            float4 b = back.eval(tex(p + dir * (depth - q)));
+            return half4(min(b.rgb * 0.98, float3(b.a)), b.a);
+        }
+        return half4(0.0);
     }
     """
         .trimIndent()
@@ -697,12 +792,15 @@ private val ROLL_MAIN =
     """
     half4 main(float2 p) {
         float q = dot(p - axis, dir);
-        float c = clamp((q - tight + loose) / loose, -1.0, 1.0);
-        float depth = HALF_PI * tight + loose * fastAcos(c);
-        float bump = max(0.0, 1.0 - (c - 0.8776) * (c - 0.8776) / 0.09);
-        float light = 0.84 + 0.14 * sqrt(1.0 - c * c) + 0.06 * bump * bump;
-        float4 b = back.eval(tex(p + dir * (depth - q)));
-        return half4(min(b.rgb * light, float3(b.a)), b.a);
+        if (q >= band.x && q < band.y) {
+            float c = clamp((q - tight + loose) / loose, -1.0, 1.0);
+            float depth = HALF_PI * tight + loose * fastAcos(c);
+            float bump = max(0.0, 1.0 - (c - 0.8776) * (c - 0.8776) / 0.09);
+            float light = 0.84 + 0.14 * sqrt(1.0 - c * c) + 0.06 * bump * bump;
+            float4 b = backing(tex(p + dir * (depth - q)), legible(c));
+            return half4(min(b.rgb * light, float3(b.a)), b.a);
+        }
+        return half4(0.0);
     }
     """
         .trimIndent()
@@ -712,6 +810,8 @@ private val COVERAGE_MAIN =
     """
     half4 main(float2 p) {
         float q = dot(p - axis, dir);
+        float rim = clamp(tight + 0.5 - q, 0.0, 1.0);
+        q = min(q, tight);
         float2 foot = p - dir * q;
         float tightEnd = HALF_PI * tight;
         float looseEnd = tightEnd + HALF_PI * loose;
@@ -726,7 +826,7 @@ private val COVERAGE_MAIN =
             float under = front.eval(tex(foot + dir * tight * (HALF_PI - fastAcos(q / tight)))).a;
             a = a + under * (1.0 - a);
         }
-        return half4(0.0, 0.0, 0.0, a);
+        return half4(0.0, 0.0, 0.0, a * rim);
     }
     """
         .trimIndent()

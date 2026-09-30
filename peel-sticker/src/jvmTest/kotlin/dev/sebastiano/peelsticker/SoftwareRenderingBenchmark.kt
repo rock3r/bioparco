@@ -95,6 +95,13 @@ class SoftwareRenderingBenchmark {
                     }
                 }
             }
+            // The shadow a GPU window gets, drawn here in software to see what it would cost.
+            val peeling = stage.frame(fold, ShineMode.Prism, shine = 0f)
+            repeat(12) {
+                Tracing.section("raster peeling, shadow as a layer") {
+                    renderer.draw(surface.canvas, bounds, peeling, gpu = true)
+                }
+            }
             renderer.close()
             texture.close()
             surface.close()
