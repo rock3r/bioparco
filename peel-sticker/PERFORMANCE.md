@@ -159,8 +159,13 @@ so there are no hand-driven traces this time.
   software now agree to within 5 in 255, and software is unchanged.
 - The whole recordings run at 9.1 distinct frames a second on Metal and 7.2 in software; the first
   run counted only while things moved, at a different size, so the two are not comparable. In
-  software on the Mac, frames came 63 ms apart while `frame` itself took under 8 ms, so the time
-  goes somewhere outside the render callback. Not looked into.
+  software on the Mac, frames came 63 ms apart while `frame` itself took under 8 ms. Codex's
+  profile found the rest after the render callback: Skiko playing the frame back, then Java2D
+  converting its pixels one by one on the way to the window, 97% of the event thread's samples
+  while peeling. Under Xvfb it is two thirds; see
+  [docs/TRACING.md](../docs/TRACING.md#things-that-fool-you). It is Skiko's `SOFTWARE_COMPAT`
+  path, not the sticker, and the recordings already show 22 to 24 distinct frames a second while
+  things move, out of 30.
 
 ## Starting up
 
@@ -232,8 +237,8 @@ are paths. To check:
    ```
 
 3. Read:
-   - `frame` is the CPU side of each frame, from Skiko's render callback. On a GPU it does not
-     include the GPU's own work. Its 95th percentile should stay well under the refresh interval
+   - `frame` is Compose recording each frame, from Skiko's render callback, plus drawing done on
+     the spot. It does not include playing the frame back, in software or on the GPU. Its 95th percentile should stay well under the refresh interval
      (16.7 ms at 60 Hz).
    - The frame-to-frame line shows pacing: while something moves, the median should sit on the
      refresh interval.

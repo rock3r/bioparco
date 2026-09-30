@@ -27,8 +27,9 @@ a JVM of its own.
 
 - `frame`: every frame a window renders, from `TracedFrames()`, which every specimen's window and
   the recordings' `SpecimenWindow` call. It wraps the window's Skiko render delegate, so it sees
-  each frame whatever changed, and under software rendering (Xvfb) it includes rasterising the
-  pixels. Gaps between `frame` sections are stalls.
+  each frame whatever changed. It covers Compose recording the frame's draw calls, not Skiko
+  playing them back into pixels and handing them to the window, which comes after it: see below.
+  Gaps between `frame` sections are that, or stalls.
 - Anything a specimen marks with `Tracing.section`:
 
   ```kotlin
@@ -65,6 +66,13 @@ compares with the CPU backend: GPU-only artefacts show up there without a GPU.
   pixels. To time the pixels, call the same drawing code on a raster `Surface`
   (`Surface.makeRasterN32Premul`), where Skia draws at call time, and trace that. The peel sticker
   was optimised that way.
+- **In software, most of a frame is after the `frame` section.** Skiko plays the recorded frame
+  back into a bitmap, then `SOFTWARE_COMPAT` hands it to the window through Java2D, whose
+  per-pixel colour conversion (`OpaqueCopyAnyToArgb`, `ComponentColorModel.getRGB`) took about
+  two thirds of the event thread in a peel sticker recording under Xvfb, and most of the 60 ms
+  between frames in software on a Retina Mac. Playing back the sticker's drawing took a sixth.
+  That is Skiko's and the JDK's, not a specimen's; `SOFTWARE_FAST` did not make the recordings
+  any smoother. Java Flight Recorder sees it where the trace cannot.
 - **Skia's CPU backend is not the GPU.** Under Xvfb (the recordings) Skia draws on the CPU, one
   thread, a batch of pixels at a time through its raster pipeline. A frame that is cheap on a GPU
   can be slow in a recording. Measured on the Skia in Skiko 0.150.1 (per pixel, 2.1 GHz Xeon):

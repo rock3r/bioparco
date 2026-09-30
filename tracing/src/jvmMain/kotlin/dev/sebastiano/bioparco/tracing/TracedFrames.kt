@@ -10,8 +10,10 @@ import org.jetbrains.skiko.SkikoRenderDelegate
 /**
  * Makes every frame this window renders a `frame` section, while tracing is on, so frame cadence
  * and stalls show in any specimen's trace. It wraps the window's Skiko render delegate, so it sees
- * every frame Skia renders, whichever part of the UI changed. Under software rendering the section
- * includes rasterising the pixels; on a GPU it covers issuing the draw calls.
+ * every frame Skia renders, whichever part of the UI changed. The section covers Compose recording
+ * the frame's draw calls, and any drawing done on the spot. It does not cover Skiko playing those
+ * calls back: into the pixels in software, followed by handing them to the window, or on the GPU.
+ * That shows as the gap to the next frame.
  */
 @Composable
 fun FrameWindowScope.TracedFrames() {
