@@ -56,8 +56,8 @@ rest, at rest with the Prism shine, and mid-peel.
 
 Also:
 
-- A new picture (P, or a dropped file) is printed on a background thread. Printing takes 300 ms to
-  1 s; it used to stall a frame that long.
+- A new picture (P, or a dropped file) is printed on a background thread; it used to stall a frame
+  for as long as printing took. See [Starting up](#starting-up) for how long that is.
 - The page's dot grid is painted once per size; it cost 5.5 ms on every page redraw.
 - Full app frames in `ImageComposeScene` (which redraws everything, every frame) went from 67 ms
   to about 13 ms at rest and from 154 ms to about 30 ms while peeling.
@@ -133,7 +133,7 @@ every specimen traced in its window, on Metal and in software, and recorded both
 
   In software, those fixes cost the lifted part about 1.3 ms a peeling frame.
 - **The first frame is every specimen's slowest**: 50 to 114 ms on Metal, up to 215 ms in
-  software. Shader compilation and, here, printing the first sticker. Not looked into yet.
+  software. See [Starting up](#starting-up).
 
 ### The recheck
 
@@ -161,6 +161,49 @@ so there are no hand-driven traces this time.
   run counted only while things moved, at a different size, so the two are not comparable. In
   software on the Mac, frames came 63 ms apart while `frame` itself took under 8 ms, so the time
   goes somewhere outside the render callback. Not looked into.
+
+## Starting up
+
+Timed in a real window under Xvfb, in software, each run in a new JVM.
+
+**The first frame is the JVM starting cold, not the sticker.** It draws the page before the
+sticker is printed, and none of the sticker's sections is in it.
+
+| Window content | First frame |
+|---|---|
+| Nothing | 30 ms |
+| One line of text | 80 ms |
+| Jewel's theme and one line of text | 90 ms |
+| The peel sticker's page | 200 to 255 ms |
+
+Sampled every millisecond with Java Flight Recorder, the event thread spends that time loading
+classes (a quarter of the samples), generating the classes behind lambdas and method handles
+(another sixth; Kotlin 2 compiles lambdas to `invokedynamic`), building Jewel's theme and laying out
+text for the first time, mostly before the JIT has caught up. The page's own code is a few milliseconds of it. Every specimen pays
+the same, which is why the first frame was the slowest everywhere on the Mac.
+
+A JDK 25 AOT cache ([JEP 483](https://openjdk.org/jeps/483), [JEP 514](https://openjdk.org/jeps/514),
+[JEP 515](https://openjdk.org/jeps/515)), recorded in one training run, loads and links those classes
+ahead of time: the first frame went from 195 to 255 ms to 78 to 120 ms. It is not wired into the
+build. The cache needs jars on the class path, a training run that quits by itself, and one cache
+per specimen that goes stale with every build; the JVM ignores a stale one, with a warning. To try
+it:
+
+```bash
+./gradlew :peel-sticker:jvmJar
+# CP: build/libs/peel-sticker-jvm.jar plus the jvmRuntimeClasspath jars, no class directories
+java -XX:AOTCacheOutput=app.aot -cp "$CP" dev.sebastiano.peelsticker.MainKt   # use it, then close it
+java -XX:AOTCache=app.aot -cp "$CP" dev.sebastiano.peelsticker.MainKt
+```
+
+**The sticker appears once it is printed**, on a background thread, while the first frames draw
+the empty page. Printing the first one took 745 ms, 540 ms of it the die-cut's two distance
+transforms over a padded 1158 × 1158 grid, with their column passes striding through 10 MB. The
+transform now finds the column distances in two integer sweeps down the rows (Meijster, Roerdink
+and Hesselink) and only runs the parabola envelope along rows, all in memory order. Its output is
+bit for bit the same. The die-cut now takes about 43 ms warm instead of 90, and 210 to 390 ms cold
+instead of 540, so the first sticker is ready after 350 to 530 ms; with the AOT cache, about 280.
+`print sticker` has a section for each step: `draw picture`, `die-cut`, `backing` and `silhouette`.
 
 ## Checking it on a GPU
 

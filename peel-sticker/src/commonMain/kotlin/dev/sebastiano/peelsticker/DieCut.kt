@@ -22,29 +22,29 @@ internal fun dieCut(
     val pad = (border + fillet).toInt() + 2
     val paddedWidth = width + 2 * pad
     val paddedHeight = height + 2 * pad
-    fun inside(i: Int): Int {
-        val x = i % paddedWidth - pad
-        val y = i / paddedWidth - pad
-        return if (x in 0 until width && y in 0 until height) y * width + x else -1
+    val artFeatures = BooleanArray(paddedWidth * paddedHeight)
+    for (y in 0 until height) {
+        val row = (y + pad) * paddedWidth + pad
+        for (x in 0 until width) artFeatures[row + x] = art[y * width + x] >= 0.5f
     }
-    val toArt =
-        distances(paddedWidth, paddedHeight) {
-            val source = inside(it)
-            source >= 0 && art[source] >= 0.5f
-        }
+    val toArt = distances(paddedWidth, paddedHeight, artFeatures)
     val padded = FloatArray(paddedWidth * paddedHeight)
     if (fillet <= 0f) {
         for (i in padded.indices) padded[i] = coverage(border - toArt[i] + 0.5f)
     } else {
         val grown = border + fillet
         // The grown edge runs half a pixel past the last pixel centre inside it.
-        val toOutside = distances(paddedWidth, paddedHeight) { toArt[it] >= grown + 0.5f }
+        val outside = BooleanArray(toArt.size) { toArt[it] >= grown + 0.5f }
+        val toOutside = distances(paddedWidth, paddedHeight, outside)
         for (i in padded.indices) padded[i] = coverage(toOutside[i] - fillet - 0.5f)
     }
     val cut = FloatArray(width * height)
-    for (i in padded.indices) {
-        val target = inside(i)
-        if (target >= 0) cut[target] = maxOf(padded[i], art[target])
+    for (y in 0 until height) {
+        val row = (y + pad) * paddedWidth + pad
+        for (x in 0 until width) {
+            val target = y * width + x
+            cut[target] = maxOf(padded[row + x], art[target])
+        }
     }
     return cut
 }
@@ -52,27 +52,44 @@ internal fun dieCut(
 private fun coverage(value: Float) = value.coerceIn(0f, 1f)
 
 /**
- * Distance from every pixel to the nearest pixel where [feature] holds, by Felzenszwalb and
- * Huttenlocher's separable transform: columns first, then rows.
+ * Distance from every pixel to the nearest pixel in [features], exactly, by Meijster, Roerdink and
+ * Hesselink's separable transform. Down each column the distance to the nearest feature is a count,
+ * found in two sweeps over the rows; along each row it is Felzenszwalb and Huttenlocher's lower
+ * envelope of parabolas. Everything runs row by row, through memory in order.
  */
-private fun distances(width: Int, height: Int, feature: (Int) -> Boolean): FloatArray {
-    val squared = DoubleArray(width * height) { if (feature(it)) 0.0 else FAR }
-    val longest = maxOf(width, height)
-    val line = DoubleArray(longest)
-    val out = DoubleArray(longest)
-    val hulls = IntArray(longest)
-    val bounds = DoubleArray(longest + 1)
-    for (x in 0 until width) {
-        for (y in 0 until height) line[y] = squared[y * width + x]
-        transform(line, out, height, hulls, bounds)
-        for (y in 0 until height) squared[y * width + x] = out[y]
+internal fun distances(width: Int, height: Int, features: BooleanArray): FloatArray {
+    // Pixels down the column to the nearest feature, or NONE.
+    val down = IntArray(width * height)
+    for (x in 0 until width) down[x] = if (features[x]) 0 else NONE
+    for (y in 1 until height) {
+        val row = y * width
+        for (x in 0 until width) {
+            val above = down[row - width + x]
+            down[row + x] = if (features[row + x]) 0 else if (above == NONE) NONE else above + 1
+        }
     }
+    for (y in height - 2 downTo 0) {
+        val row = y * width
+        for (x in 0 until width) {
+            val below = down[row + width + x]
+            if (below != NONE && below + 1 < down[row + x]) down[row + x] = below + 1
+        }
+    }
+    val line = DoubleArray(width)
+    val out = DoubleArray(width)
+    val hulls = IntArray(width)
+    val bounds = DoubleArray(width + 1)
+    val result = FloatArray(width * height)
     for (y in 0 until height) {
-        for (x in 0 until width) line[x] = squared[y * width + x]
+        val row = y * width
+        for (x in 0 until width) {
+            val d = down[row + x]
+            line[x] = if (d == NONE) FAR else d.toDouble() * d
+        }
         transform(line, out, width, hulls, bounds)
-        for (x in 0 until width) squared[y * width + x] = out[x]
+        for (x in 0 until width) result[row + x] = sqrt(out[x]).toFloat()
     }
-    return FloatArray(width * height) { sqrt(squared[it]).toFloat() }
+    return result
 }
 
 /** The 1D squared distance transform: the lower envelope of parabolas rooted at [f]. */
@@ -113,3 +130,6 @@ private fun meet(f: DoubleArray, q: Int, v: Int): Double =
 
 /** Squared distance for "no feature on this line yet". Finite, so envelopes never see NaN. */
 private const val FAR = 1e12
+
+/** No feature anywhere down this column. */
+private const val NONE = Int.MAX_VALUE

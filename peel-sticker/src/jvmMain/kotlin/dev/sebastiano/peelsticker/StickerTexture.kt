@@ -66,16 +66,19 @@ private fun printTexture(
     val artBox = Rect(Offset(size / 2f, size / 2f), artSide / 2f)
 
     val art = Surface.makeRasterN32Premul(size, size)
-    picture.draw(art.canvas.asComposeCanvas(), artBox)
+    Tracing.section("draw picture") { picture.draw(art.canvas.asComposeCanvas(), artBox) }
     val artAlpha = alphaOf(art, size)
-    val cut = dieCut(artAlpha, size, size, border = artSide * BORDER, fillet = artSide * FILLET)
+    val cut =
+        Tracing.section("die-cut") {
+            dieCut(artAlpha, size, size, border = artSide * BORDER, fillet = artSide * FILLET)
+        }
     val cutMask = maskImage(cut, size)
 
     val front = Surface.makeRasterN32Premul(size, size)
     front.canvas.drawImage(cutMask, 0f, 0f)
     art.makeImageSnapshot().use { front.canvas.drawImage(it, 0f, 0f) }
-    val back = printBacking(cutMask, measurer, fontFamily)
-    val silhouette = silhouetteOf(cut, size)
+    val back = Tracing.section("backing") { printBacking(cutMask, measurer, fontFamily) }
+    val silhouette = Tracing.section("silhouette") { silhouetteOf(cut, size) }
 
     val result = StickerTexture(front.makeImageSnapshot(), back, silhouette)
     cutMask.close()
