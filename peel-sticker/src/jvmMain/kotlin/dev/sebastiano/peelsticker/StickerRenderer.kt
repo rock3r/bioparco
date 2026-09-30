@@ -16,6 +16,7 @@ import org.jetbrains.skia.FilterMode
 import org.jetbrains.skia.FilterTileMode
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.ImageFilter
+import org.jetbrains.skia.ImageInfo
 import org.jetbrains.skia.MipmapMode
 import org.jetbrains.skia.Paint
 import org.jetbrains.skia.Rect
@@ -96,10 +97,13 @@ internal class StickerRenderer(
         val side = StickerTexture.SIZE / frame.texScale
         val sticker = Rect.makeXYWH(frame.originX, frame.originY, side, side)
         val fold = frame.fold
-        Tracing.section("table shadow") { drawTableShadow(canvas, sticker, frame) }
+        // On a GPU the face is scaled and its shadow blurred as each frame plays back, for free;
+        // only software needs them made ahead on the CPU.
+        val stage = if (gpu) null else stageFor(frame)
+        Tracing.section("table shadow") { drawTableShadow(canvas, sticker, frame, stage) }
         canvas.save()
         if (fold != null) clipToTable(canvas, fold, 0f, 0f)
-        Tracing.section("table") { drawTable(canvas, bounds, sticker, frame) }
+        Tracing.section("table") { drawTable(canvas, bounds, sticker, frame, stage) }
         canvas.restore()
         if (fold == null) return
         val outline = fold.liftedOutline(dieCutHull(frame))
@@ -132,7 +136,13 @@ internal class StickerRenderer(
     }
 
     /** The table part: plain texture, with the shine shaded only as far as it reaches. */
-    private fun drawTable(canvas: Canvas, bounds: Rect, sticker: Rect, frame: StickerFrame) {
+    private fun drawTable(
+        canvas: Canvas,
+        bounds: Rect,
+        sticker: Rect,
+        frame: StickerFrame,
+        stage: StageImages?,
+    ) {
         val shine = shineOf(frame)
         val lit = shine?.let {
             val radius = SHINE_REACH.getValue(it) * StickerTexture.CUT / frame.texScale
@@ -143,12 +153,12 @@ internal class StickerRenderer(
             )
         }
         if (lit == null || lit.isEmpty) {
-            drawFront(canvas, sticker, frame)
+            drawFront(canvas, sticker, stage)
             return
         }
         canvas.save()
         canvas.clipRect(lit, ClipMode.DIFFERENCE, false)
-        drawFront(canvas, sticker, frame)
+        drawFront(canvas, sticker, stage)
         canvas.restore()
         shade(canvas, lit, frame, ProgramKey(TABLE, shine))
     }
@@ -162,33 +172,71 @@ internal class StickerRenderer(
             }
 
     /**
-     * The plain face, from a copy scaled to the stage once per layout. The stage puts the texture
-     * on whole pixels, so drawing it is a plain copy, not a filtered resample every frame.
+     * The plain face. In software, a copy scaled to the stage once per layout: the stage puts the
+     * texture on whole pixels, so drawing it is a plain copy, not a filtered resample every frame.
+     * On a GPU ([stage] is null), the texture itself, scaled as it plays back.
      */
-    private fun drawFront(canvas: Canvas, sticker: Rect, frame: StickerFrame) {
-        canvas.drawImage(stageFor(frame).front, sticker.left, sticker.top, paint)
+    private fun drawFront(canvas: Canvas, sticker: Rect, stage: StageImages?) {
+        if (stage != null) {
+            canvas.drawImage(stage.front, sticker.left, sticker.top, paint)
+        } else {
+            canvas.drawImageRect(texture.front, TEXTURE_BOUNDS, sticker, FACE_SAMPLING, paint, true)
+        }
     }
 
     /**
-     * The table part's drop shadow, blurred once per layout and cached. While peeling it is clipped
-     * where the table part ends, shifted with the shadow.
+     * The table part's drop shadow: in software blurred once per layout and cached, on a GPU
+     * ([stage] is null) blurred as it plays back. While peeling it is clipped where the table part
+     * ends, shifted with the shadow.
      */
-    private fun drawTableShadow(canvas: Canvas, sticker: Rect, frame: StickerFrame) {
+    private fun drawTableShadow(
+        canvas: Canvas,
+        sticker: Rect,
+        frame: StickerFrame,
+        stage: StageImages?,
+    ) {
         val d = frame.density
-        val stage = stageFor(frame)
         // Whole pixels, so the cached shadow is copied, not resampled.
         val dx = (TABLE_SHADOW_X * d).roundToInt().toFloat()
         val dy = (TABLE_SHADOW_Y * d).roundToInt().toFloat()
         canvas.save()
         frame.fold?.let { clipToTable(canvas, it, dx, dy) }
-        paint.alpha = (TABLE_SHADOW * 255f).toInt()
-        canvas.drawImage(
-            stage.shadow,
-            sticker.left - stage.shadowMargin + dx,
-            sticker.top - stage.shadowMargin + dy,
-            paint,
-        )
-        paint.alpha = 255
+        if (stage != null) {
+            paint.alpha = (TABLE_SHADOW * 255f).toInt()
+            canvas.drawImage(
+                stage.shadow,
+                sticker.left - stage.shadowMargin + dx,
+                sticker.top - stage.shadowMargin + dy,
+                paint,
+            )
+            paint.alpha = 255
+        } else {
+            val sigma = TABLE_SHADOW_BLUR * d
+            Paint().use { shadow ->
+                ColorFilter.makeBlend(BLACK, BlendMode.SRC_IN).use { black ->
+                    ImageFilter.makeBlur(sigma, sigma, FilterTileMode.DECAL).use { blur ->
+                        shadow.colorFilter = black
+                        shadow.imageFilter = blur
+                        shadow.alpha = (TABLE_SHADOW * 255f).toInt()
+                        val target =
+                            Rect.makeXYWH(
+                                sticker.left + dx,
+                                sticker.top + dy,
+                                sticker.width,
+                                sticker.height,
+                            )
+                        canvas.drawImageRect(
+                            texture.front,
+                            TEXTURE_BOUNDS,
+                            target,
+                            FACE_SAMPLING,
+                            shadow,
+                            true,
+                        )
+                    }
+                }
+            }
+        }
         canvas.restore()
     }
 
@@ -466,7 +514,7 @@ internal fun prepareStage(texture: StickerTexture, texScale: Float, density: Flo
             texture.front,
             Rect.makeWH(source, source),
             Rect.makeWH(size.toFloat(), size.toFloat()),
-            FilterMipmap(FilterMode.LINEAR, MipmapMode.LINEAR),
+            FACE_SAMPLING,
             null,
             true,
         )
@@ -474,17 +522,44 @@ internal fun prepareStage(texture: StickerTexture, texScale: Float, density: Flo
         front.close()
         val sigma = TABLE_SHADOW_BLUR * density
         val margin = ceil(sigma * 3f)
-        val shadow =
-            Surface.makeRasterN32Premul(size + 2 * margin.toInt(), size + 2 * margin.toInt())
+        // A soft shadow survives being blurred at a lower resolution, where the blur, the costly
+        // part on the CPU, has fewer pixels: at half resolution once sigma is 5 px, which halves
+        // it and stays within about 1 in 255 of the full one as drawn.
+        val factor = maxOf(1, (sigma / SHARPEST_BLUR).toInt())
+        val full = size + 2 * margin.toInt()
+        val small = (full + factor - 1) / factor
+        val blurred = Surface.makeRaster(ImageInfo.makeA8(small, small))
         Paint().use { paint ->
-            ColorFilter.makeBlend(0xFF000000.toInt(), BlendMode.SRC_IN).use { black ->
-                ImageFilter.makeBlur(sigma, sigma, FilterTileMode.DECAL).use { blur ->
-                    paint.colorFilter = black
-                    paint.imageFilter = blur
-                    shadow.canvas.drawImage(face, margin, margin, paint)
-                }
+            ImageFilter.makeBlur(sigma / factor, sigma / factor, FilterTileMode.DECAL).use { blur ->
+                paint.imageFilter = blur
+                val side = size.toFloat() / factor
+                val at = margin / factor
+                blurred.canvas.drawImageRect(
+                    face,
+                    Rect.makeWH(size.toFloat(), size.toFloat()),
+                    Rect.makeXYWH(at, at, side, side),
+                    SamplingMode.LINEAR,
+                    paint,
+                    true,
+                )
             }
         }
+        val coverage = blurred.makeImageSnapshot()
+        blurred.close()
+        val shadow = Surface.makeRasterN32Premul(full, full)
+        Paint().use { paint ->
+            paint.color = BLACK
+            val scaled = (small * factor).toFloat()
+            shadow.canvas.drawImageRect(
+                coverage,
+                Rect.makeWH(small.toFloat(), small.toFloat()),
+                Rect.makeWH(scaled, scaled),
+                SamplingMode.LINEAR,
+                paint,
+                true,
+            )
+        }
+        coverage.close()
         StageImages(
             face,
             shadow.makeImageSnapshot().also { shadow.close() },
@@ -496,6 +571,14 @@ internal fun prepareStage(texture: StickerTexture, texScale: Float, density: Flo
 
 /** How soft the table part's drop shadow is, in dp. */
 private const val TABLE_SHADOW_BLUR = 2.5f
+
+/** The smallest blur sigma, in pixels, worth making at a reduced resolution. */
+private const val SHARPEST_BLUR = 2.5f
+
+private const val BLACK = 0xFF000000.toInt()
+private val TEXTURE_BOUNDS =
+    Rect.makeWH(StickerTexture.SIZE.toFloat(), StickerTexture.SIZE.toFloat())
+private val FACE_SAMPLING = FilterMipmap(FilterMode.LINEAR, MipmapMode.LINEAR)
 
 /** The convex [outline] moved by ([dx], [dy]) and grown by at least [by] all round. */
 private fun grown(outline: FloatArray, dx: Float, dy: Float, by: Float): FloatArray {

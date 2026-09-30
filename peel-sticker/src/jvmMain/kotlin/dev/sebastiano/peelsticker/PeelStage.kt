@@ -89,7 +89,11 @@ internal fun PeelStage(
                     val size = stageSize.await()
                     val layout = StageLayout.of(size.width.toFloat(), size.height.toFloat())
                     withContext(NonCancellable) {
-                        Printed(texture, prepareStage(texture, layout.texScale, density))
+                        // A GPU scales and blurs as it plays back; only software needs them made.
+                        val stage =
+                            if (drawnOnGpu()) null
+                            else prepareStage(texture, layout.texScale, density)
+                        Printed(texture, stage)
                     }
                 } catch (cancelled: CancellationException) {
                     texture.close()
@@ -122,10 +126,10 @@ private class StageSize {
     }
 }
 
-/** A sticker, and its images for the stage as it was when it was printed. */
-private class Printed(val texture: StickerTexture, val stage: StageImages) : AutoCloseable {
+/** A sticker, and in software its images for the stage as it was when it was printed. */
+private class Printed(val texture: StickerTexture, val stage: StageImages?) : AutoCloseable {
     override fun close() {
-        stage.close()
+        stage?.close()
         texture.close()
     }
 }

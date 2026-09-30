@@ -227,18 +227,32 @@ each step: `draw picture`, `die-cut`, `backing` and `silhouette`.
    8 ms on this CPU, and the shadow resampled the 1024 px texture, building its mipmaps, first.
 
 The face and its shadow are now made on the print's background thread, `prepare stage`, once the
-first layout gives the stage's size, and they are ready before the first frame ends. The shadow is
-blurred from the already scaled face, drawn 1:1; renders match the old ones to within 1 in 255. The
-UI thread only copies them: the first draw of the sticker takes 0.2 ms. Getting there needed the
-background thread to wait for the size itself: hopping back to the UI thread between printing and
-preparing waited for the first frame and its present, and started the preparing at 255 ms.
+first layout gives the stage's size, and they are ready before the first frame ends. The UI thread
+only copies them: the first draw of the sticker takes 0.2 ms. Getting there needed the background
+thread to wait for the size itself: hopping back to the UI thread between printing and preparing
+waited for the first frame and its present, and started the preparing at 255 ms.
 
-Over six launches each, the sticker's first frame went from 72 to 44 ms and the sticker reached
-the screen after 349 ms instead of 394 (medians). The 44 ms left is the JVM loading about 150
-classes the first time the stage is composed: Compose's animation (with 16 lambdas for its vector
-converters), coroutine mutexes, focus, pointer input and graphics layers, at 0.1 to 0.6 ms each.
-Composing the stage earlier would only move that into the first frame; the AOT cache above is what
-removes it.
+Warm, making them still cost 11 ms at density 1 and 50 ms at density 2: Skia's CPU backend takes
+about 30 ns a pixel for any filtered draw on this machine, so scaling the face to 754 px is 17 ms
+and a blur image filter over it 31 ms. (A blur mask filter would be far quicker, but Skia ignores
+mask filters on image draws: the shadow came out unblurred.) Two changes:
+
+- **On a GPU none of it is made.** The face is scaled and the shadow blurred as each frame plays
+  back, which a GPU does for nothing; the CPU only records the draws. `GpuParity` checks the result
+  against the software images, to within 5 in 255.
+- **In software the shadow is blurred at half resolution** once its sigma reaches 5 px (density 2),
+  then scaled back up: within about 1 in 255 of the full blur as drawn, and 33 ms instead of 50 in
+  all. At density 1 it stays at full resolution, 11 ms.
+
+Warm, in a new window in a JVM that has already opened a few, the frame that first shows the
+sticker takes 6 to 12 ms against 1.5 to 2.5 ms for a steady frame, including rasterising the whole
+window in software: composing, laying out and first drawing the stage costs 4 to 9 ms.
+
+At launch it is slower, because the JVM loads about 150 classes the first time the stage is
+composed: Compose's animation (with 16 lambdas for its vector converters), coroutine mutexes,
+focus, pointer input and graphics layers, at 0.1 to 0.6 ms each. Over six launches each, moving the
+images off the UI thread took the sticker's first frame from 72 to 44 ms, and the sticker reached
+the screen after 349 ms instead of 394 (medians).
 
 ## Checking it on a GPU
 
