@@ -78,7 +78,13 @@ tasks.register<Test>("recordSpecimens") {
     outputs.upToDateWhen { false }
     val outputDirPath = recordingsDirPath
     val movies = expectedMovieNames
+    // A run filtered with --tests records only the movies it matches: nothing to gate.
+    val filtered =
+        gradle.startParameter.taskRequests.any { request ->
+            request.args.any { it == "--tests" || it.startsWith("--tests=") }
+        }
     doLast {
+        if (filtered) return@doLast
         val dir = File(outputDirPath.get())
         val missing = movies.filter { name ->
             val file = dir.resolve(name)

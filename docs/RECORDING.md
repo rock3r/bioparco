@@ -173,7 +173,8 @@ as `PASSED` (`AchievementBadgeRecordingTest`, `BorderBeamRecordingTest`, `ChatBu
 `ComponentAnatomyRecordingTest`, `DotMatrixRecorderRecordingTest`, `GrabbyStepperRecordingTest`,
 `PeelStickerRecordingTest`, `ProcessingFieldRecordingTest`, `ScrollEffectsRecordingTest`,
 `ThinkingOrbsRecordingTest`) and `recordings/build/recordings/` must contain ten files each larger
-than 1 KB. The task fails closed if any name is missing.
+than 1 KB. The task fails closed if any name is missing. A run filtered with `--tests` records only
+the enclosures it matches, so it skips this check.
 
 Locally, same gate under Xvfb:
 
