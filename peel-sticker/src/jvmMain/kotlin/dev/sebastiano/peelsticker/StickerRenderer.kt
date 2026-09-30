@@ -61,9 +61,12 @@ internal class StickerFrame(
  * That last one runs on the CPU when Compose records the frame, whatever the backend, so on a GPU
  * the shadow is drawn as a blurred layer instead, which the GPU renders when the frame plays back.
  */
-internal class StickerRenderer(private val texture: StickerTexture) : AutoCloseable {
+internal class StickerRenderer(
+    private val texture: StickerTexture,
+    /** The face and its shadow already made for the stage, if the caller had time to. */
+    private var stage: StageImages? = null,
+) : AutoCloseable {
     private val programs = HashMap<ProgramKey, RuntimeEffect>()
-    private val sampling = FilterMipmap(FilterMode.LINEAR, MipmapMode.LINEAR)
 
     /**
      * The shaders sample without mipmaps. A GPU picks a mip level from how fast the texture
@@ -77,8 +80,6 @@ internal class StickerRenderer(private val texture: StickerTexture) : AutoClosea
     private val back =
         texture.back.makeShader(FilterTileMode.DECAL, FilterTileMode.DECAL, shaderSampling, null)
     private val paint = Paint()
-    private var tableShadow: TableShadow? = null
-    private var scaledFront: Image? = null
     private val scratch = arrayOfNulls<Surface>(2)
 
     /**
@@ -117,8 +118,7 @@ internal class StickerRenderer(private val texture: StickerTexture) : AutoClosea
         front.close()
         back.close()
         programs.values.forEach { it.close() }
-        tableShadow?.image?.close()
-        scaledFront?.close()
+        stage?.close()
         scratch.forEach { it?.close() }
     }
 
@@ -143,43 +143,30 @@ internal class StickerRenderer(private val texture: StickerTexture) : AutoClosea
             )
         }
         if (lit == null || lit.isEmpty) {
-            drawFront(canvas, sticker)
+            drawFront(canvas, sticker, frame)
             return
         }
         canvas.save()
         canvas.clipRect(lit, ClipMode.DIFFERENCE, false)
-        drawFront(canvas, sticker)
+        drawFront(canvas, sticker, frame)
         canvas.restore()
         shade(canvas, lit, frame, ProgramKey(TABLE, shine))
     }
+
+    /** The images made for this layout: handed over, or made now, on the UI thread. */
+    private fun stageFor(frame: StickerFrame): StageImages =
+        stage?.takeIf { it.texScale == frame.texScale && it.density == frame.density }
+            ?: prepareStage(texture, frame.texScale, frame.density).also {
+                stage?.close()
+                stage = it
+            }
 
     /**
      * The plain face, from a copy scaled to the stage once per layout. The stage puts the texture
      * on whole pixels, so drawing it is a plain copy, not a filtered resample every frame.
      */
-    private fun drawFront(canvas: Canvas, sticker: Rect) {
-        val size = sticker.width.roundToInt()
-        val scaled =
-            scaledFront?.takeIf { it.width == size }
-                ?: renderScaledFront(size).also {
-                    scaledFront?.close()
-                    scaledFront = it
-                }
-        canvas.drawImage(scaled, sticker.left, sticker.top, paint)
-    }
-
-    private fun renderScaledFront(size: Int): Image {
-        val surface = Surface.makeRasterN32Premul(size, size)
-        val source = texture.front.width.toFloat()
-        surface.canvas.drawImageRect(
-            texture.front,
-            Rect.makeWH(source, source),
-            Rect.makeWH(size.toFloat(), size.toFloat()),
-            sampling,
-            null,
-            true,
-        )
-        return surface.makeImageSnapshot().also { surface.close() }
+    private fun drawFront(canvas: Canvas, sticker: Rect, frame: StickerFrame) {
+        canvas.drawImage(stageFor(frame).front, sticker.left, sticker.top, paint)
     }
 
     /**
@@ -188,12 +175,7 @@ internal class StickerRenderer(private val texture: StickerTexture) : AutoClosea
      */
     private fun drawTableShadow(canvas: Canvas, sticker: Rect, frame: StickerFrame) {
         val d = frame.density
-        val shadow =
-            tableShadow?.takeIf { it.texScale == frame.texScale && it.density == d }
-                ?: renderTableShadow(sticker.width, frame.texScale, d).also {
-                    tableShadow?.image?.close()
-                    tableShadow = it
-                }
+        val stage = stageFor(frame)
         // Whole pixels, so the cached shadow is copied, not resampled.
         val dx = (TABLE_SHADOW_X * d).roundToInt().toFloat()
         val dy = (TABLE_SHADOW_Y * d).roundToInt().toFloat()
@@ -201,40 +183,13 @@ internal class StickerRenderer(private val texture: StickerTexture) : AutoClosea
         frame.fold?.let { clipToTable(canvas, it, dx, dy) }
         paint.alpha = (TABLE_SHADOW * 255f).toInt()
         canvas.drawImage(
-            shadow.image,
-            sticker.left - shadow.margin + dx,
-            sticker.top - shadow.margin + dy,
+            stage.shadow,
+            sticker.left - stage.shadowMargin + dx,
+            sticker.top - stage.shadowMargin + dy,
             paint,
         )
         paint.alpha = 255
         canvas.restore()
-    }
-
-    private fun renderTableShadow(side: Float, texScale: Float, density: Float): TableShadow {
-        val sigma = TABLE_SHADOW_BLUR * density
-        val margin = ceil(sigma * 3f)
-        val size = (side + margin * 2f).roundToInt()
-        val surface = Surface.makeRasterN32Premul(size, size)
-        Paint().use { shadowPaint ->
-            ColorFilter.makeBlend(0xFF000000.toInt(), BlendMode.SRC_IN).use { black ->
-                ImageFilter.makeBlur(sigma, sigma, FilterTileMode.DECAL).use { blur ->
-                    shadowPaint.colorFilter = black
-                    shadowPaint.imageFilter = blur
-                    val source = texture.front.width.toFloat()
-                    surface.canvas.drawImageRect(
-                        texture.front,
-                        Rect.makeWH(source, source),
-                        Rect.makeXYWH(margin, margin, side, side),
-                        sampling,
-                        shadowPaint,
-                        true,
-                    )
-                }
-            }
-        }
-        val image = surface.makeImageSnapshot()
-        surface.close()
-        return TableShadow(image, margin, texScale, density)
     }
 
     /**
@@ -451,18 +406,10 @@ internal class StickerRenderer(private val texture: StickerTexture) : AutoClosea
         return builder.makeShader().also { builder.close() }
     }
 
-    private class TableShadow(
-        val image: Image,
-        val margin: Float,
-        val texScale: Float,
-        val density: Float,
-    )
-
     private companion object {
         const val TABLE_SHADOW = 0.34f
         const val TABLE_SHADOW_X = 1f
         const val TABLE_SHADOW_Y = 2.5f
-        const val TABLE_SHADOW_BLUR = 2.5f
         const val LIFTED_SHADOW = 0.22f
         const val SHADOW_SCALE = 4f
         const val SCRATCH_SLACK = 32
@@ -486,6 +433,69 @@ internal class StickerRenderer(private val texture: StickerTexture) : AutoClosea
             )
     }
 }
+
+/**
+ * The sticker's face scaled to the stage, and its drop shadow, for one layout. Both are plain
+ * copies to draw, on whole pixels.
+ */
+internal class StageImages(
+    val front: Image,
+    val shadow: Image,
+    /** How far the shadow reaches past the face on each side, in stage pixels. */
+    val shadowMargin: Float,
+    val texScale: Float,
+    val density: Float,
+) : AutoCloseable {
+    override fun close() {
+        front.close()
+        shadow.close()
+    }
+}
+
+/**
+ * Makes the [StageImages] for [texture] at [texScale] texels per stage pixel. It only reads the
+ * texture, so it can run off the UI thread; the stage calls it right after printing, so the first
+ * frame with the sticker only copies. The shadow is the scaled face, blacked out and blurred.
+ */
+internal fun prepareStage(texture: StickerTexture, texScale: Float, density: Float): StageImages =
+    Tracing.section("prepare stage") {
+        val size = (StickerTexture.SIZE / texScale).roundToInt()
+        val front = Surface.makeRasterN32Premul(size, size)
+        val source = texture.front.width.toFloat()
+        front.canvas.drawImageRect(
+            texture.front,
+            Rect.makeWH(source, source),
+            Rect.makeWH(size.toFloat(), size.toFloat()),
+            FilterMipmap(FilterMode.LINEAR, MipmapMode.LINEAR),
+            null,
+            true,
+        )
+        val face = front.makeImageSnapshot()
+        front.close()
+        val sigma = TABLE_SHADOW_BLUR * density
+        val margin = ceil(sigma * 3f)
+        val shadow =
+            Surface.makeRasterN32Premul(size + 2 * margin.toInt(), size + 2 * margin.toInt())
+        Paint().use { paint ->
+            ColorFilter.makeBlend(0xFF000000.toInt(), BlendMode.SRC_IN).use { black ->
+                ImageFilter.makeBlur(sigma, sigma, FilterTileMode.DECAL).use { blur ->
+                    paint.colorFilter = black
+                    paint.imageFilter = blur
+                    shadow.canvas.drawImage(face, margin, margin, paint)
+                }
+            }
+        }
+        StageImages(
+            face,
+            shadow.makeImageSnapshot().also { shadow.close() },
+            margin,
+            texScale,
+            density,
+        )
+    }
+
+/** How soft the table part's drop shadow is, in dp. */
+private const val TABLE_SHADOW_BLUR = 2.5f
 
 /** The convex [outline] moved by ([dx], [dy]) and grown by at least [by] all round. */
 private fun grown(outline: FloatArray, dx: Float, dy: Float, by: Float): FloatArray {

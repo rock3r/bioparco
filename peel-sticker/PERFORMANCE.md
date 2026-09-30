@@ -213,9 +213,32 @@ The X's and the G's die-cuts never change, though, so they now ship baked, as PN
 `src/jvmMain/resources/die-cuts/`, and printing them only decodes one, in about 25 ms.
 [`DieCutCacheTest`](src/jvmTest/kotlin/dev/sebastiano/peelsticker/DieCutCacheTest.kt) checks they
 still match a fresh cut (exactly, here) and rewrites them when `BIOPARCO_UPDATE_DIE_CUTS` is set. A
-dropped picture is still cut when it is printed. The first sticker is now ready 100 to 140 ms after
-launch instead of 745. `print sticker` has a section for each step: `draw picture`, `die-cut`,
-`backing` and `silhouette`.
+dropped picture is still cut when it is printed. The first sticker is now printed 100 to 160 ms
+after launch instead of 745, and 25 to 50 ms once the JVM is warm. `print sticker` has a section for
+each step: `draw picture`, `die-cut`, `backing` and `silhouette`.
+
+**Then it has to reach the screen.** With the print no longer in the way, the sticker waited on:
+
+1. the first frame, the empty page, which ends 200 to 230 ms after launch;
+2. 65 to 100 ms in which Skiko hands that frame to the window, the software present described in
+   [docs/TRACING.md](../docs/TRACING.md#things-that-fool-you), slow the first time;
+3. the frame that first draws the sticker, 72 ms, of which 26 to 42 ms went on scaling the face to
+   the stage and blurring its drop shadow, on the UI thread. Blurring even a 393 px image takes
+   8 ms on this CPU, and the shadow resampled the 1024 px texture, building its mipmaps, first.
+
+The face and its shadow are now made on the print's background thread, `prepare stage`, once the
+first layout gives the stage's size, and they are ready before the first frame ends. The shadow is
+blurred from the already scaled face, drawn 1:1; renders match the old ones to within 1 in 255. The
+UI thread only copies them: the first draw of the sticker takes 0.2 ms. Getting there needed the
+background thread to wait for the size itself: hopping back to the UI thread between printing and
+preparing waited for the first frame and its present, and started the preparing at 255 ms.
+
+Over six launches each, the sticker's first frame went from 72 to 44 ms and the sticker reached
+the screen after 349 ms instead of 394 (medians). The 44 ms left is the JVM loading about 150
+classes the first time the stage is composed: Compose's animation (with 16 lambdas for its vector
+converters), coroutine mutexes, focus, pointer input and graphics layers, at 0.1 to 0.6 ms each.
+Composing the stage earlier would only move that into the first frame; the AOT cache above is what
+removes it.
 
 ## Checking it on a GPU
 

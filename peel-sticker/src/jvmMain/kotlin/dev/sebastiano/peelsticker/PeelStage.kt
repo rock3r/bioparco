@@ -37,6 +37,7 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -46,6 +47,8 @@ import java.awt.Window
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.isActive
@@ -69,31 +72,75 @@ internal fun PeelStage(
 ) {
     val measurer = rememberTextMeasurer(cacheSize = 0)
     val fontFamily = JewelTheme.defaultTextStyle.fontFamily ?: FontFamily.Default
-    // Printing takes a few hundred milliseconds, so it happens off the UI thread; the old sticker
-    // stays until the new one is ready. A print nobody wants any more is closed.
-    var printed by remember { mutableStateOf<StickerTexture?>(null) }
+    val density = LocalDensity.current.density
+    val stageSize = remember { StageSize() }
+    // Printing, and scaling the print to the stage, happen off the UI thread, while the first
+    // frames draw the page; the old sticker stays until the new one is ready. A print nobody wants
+    // any more is closed.
+    var printed by remember { mutableStateOf<Printed?>(null) }
     LaunchedEffect(picture, fontFamily) {
-        val texture =
-            withContext(Dispatchers.Default + NonCancellable) {
-                printSticker(picture, measurer, fontFamily)
+        // All on a background thread: the UI thread is busy with the first frames, and hopping
+        // back to it between printing and preparing waited for them.
+        val print =
+            withContext(Dispatchers.Default) {
+                val texture =
+                    withContext(NonCancellable) { printSticker(picture, measurer, fontFamily) }
+                try {
+                    val size = stageSize.await()
+                    val layout = StageLayout.of(size.width.toFloat(), size.height.toFloat())
+                    withContext(NonCancellable) {
+                        Printed(texture, prepareStage(texture, layout.texScale, density))
+                    }
+                } catch (cancelled: CancellationException) {
+                    texture.close()
+                    throw cancelled
+                }
             }
-        if (isActive) printed = texture else texture.close()
+        if (isActive) printed = print else print.close()
     }
     // One stable node carries the tag, so whoever finds the stage early keeps the right bounds.
-    Box(modifier.testTag(PeelStickerTags.STAGE)) {
+    Box(modifier.testTag(PeelStickerTags.STAGE).onSizeChanged(stageSize::update)) {
         printed?.let { StickerStage(it, mode, focus, Modifier.fillMaxSize()) }
+    }
+}
+
+/** The stage's size, for a background thread to wait on without the UI thread. */
+private class StageSize {
+    private val first = CompletableDeferred<IntSize>()
+    @Volatile private var latest = IntSize.Zero
+
+    fun update(size: IntSize) {
+        if (size == IntSize.Zero) return
+        latest = size
+        first.complete(size)
+    }
+
+    /** The latest size, once there is one. */
+    suspend fun await(): IntSize {
+        first.await()
+        return latest
+    }
+}
+
+/** A sticker, and its images for the stage as it was when it was printed. */
+private class Printed(val texture: StickerTexture, val stage: StageImages) : AutoCloseable {
+    override fun close() {
+        stage.close()
+        texture.close()
     }
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun StickerStage(
-    texture: StickerTexture,
+    printed: Printed,
     mode: ShineMode,
     focus: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
-    val renderer = remember(texture) { StickerRenderer(texture) }
+    val texture = printed.texture
+    // The renderer takes over the stage images, and makes new ones if the stage changes size.
+    val renderer = remember(printed) { StickerRenderer(texture, printed.stage) }
     DisposableEffect(renderer) {
         onDispose {
             renderer.close()
