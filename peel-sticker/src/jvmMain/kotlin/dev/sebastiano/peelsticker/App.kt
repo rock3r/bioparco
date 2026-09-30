@@ -21,11 +21,13 @@ import androidx.compose.ui.draganddrop.DragAndDropEvent
 import androidx.compose.ui.draganddrop.DragAndDropTarget
 import androidx.compose.ui.draganddrop.DragData
 import androidx.compose.ui.draganddrop.dragData
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.key.Key
@@ -76,7 +78,18 @@ fun App(modifier: Modifier = Modifier) {
                 modifier
                     .fillMaxSize()
                     .background(PageColors.page)
-                    .drawBehind { dotGrid() }
+                    .drawWithCache {
+                        // The dots only change with the size: paint them once, then copy them.
+                        val dots =
+                            ImageBitmap(
+                                size.width.toInt().coerceAtLeast(1),
+                                size.height.toInt().coerceAtLeast(1),
+                            )
+                        CanvasDrawScope().draw(this, layoutDirection, Canvas(dots), size) {
+                            dotGrid()
+                        }
+                        onDrawBehind { drawImage(dots) }
+                    }
                     .dragAndDropTarget(
                         shouldStartDragAndDrop = { it.dragData() is DragData.FilesList },
                         target = dropTarget,

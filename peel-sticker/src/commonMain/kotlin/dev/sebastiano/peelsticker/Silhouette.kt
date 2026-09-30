@@ -10,8 +10,8 @@ import kotlin.math.sin
  * a peel starts from.
  */
 internal class Silhouette(val width: Int, val height: Int, private val coverage: BooleanArray) {
-    /** Convex hull corners, x then y, of every covered cell. */
-    private val hull: FloatArray = convexHull(rowEnds())
+    /** Convex hull corners, x then y, of every covered cell, in cells. */
+    val hull: FloatArray = convexHull(rowEnds())
 
     fun contains(x: Float, y: Float): Boolean {
         if (x < 0f || y < 0f) return false
@@ -75,8 +75,8 @@ internal class Silhouette(val width: Int, val height: Int, private val coverage:
 
 private const val PROBES = 12
 
-/** Andrew's monotone chain. */
-private fun convexHull(points: List<Pair<Float, Float>>): FloatArray {
+/** Andrew's monotone chain: the hull's corners, x then y. */
+internal fun convexHull(points: List<Pair<Float, Float>>): FloatArray {
     val sorted = points.distinct().sortedWith(compareBy({ it.first }, { it.second }))
     if (sorted.size < 3) return sorted.flatMap { listOf(it.first, it.second) }.toFloatArray()
     val hull = ArrayList<Pair<Float, Float>>()

@@ -8,7 +8,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -39,8 +41,14 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.skia.Rect
 
@@ -58,7 +66,30 @@ internal fun PeelStage(
 ) {
     val measurer = rememberTextMeasurer(cacheSize = 0)
     val fontFamily = JewelTheme.defaultTextStyle.fontFamily ?: FontFamily.Default
-    val texture = remember(picture, fontFamily) { printSticker(picture, measurer, fontFamily) }
+    // Printing takes a few hundred milliseconds, so it happens off the UI thread; the old sticker
+    // stays until the new one is ready. A print nobody wants any more is closed.
+    var printed by remember { mutableStateOf<StickerTexture?>(null) }
+    LaunchedEffect(picture, fontFamily) {
+        val texture =
+            withContext(Dispatchers.Default + NonCancellable) {
+                printSticker(picture, measurer, fontFamily)
+            }
+        if (isActive) printed = texture else texture.close()
+    }
+    // One stable node carries the tag, so whoever finds the stage early keeps the right bounds.
+    Box(modifier.testTag(PeelStickerTags.STAGE)) {
+        printed?.let { StickerStage(it, mode, focus, Modifier.fillMaxSize()) }
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+private fun StickerStage(
+    texture: StickerTexture,
+    mode: ShineMode,
+    focus: FocusRequester,
+    modifier: Modifier = Modifier,
+) {
     val renderer = remember(texture) { StickerRenderer(texture) }
     DisposableEffect(renderer) {
         onDispose {
@@ -88,7 +119,6 @@ internal fun PeelStage(
 
     Spacer(
         modifier
-            .testTag(PeelStickerTags.STAGE)
             .onSizeChanged { stageSize.value = it }
             .focusRequester(focus)
             .focusable()
@@ -222,11 +252,19 @@ private class StageLayout(
             texture.silhouette.extent(dx, dy) * StickerTexture.CELL / texScale
 
     companion object {
+        /**
+         * The texture lands on whole pixels, a whole number of them across, so the renderer can
+         * copy the plain sticker instead of resampling it: on the CPU that is 60 times cheaper.
+         */
         fun of(width: Float, height: Float): StageLayout {
-            val side = min(width * FIT_WIDTH, height * FIT_HEIGHT)
-            val texScale = StickerTexture.CUT / side
-            val half = StickerTexture.SIZE / 2f / texScale
-            return StageLayout(width / 2f - half, height / 2f - half, texScale, side)
+            val fit = min(width * FIT_WIDTH, height * FIT_HEIGHT)
+            val texturePixels =
+                max(1f, (StickerTexture.SIZE * fit / StickerTexture.CUT).roundToInt().toFloat())
+            val texScale = StickerTexture.SIZE / texturePixels
+            val side = StickerTexture.CUT / texScale
+            val originX = ((width - texturePixels) / 2f).roundToInt().toFloat()
+            val originY = ((height - texturePixels) / 2f).roundToInt().toFloat()
+            return StageLayout(originX, originY, texScale, side)
         }
     }
 }

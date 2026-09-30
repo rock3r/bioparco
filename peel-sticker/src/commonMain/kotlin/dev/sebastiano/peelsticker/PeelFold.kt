@@ -19,33 +19,52 @@ internal class PeelFold(
     val depth: Float,
 ) {
     /**
-     * A box around [left], [top], [right], [bottom] and everywhere the peel can move that box to,
-     * so the renderer only shades where the sticker can be.
+     * A convex outline, x then y, around everywhere the part of [left], [top], [right], [bottom]
+     * past the axis can land, so the renderer only shades where the sticker can be.
      *
-     * A point `q` past the axis moves back along the fold by at most the larger of two affine
-     * shifts: the flat part's mirror image, and the drop to the foot of the loose curl. So its
-     * landing lies between it and one of those two images, and the images of the corners bound them
+     * A lifted point moves back along the fold by at most the larger of two affine shifts: the flat
+     * part's mirror image, and the drop to the foot of the loose curl. So it lands between itself
+     * and one of those two images, and the hull of the lifted corners and their images holds them
      * all.
      */
-    fun reach(left: Float, top: Float, right: Float, bottom: Float): FloatArray {
+    fun liftedOutline(left: Float, top: Float, right: Float, bottom: Float): FloatArray =
+        liftedOutline(floatArrayOf(left, top, right, top, right, bottom, left, bottom))
+
+    /** As [liftedOutline] for a box, for any convex [shape], x then y: the sticker's own hull. */
+    fun liftedOutline(shape: FloatArray): FloatArray {
+        val lifted = liftedCorners(shape)
         val tight = curve.tight
         val loose = curve.loose
         val mirror = tight - loose + (PI.toFloat() / 2f) * (tight + loose)
-        val box = floatArrayOf(left, top, right, bottom)
-        for (x in floatArrayOf(left, right)) {
-            for (y in floatArrayOf(top, bottom)) {
-                val q = (x - axisX) * dirX + (y - axisY) * dirY
-                for (shift in floatArrayOf(mirror - 2f * q, tight - loose - q)) {
-                    val landedX = x + dirX * shift
-                    val landedY = y + dirY * shift
-                    box[0] = min(box[0], landedX)
-                    box[1] = min(box[1], landedY)
-                    box[2] = max(box[2], landedX)
-                    box[3] = max(box[3], landedY)
-                }
+        val points = ArrayList<Pair<Float, Float>>()
+        for ((x, y) in lifted) {
+            val q = (x - axisX) * dirX + (y - axisY) * dirY
+            points += x to y
+            for (shift in floatArrayOf(mirror - 2f * q, tight - loose - q)) {
+                points += (x + dirX * shift) to (y + dirY * shift)
             }
         }
-        return box
+        return convexHull(points)
+    }
+
+    /** The corners of the convex [shape] cut down to the side of the axis that lifts off. */
+    private fun liftedCorners(shape: FloatArray): List<Pair<Float, Float>> {
+        val corners = (shape.indices step 2).map { shape[it] to shape[it + 1] }
+        fun q(point: Pair<Float, Float>) =
+            (point.first - axisX) * dirX + (point.second - axisY) * dirY
+        val cut = ArrayList<Pair<Float, Float>>()
+        for (i in corners.indices) {
+            val a = corners[i]
+            val b = corners[(i + 1) % corners.size]
+            val qa = q(a)
+            val qb = q(b)
+            if (qa >= 0f) cut += a
+            if ((qa >= 0f) != (qb >= 0f)) {
+                val t = qa / (qa - qb)
+                cut += (a.first + (b.first - a.first) * t) to (a.second + (b.second - a.second) * t)
+            }
+        }
+        return cut
     }
 }
 
