@@ -5,6 +5,8 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import dev.sebastiano.bioparco.tracing.TracedFrames
+import dev.sebastiano.bioparco.tracing.startTracingFromEnvironment
 import java.awt.Frame
 import java.awt.GraphicsEnvironment
 import java.util.concurrent.CountDownLatch
@@ -31,6 +33,9 @@ internal class SpecimenWindow(
 
     fun start() {
         requireDisplay()
+        // Each recording runs in its own JVM, so a trace directory gets one trace per specimen,
+        // in a folder named from the title: "bioparco · peel sticker" goes to "peel-sticker".
+        startTracingFromEnvironment(title.substringAfter("· ").replace(' ', '-'))
         thread =
             Thread(
                     {
@@ -44,6 +49,7 @@ internal class SpecimenWindow(
                                     title = title,
                                     state = rememberWindowState(size = size),
                                 ) {
+                                    TracedFrames()
                                     content()
                                 }
                                 started.countDown()

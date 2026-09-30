@@ -22,6 +22,7 @@ Keep this file focused on operating rules.
 | [docs/CONVENTIONS.md](docs/CONVENTIONS.md) | File placement, style, git/build workflow |
 | [docs/STATIC-ANALYSIS.md](docs/STATIC-ANALYSIS.md) | Detekt, ktfmt, and the `check` gate |
 | [docs/RECORDING.md](docs/RECORDING.md) | Spectre-driven recordings and how to regenerate them |
+| [docs/TRACING.md](docs/TRACING.md) | Perfetto traces of any specimen, and how to read them |
 | [README.md](README.md) | Specimen index and how to run the showcase |
 
 ## Non-Negotiables
@@ -117,6 +118,7 @@ Working on `main` is allowed only when the owner has said so for that task.
 ./gradlew :achievement-badge:run
 ./gradlew :component-anatomy:run
 ./gradlew :scroll-effects:run
+./gradlew :peel-sticker:run
 ./gradlew :recordings:recordSpecimens
 ```
 

@@ -12,6 +12,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(project(":tracing"))
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.ui)
@@ -24,6 +25,7 @@ kotlin {
             implementation(project(":achievement-badge"))
             implementation(project(":component-anatomy"))
             implementation(project(":scroll-effects"))
+            implementation(project(":peel-sticker"))
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)

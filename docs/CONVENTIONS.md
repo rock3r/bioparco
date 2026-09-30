@@ -7,6 +7,8 @@
 - public composables take `modifier: Modifier = Modifier`
 - do not read pointer-driven motion in composition; read it in `graphicsLayer` / `offset`
   lambdas
+- mark expensive work with `Tracing.section("name") { … }` from `:tracing`; sections cost nothing
+  while tracing is off, so they stay in (see [TRACING.md](TRACING.md))
 - prose slash style is `a/b`, never `a / b`
 
 ## File placement

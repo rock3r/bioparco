@@ -13,9 +13,10 @@ object RecordingPaths {
     const val ACHIEVEMENT_BADGE = "achievement-badge.mp4"
     const val COMPONENT_ANATOMY = "component-anatomy.mp4"
     const val SCROLL_EFFECTS = "scroll-effects.mp4"
+    const val PEEL_STICKER = "peel-sticker.mp4"
     const val MIN_USABLE_BYTES = 1_000L
 
-    private val houseModules = setOf("showcase", "recordings")
+    private val houseModules = setOf("showcase", "recordings", "tracing")
     // Every `include(...)` call, with any whitespace and any number of project paths.
     private val includeCall = Regex("""\binclude\s*\(([^)]*)\)""")
     // Line and block comments, so commented-out includes do not count.

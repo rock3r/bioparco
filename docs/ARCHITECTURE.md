@@ -12,6 +12,7 @@ showcase  -->  grabby-stepper
           \->  achievement-badge
           \->  component-anatomy
           \->  scroll-effects
+          \->  peel-sticker
 
 recordings --> grabby-stepper
            \->  chat-bubble-transition
@@ -22,7 +23,10 @@ recordings --> grabby-stepper
            \->  achievement-badge
            \->  component-anatomy
            \->  scroll-effects
+           \->  peel-sticker
            \->  Spectre (Maven Central)
+
+every specimen, showcase, recordings --> tracing --> androidx.tracing (Perfetto)
 ```
 
 | Module | What it is |
@@ -37,10 +41,16 @@ recordings --> grabby-stepper
 | `:achievement-badge` | Specimen 7. Library + standalone `run`. |
 | `:component-anatomy` | Specimen 8. Library + standalone `run`. |
 | `:scroll-effects` | Specimen 9. Library + standalone `run`. |
+| `:peel-sticker` | Specimen 10. Library + standalone `run`. |
 | `:recordings` | Spectre-driven recording tests. Not part of `check`. |
+| `:tracing` | House module: Perfetto trace sections for any specimen, off unless asked for. See [TRACING.md](TRACING.md). |
 
 ## Invariants
 
+- House modules (`:showcase`, `:recordings`, `:tracing`) are not specimens: they have no recording
+  and no README media. `RecordingPaths` and `:recordings` list them.
+- Every specimen's `main` calls `startTracingFromEnvironment` and its window calls
+  `TracedFrames()`, so any specimen can be traced without changes.
 - Specimens stay independently runnable (`:module:run`) and embeddable (`App()` / `ChatApp()` / processing-field `App()`).
 - UI controls and text are Jewel components everywhere, in the showcase and in every specimen.
   Specimens keep their own palettes and motion; Jewel only supplies the widgets.

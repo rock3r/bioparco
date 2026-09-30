@@ -53,6 +53,10 @@ class RecordingPathsTest {
             dir.resolve("scroll-effects.mp4"),
             RecordingPaths.file(RecordingPaths.SCROLL_EFFECTS, dir),
         )
+        assertEquals(
+            dir.resolve("peel-sticker.mp4"),
+            RecordingPaths.file(RecordingPaths.PEEL_STICKER, dir),
+        )
     }
 
     @Test
@@ -69,6 +73,7 @@ class RecordingPathsTest {
                 "achievement-badge.mp4",
                 "component-anatomy.mp4",
                 "scroll-effects.mp4",
+                "peel-sticker.mp4",
             ),
             RecordingPaths.expectedNames(settings),
         )
@@ -148,6 +153,7 @@ class RecordingPathsTest {
                 "achievement-badge.mp4",
                 "component-anatomy.mp4",
                 "scroll-effects.mp4",
+                "peel-sticker.mp4",
             ),
             RecordingPaths.missingOutputs(dir),
         )
@@ -160,6 +166,7 @@ class RecordingPathsTest {
         Files.write(dir.resolve("achievement-badge.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("component-anatomy.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("scroll-effects.mp4"), ByteArray(2_000))
+        Files.write(dir.resolve("peel-sticker.mp4"), ByteArray(2_000))
         assertEquals(emptyList<String>(), RecordingPaths.missingOutputs(dir))
     }
 }
