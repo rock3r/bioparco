@@ -40,16 +40,21 @@ a JVM of its own.
 
 ## Read a trace
 
-Open it at [ui.perfetto.dev](https://ui.perfetto.dev). To query it, the `perfetto` Python package
-ships a trace processor:
+Open it at [ui.perfetto.dev](https://ui.perfetto.dev), or summarise it on the command line:
 
-```python
-from perfetto.trace_processor import TraceProcessor
-
-tp = TraceProcessor(trace="/tmp/traces/peel-sticker/perfetto-….perfetto-trace")
-for row in tp.query("select name, count(*) n, avg(dur) / 1e6 ms from slice group by name"):
-    print(row.name, row.n, round(row.ms, 2))
+```bash
+pip install perfetto
+python3 tracing/tools/trace-summary.py /tmp/traces            # every trace in the folder
+python3 tracing/tools/trace-summary.py /tmp/traces/peel-sticker
 ```
+
+For each trace it lists every section, nested under its parent, with count, median, 95th
+percentile and worst time, and the frame-to-frame pacing of the `frame` sections. The first run
+downloads Perfetto's trace processor.
+
+For a worked example, the peel sticker's software rendering was traced and optimised with these
+tools: see [peel-sticker/PERFORMANCE.md](../peel-sticker/PERFORMANCE.md), and its
+`SoftwareRenderingBenchmark` and `CpuCostLadder` tests, which are skipped unless asked for.
 
 ## Things that fool you
 
