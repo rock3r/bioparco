@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.sp
+import dev.sebastiano.bioparco.tracing.Tracing
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.ColorAlphaType
 import org.jetbrains.skia.Image
@@ -50,6 +51,12 @@ internal class StickerTexture(val front: Image, val back: Image, val silhouette:
  * original, with softly rounded inside corners. [measurer] and [fontFamily] set the watermark.
  */
 internal fun printSticker(
+    picture: StickerPicture,
+    measurer: TextMeasurer,
+    fontFamily: FontFamily,
+): StickerTexture = Tracing.section("print sticker") { printTexture(picture, measurer, fontFamily) }
+
+private fun printTexture(
     picture: StickerPicture,
     measurer: TextMeasurer,
     fontFamily: FontFamily,

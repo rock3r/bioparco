@@ -141,6 +141,11 @@ Stable download URLs:
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/scroll-effects.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/peel-sticker.mp4
 
+## Traces
+
+Set `BIOPARCO_TRACE_DIR` to get a Perfetto trace of each recording as well, one folder per
+specimen. See [TRACING.md](TRACING.md).
+
 ## What the tests do
 
 Each `recording`-tagged test:

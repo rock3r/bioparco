@@ -2,6 +2,7 @@ package dev.sebastiano.peelsticker
 
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.asSkiaPath
+import dev.sebastiano.bioparco.tracing.Tracing
 import kotlin.math.atan2
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -68,22 +69,30 @@ internal class StickerRenderer(private val texture: StickerTexture) : AutoClosea
     private var scaledFront: Image? = null
     private val scratch = arrayOfNulls<Surface>(2)
 
-    fun draw(canvas: Canvas, bounds: Rect, frame: StickerFrame) {
+    /**
+     * Each layer is a trace section. Compose records these draws and rasterises them later, so in
+     * an app trace they time the recording; drawn straight onto a raster surface they time the
+     * pixels. See `docs/TRACING.md`.
+     */
+    fun draw(canvas: Canvas, bounds: Rect, frame: StickerFrame) =
+        Tracing.section("peel-sticker draw") { drawLayers(canvas, bounds, frame) }
+
+    private fun drawLayers(canvas: Canvas, bounds: Rect, frame: StickerFrame) {
         val side = StickerTexture.SIZE / frame.texScale
         val sticker = Rect.makeXYWH(frame.originX, frame.originY, side, side)
         val fold = frame.fold
-        drawTableShadow(canvas, sticker, frame)
+        Tracing.section("table shadow") { drawTableShadow(canvas, sticker, frame) }
         canvas.save()
         if (fold != null) clipToTable(canvas, fold, 0f, 0f)
-        drawTable(canvas, bounds, sticker, frame)
+        Tracing.section("table") { drawTable(canvas, bounds, sticker, frame) }
         canvas.restore()
         if (fold == null) return
         val outline = fold.liftedOutline(dieCutHull(frame))
         if (outline.size < 6) return
         val lifted = clip(boundsOf(outline).inflate(2f), bounds)
         if (lifted.isEmpty) return
-        drawLiftedShadow(canvas, lifted, outline, frame, fold)
-        drawLifted(canvas, lifted, outline, frame, fold)
+        Tracing.section("lifted shadow") { drawLiftedShadow(canvas, lifted, outline, frame, fold) }
+        Tracing.section("lifted") { drawLifted(canvas, lifted, outline, frame, fold) }
     }
 
     override fun close() {

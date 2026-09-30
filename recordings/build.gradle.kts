@@ -22,6 +22,7 @@ dependencies {
     implementation(project(":component-anatomy"))
     implementation(project(":scroll-effects"))
     implementation(project(":peel-sticker"))
+    implementation(project(":tracing"))
 
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.spectre.core)
@@ -34,13 +35,22 @@ dependencies {
     testRuntimeOnly(libs.spectre.recording.windows)
 }
 
-tasks.test { useJUnitPlatform { excludeTags("recording") } }
+tasks.test {
+    useJUnitPlatform { excludeTags("recording") }
+    // The path and README tests read these, so a new specimen or README edit reruns them.
+    inputs
+        .file(rootProject.file("settings.gradle.kts"))
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs
+        .files(rootProject.fileTree(rootProject.projectDir) { include("README.md", "*/README.md") })
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+}
 
 val recordingsOutput = layout.buildDirectory.dir("recordings")
 // Capture serializable values at configuration time. A doLast that touches
 // rootProject / script objects cannot be stored in the configuration cache.
 val recordingsDirPath = recordingsOutput.map { it.asFile.absolutePath }
-val houseModules = setOf("showcase", "recordings")
+val houseModules = setOf("showcase", "recordings", "tracing")
 val expectedMovieNames: List<String> =
     rootProject.subprojects.map { it.name }.filter { it !in houseModules }.map { "$it.mp4" }
 

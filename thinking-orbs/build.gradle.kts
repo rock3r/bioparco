@@ -12,6 +12,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(project(":tracing"))
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(libs.jewel.int.ui.standalone)

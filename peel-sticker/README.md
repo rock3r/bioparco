@@ -57,7 +57,7 @@ lifted part itself.
 
 Under Xvfb, where the recordings are made, Skia draws on the CPU, and a CPU runtime shader costs
 the same per pixel whatever it computes, because every branch runs for every pixel. Traced with
-androidx.tracing and Perfetto, the first version took 54 ms to draw a still sticker and 147 ms mid
+the house tracing (see [docs/TRACING.md](../docs/TRACING.md)), the first version took 54 ms to draw a still sticker and 147 ms mid
 peel (6 to 8 distinct frames a second in the recording). Now:
 
 - Each layer and shine has its own small SkSL program, and the lifted sheet is drawn in three bands
@@ -70,7 +70,8 @@ peel (6 to 8 distinct frames a second in the recording). Now:
 - A new picture is printed off the UI thread.
 
 A still sticker now draws in 0.2 ms and a peel in about 14 ms, and the recording shows about 20
-distinct frames a second, near its 30 fps cap. On a GPU none of this was ever slow.
+distinct frames a second, near its 30 fps cap. On a GPU none of this was ever slow. The drawing
+layers and the printing of a new sticker stay marked as trace sections.
 
 The layout, colours, the G's geometry and the peel's look were read off the source video frame by
 frame. White and Sparkle do not appear in the video, so those two are this specimen's own reading
