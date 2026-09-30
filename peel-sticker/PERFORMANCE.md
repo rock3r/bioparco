@@ -185,7 +185,7 @@ the same, which is why the first frame was the slowest everywhere on the Mac.
 A JDK 25 AOT cache ([JEP 483](https://openjdk.org/jeps/483), [JEP 514](https://openjdk.org/jeps/514),
 [JEP 515](https://openjdk.org/jeps/515)), recorded in one training run, loads and links those classes
 ahead of time: the first frame went from 195 to 255 ms to 78 to 120 ms. It is not wired into the
-build. The cache needs jars on the class path, a training run that quits by itself, and one cache
+build, as it is not worth it for a specimen. The cache needs jars on the class path, a training run that quits by itself, and one cache
 per specimen that goes stale with every build; the JVM ignores a stale one, with a warning. To try
 it:
 
@@ -202,8 +202,15 @@ transforms over a padded 1158 × 1158 grid, with their column passes striding th
 transform now finds the column distances in two integer sweeps down the rows (Meijster, Roerdink
 and Hesselink) and only runs the parabola envelope along rows, all in memory order. Its output is
 bit for bit the same. The die-cut now takes about 43 ms warm instead of 90, and 210 to 390 ms cold
-instead of 540, so the first sticker is ready after 350 to 530 ms; with the AOT cache, about 280.
-`print sticker` has a section for each step: `draw picture`, `die-cut`, `backing` and `silhouette`.
+instead of 540.
+
+The X's and the G's die-cuts never change, though, so they now ship baked, as PNG masks in
+`src/jvmMain/resources/die-cuts/`, and printing them only decodes one, in about 25 ms.
+[`DieCutCacheTest`](src/jvmTest/kotlin/dev/sebastiano/peelsticker/DieCutCacheTest.kt) checks they
+still match a fresh cut (exactly, here) and rewrites them when `BIOPARCO_UPDATE_DIE_CUTS` is set. A
+dropped picture is still cut when it is printed. The first sticker is now ready 100 to 140 ms after
+launch instead of 745. `print sticker` has a section for each step: `draw picture`, `die-cut`,
+`backing` and `silhouette`.
 
 ## Checking it on a GPU
 

@@ -62,16 +62,8 @@ private fun printTexture(
     fontFamily: FontFamily,
 ): StickerTexture {
     val size = StickerTexture.SIZE
-    val artSide = StickerTexture.CUT / (1f + 2f * BORDER)
-    val artBox = Rect(Offset(size / 2f, size / 2f), artSide / 2f)
-
-    val art = Surface.makeRasterN32Premul(size, size)
-    Tracing.section("draw picture") { picture.draw(art.canvas.asComposeCanvas(), artBox) }
-    val artAlpha = alphaOf(art, size)
-    val cut =
-        Tracing.section("die-cut") {
-            dieCut(artAlpha, size, size, border = artSide * BORDER, fillet = artSide * FILLET)
-        }
+    val art = Tracing.section("draw picture") { drawArt(picture) }
+    val cut = Tracing.section("die-cut") { bakedDieCut(picture) ?: cutAround(art) }
     val cutMask = maskImage(cut, size)
 
     val front = Surface.makeRasterN32Premul(size, size)
@@ -85,6 +77,64 @@ private fun printTexture(
     art.close()
     front.close()
     return result
+}
+
+/** [picture] on a transparent texture, inside the white border. */
+internal fun drawArt(picture: StickerPicture): Surface {
+    val size = StickerTexture.SIZE
+    val artSide = StickerTexture.CUT / (1f + 2f * BORDER)
+    val art = Surface.makeRasterN32Premul(size, size)
+    picture.draw(art.canvas.asComposeCanvas(), Rect(Offset(size / 2f, size / 2f), artSide / 2f))
+    return art
+}
+
+/** The die-cut around [art], as coverage from 0 to 255 per texel. */
+internal fun cutAround(art: Surface): ByteArray {
+    val size = StickerTexture.SIZE
+    val artSide = StickerTexture.CUT / (1f + 2f * BORDER)
+    val cut =
+        dieCut(alphaOf(art, size), size, size, border = artSide * BORDER, fillet = artSide * FILLET)
+    return ByteArray(cut.size) { (cut[it] * 255f + 0.5f).toInt().toByte() }
+}
+
+/**
+ * The die-cuts of the built-in pictures don't change, so they are cut ahead of time and shipped as
+ * resources: cutting one takes 200 to 400 ms on a cold JVM. `DieCutCacheTest` checks they still
+ * match, and rewrites them when asked. A dropped picture is cut when it is printed.
+ */
+internal val BAKED_DIE_CUTS: Map<StickerPicture, String> =
+    mapOf(StickerPicture.Ex to "die-cuts/ex.png", StickerPicture.Gee to "die-cuts/gee.png")
+
+/** The baked die-cut for [picture], as coverage from 0 to 255 per texel, if there is one. */
+internal fun bakedDieCut(picture: StickerPicture): ByteArray? {
+    val path = BAKED_DIE_CUTS[picture] ?: return null
+    val encoded =
+        StickerTexture::class.java.classLoader.getResourceAsStream(path)?.use { it.readBytes() }
+            ?: return null
+    val size = StickerTexture.SIZE
+    val pixels =
+        Image.makeFromEncoded(encoded).use { image ->
+            if (image.width != size || image.height != size) return null
+            val bitmap = Bitmap()
+            bitmap.allocPixels(ImageInfo.makeN32Premul(size, size))
+            image.readPixels(bitmap, 0, 0)
+            bitmap.readPixels().also { bitmap.close() }
+        } ?: return null
+    return ByteArray(size * size) { pixels[it * 4 + 3] }
+}
+
+/** White with [coverage] (0 to 255 per texel) as alpha, premultiplied: the die-cut's mask. */
+internal fun maskImage(coverage: ByteArray, size: Int): Image {
+    val bytes = ByteArray(size * size * 4)
+    for (i in coverage.indices) {
+        val value = coverage[i]
+        bytes[i * 4] = value
+        bytes[i * 4 + 1] = value
+        bytes[i * 4 + 2] = value
+        bytes[i * 4 + 3] = value
+    }
+    val info = ImageInfo.makeN32(size, size, ColorAlphaType.PREMUL)
+    return Image.makeRaster(info, bytes, size * 4)
 }
 
 /**
@@ -137,28 +187,14 @@ private fun alphaOf(surface: Surface, size: Int): FloatArray {
     return FloatArray(size * size) { (bytes[it * 4 + 3].toInt() and 0xFF) / 255f }
 }
 
-/** White with [coverage] as alpha, premultiplied. */
-private fun maskImage(coverage: FloatArray, size: Int): Image {
-    val bytes = ByteArray(size * size * 4)
-    for (i in coverage.indices) {
-        val value = (coverage[i] * 255f + 0.5f).toInt().toByte()
-        bytes[i * 4] = value
-        bytes[i * 4 + 1] = value
-        bytes[i * 4 + 2] = value
-        bytes[i * 4 + 3] = value
-    }
-    val info = ImageInfo.makeN32(size, size, ColorAlphaType.PREMUL)
-    return Image.makeRaster(info, bytes, size * 4)
-}
-
-private fun silhouetteOf(cut: FloatArray, size: Int): Silhouette {
+private fun silhouetteOf(cut: ByteArray, size: Int): Silhouette {
     val cell = StickerTexture.CELL
     val cells = size / cell
     val coverage =
         BooleanArray(cells * cells) { i ->
             val x = (i % cells) * cell + cell / 2
             val y = (i / cells) * cell + cell / 2
-            cut[y * size + x] >= 0.5f
+            (cut[y * size + x].toInt() and 0xFF) >= HALF_COVERED
         }
     return Silhouette(cells, cells, coverage)
 }
@@ -169,6 +205,9 @@ private inline fun <T : AutoCloseable, R> T.use(block: (T) -> R): R =
     } finally {
         close()
     }
+
+/** Coverage of 0.5, in 255ths, rounded as the mask rounds it. */
+private const val HALF_COVERED = 128
 
 /** The white border, as a share of the picture's box. */
 private const val BORDER = 0.041f
