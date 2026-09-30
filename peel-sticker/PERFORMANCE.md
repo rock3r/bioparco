@@ -24,12 +24,17 @@ recording ran 31 s for a 24 s script.
   processor.
 - Real-window recordings under Xvfb, counting how many frames of the MP4 differ from the one
   before.
+- [`GpuParity`](src/jvmTest/kotlin/dev/sebastiano/peelsticker/GpuParity.kt) draws peels with
+  Skia's OpenGL backend, on Mesa's software OpenGL under Xvfb, and checks they match the CPU
+  backend: a way to see GPU-only artefacts without a GPU.
 
 ```bash
 BIOPARCO_TRACE_DIR=/tmp/traces ./gradlew :peel-sticker:jvmTest --tests '*SoftwareRenderingBenchmark*' --rerun
 python3 tracing/tools/trace-summary.py /tmp/traces/peel-sticker-benchmark
 BIOPARCO_BENCH=1 ./gradlew :peel-sticker:jvmTest --tests '*CpuCostLadder*' --rerun
 cat peel-sticker/build/reports/cpu-cost-ladder.md
+BIOPARCO_GL_PARITY=1 xvfb-run -a -s "-screen 0 1280x1024x24 +extension GLX" \
+    ./gradlew :peel-sticker:jvmTest --tests '*GpuParity*' --rerun
 ```
 
 All numbers below are from a 4-core 2.1 GHz Xeon (AVX2, AVX-512), JDK 25, Skiko 0.150.1, at
@@ -106,7 +111,7 @@ every specimen traced in its window, on Metal and in software, and recorded both
 | `frame`, 95th percentile | 7.3 ms; 8.1 ms while peeling, against 8.3 ms a refresh | 12 ms |
 | `lifted shadow`, median | 4.2 ms | 6.1 ms |
 | Frame to frame, median | 8.4 ms, the refresh interval | |
-| Distinct frames a second in the recording | 19 | 10 |
+| Distinct frames a second in the recording, median while moving | 19 | 10 |
 
 - **The lifted shadow was 96% of the sticker's drawing on Metal, and 92% of the frame.** Compose
   records a frame's draw calls and plays them back on the GPU later, but the quarter-resolution
@@ -130,9 +135,36 @@ every specimen traced in its window, on Metal and in software, and recorded both
 - **The first frame is every specimen's slowest**: 50 to 114 ms on Metal, up to 215 ms in
   software. Shader compilation and, here, printing the first sticker. Not looked into yet.
 
+### The recheck
+
+Codex ran it again at `6c1b36b`, from the scripted recording on each backend; the Mac was locked,
+so there are no hand-driven traces this time.
+
+| Peel sticker recording | Metal | Software |
+|---|---|---|
+| `frame`, median / p95 | 0.44 / 1.1 ms | 0.76 / 7.8 ms |
+| `frame`, p95 while peeling | 1.1 ms, against 8.3 ms a refresh | 8.1 ms |
+| `lifted shadow`, median | 0.05 ms, 10% of a peeling frame | 4.3 ms, 91% |
+
+- **The shadow on the GPU works**: on Metal `lifted shadow` went from 4.2 ms to 0.05 ms, and a
+  peeling frame's 95th percentile from 8.1 ms to 1.1 ms. The first run was driven by hand and
+  this one by the recording script, but the shadow's share of the frame, 92% then and 10% now,
+  leaves little doubt.
+- **A dotted line still ran along the fold on Metal**, blue across the G, and not in software.
+  [`GpuParity`](src/jvmTest/kotlin/dev/sebastiano/peelsticker/GpuParity.kt) reproduced it on
+  OpenGL, differing from software by up to 150 in 255. A GPU picks a texture's mip level from
+  how fast its coordinates change between neighbouring pixels, and inside the shaders' branches,
+  at the edge of each band, that rate is undefined, so those pixels drew from a far too coarse
+  level. The shaders now sample without mipmaps, as Skia's CPU backend already did: OpenGL and
+  software now agree to within 5 in 255, and software is unchanged.
+- The whole recordings run at 9.1 distinct frames a second on Metal and 7.2 in software; the first
+  run counted only while things moved, at a different size, so the two are not comparable. In
+  software on the Mac, frames came 63 ms apart while `frame` itself took under 8 ms, so the time
+  goes somewhere outside the render callback. Not looked into.
+
 ## Checking it on a GPU
 
-The lifted shadow's layer has not been measured on a GPU yet; this is how to. On a GPU Skia draws the shaders there, so most of the software work above matters little. What
+On a GPU Skia draws the shaders there, so most of the software work above matters little. What
 still runs on the CPU every frame is recording the draw calls and the band and hull clips, which
 are paths. To check:
 

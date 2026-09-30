@@ -20,6 +20,7 @@ kotlin {
         }
         jvmMain.dependencies { implementation(compose.desktop.currentOs) }
         commonTest.dependencies { implementation(kotlin("test")) }
+        jvmTest.dependencies { implementation(libs.jna) }
     }
 }
 

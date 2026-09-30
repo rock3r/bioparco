@@ -54,7 +54,9 @@ downloads Perfetto's trace processor.
 
 For a worked example, the peel sticker's software rendering was traced and optimised with these
 tools: see [peel-sticker/PERFORMANCE.md](../peel-sticker/PERFORMANCE.md), and its
-`SoftwareRenderingBenchmark` and `CpuCostLadder` tests, which are skipped unless asked for.
+`SoftwareRenderingBenchmark` and `CpuCostLadder` tests, which are skipped unless asked for. Its
+`GpuParity` test draws on Skia's OpenGL backend under Xvfb, with Mesa's software OpenGL, and
+compares with the CPU backend: GPU-only artefacts show up there without a GPU.
 
 ## Things that fool you
 

@@ -64,10 +64,18 @@ internal class StickerFrame(
 internal class StickerRenderer(private val texture: StickerTexture) : AutoCloseable {
     private val programs = HashMap<ProgramKey, RuntimeEffect>()
     private val sampling = FilterMipmap(FilterMode.LINEAR, MipmapMode.LINEAR)
+
+    /**
+     * The shaders sample without mipmaps. A GPU picks a mip level from how fast the texture
+     * coordinates change between neighbouring pixels, and inside the shaders' branches, at the edge
+     * of each band, that rate is undefined: those pixels drew from a far too coarse level, a dotted
+     * line along the fold on Metal and OpenGL. Skia's CPU backend never used the mips here anyway.
+     */
+    private val shaderSampling = FilterMipmap(FilterMode.LINEAR, MipmapMode.NONE)
     private val front =
-        texture.front.makeShader(FilterTileMode.DECAL, FilterTileMode.DECAL, sampling, null)
+        texture.front.makeShader(FilterTileMode.DECAL, FilterTileMode.DECAL, shaderSampling, null)
     private val back =
-        texture.back.makeShader(FilterTileMode.DECAL, FilterTileMode.DECAL, sampling, null)
+        texture.back.makeShader(FilterTileMode.DECAL, FilterTileMode.DECAL, shaderSampling, null)
     private val paint = Paint()
     private var tableShadow: TableShadow? = null
     private var scaledFront: Image? = null
