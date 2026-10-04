@@ -110,7 +110,7 @@ private class Bolt(val e: Vec3, val t: Vec3, val el: Solid) {
     var drawn = Double.NaN
 }
 
-private class Spin(
+private class DialSpin(
     var a: Double = REST,
     var w: Double = 0.0,
     var mode: String = "rest",
@@ -156,7 +156,7 @@ private class VaultFigure(private val els: FigureEls, value: Double) : FigureHan
         buildScene()
     }
 
-    private val spin = Spin()
+    private val spin = DialSpin()
     private var raw = REST
     private var said = ""
     private var last: Double? = null
