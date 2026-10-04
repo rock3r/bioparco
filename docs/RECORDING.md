@@ -88,6 +88,7 @@ list):
 - `recordings/build/recordings/component-anatomy.mp4`
 - `recordings/build/recordings/scroll-effects.mp4`
 - `recordings/build/recordings/peel-sticker.mp4`
+- `recordings/build/recordings/honeycomb.mp4`
 
 ### Linux / Xvfb
 
@@ -140,6 +141,7 @@ Stable download URLs:
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/component-anatomy.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/scroll-effects.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/peel-sticker.mp4
+- https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/honeycomb.mp4
 
 ## Traces
 
