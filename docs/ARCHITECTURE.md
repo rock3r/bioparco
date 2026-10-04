@@ -13,6 +13,7 @@ showcase  -->  grabby-stepper
           \->  component-anatomy
           \->  scroll-effects
           \->  peel-sticker
+          \->  hairline
 
 recordings --> grabby-stepper
            \->  chat-bubble-transition
@@ -24,6 +25,7 @@ recordings --> grabby-stepper
            \->  component-anatomy
            \->  scroll-effects
            \->  peel-sticker
+           \->  hairline
            \->  Spectre (Maven Central)
 
 every specimen, showcase, recordings --> tracing --> androidx.tracing (Perfetto)
@@ -42,6 +44,7 @@ every specimen, showcase, recordings --> tracing --> androidx.tracing (Perfetto)
 | `:component-anatomy` | Specimen 8. Library + standalone `run`. |
 | `:scroll-effects` | Specimen 9. Library + standalone `run`. |
 | `:peel-sticker` | Specimen 10. Library + standalone `run`. |
+| `:hairline` | Specimen 11. Library + standalone `run`. |
 | `:recordings` | Spectre-driven recording tests. Not part of `check`. |
 | `:tracing` | House module: Perfetto trace sections for any specimen, off unless asked for. See [TRACING.md](TRACING.md). |
 

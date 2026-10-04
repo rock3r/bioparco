@@ -34,3 +34,12 @@ compose.desktop {
         }
     }
 }
+
+// The figures are ported from MIT-licensed code, so the jar (and every app that bundles it) carries
+// that notice too, not just this folder.
+tasks.named<Jar>("jvmJar") {
+    from("LICENSE") {
+        into("META-INF")
+        rename { "LICENSE-hairline.txt" }
+    }
+}

@@ -119,6 +119,7 @@ Working on `main` is allowed only when the owner has said so for that task.
 ./gradlew :component-anatomy:run
 ./gradlew :scroll-effects:run
 ./gradlew :peel-sticker:run
+./gradlew :hairline:run
 ./gradlew :recordings:recordSpecimens
 ```
 

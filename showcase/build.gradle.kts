@@ -26,6 +26,7 @@ kotlin {
             implementation(project(":component-anatomy"))
             implementation(project(":scroll-effects"))
             implementation(project(":peel-sticker"))
+            implementation(project(":hairline"))
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)

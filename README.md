@@ -96,6 +96,14 @@ an eye for detail, and the passion to care about these things.
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/peel-sticker.mp4)
 
+### [Hairline](hairline/)
+
+**Chris** · [Lucas Marques](https://github.com/lucasmarkes)’s [hairline](https://github.com/lucasmarkes/hairline) (MIT)
+
+![Hairline](https://static.sebastiano.dev/stable/bioparco/hairline.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/hairline.mp4)
+
 Recordings are generated automatically with [Spectre](https://spectre.sebastiano.dev).
 README previews are animated, lower quality WebPs; original mp4 files are the full clips.
 
@@ -121,6 +129,7 @@ Or visit one enclosure directly:
 ./gradlew :component-anatomy:run
 ./gradlew :scroll-effects:run
 ./gradlew :peel-sticker:run
+./gradlew :hairline:run
 ...
 ```
 
