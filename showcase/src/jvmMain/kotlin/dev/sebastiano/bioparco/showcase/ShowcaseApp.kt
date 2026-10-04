@@ -25,6 +25,7 @@ import dev.sebastiano.borderbeam.App as BorderBeamApp
 import dev.sebastiano.componentanatomy.App as ComponentAnatomyApp
 import dev.sebastiano.dotmatrixrecorder.App as DotMatrixRecorderApp
 import dev.sebastiano.grabbystepper.App
+import dev.sebastiano.honeycomb.App as HoneycombApp
 import dev.sebastiano.peelsticker.App as PeelStickerApp
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
 import dev.sebastiano.scrolleffects.App as ScrollEffectsApp
@@ -47,6 +48,7 @@ private enum class SpecimenRoute {
     ComponentAnatomy,
     ScrollEffects,
     PeelSticker,
+    Honeycomb,
 }
 
 @Composable
@@ -68,6 +70,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenComponentAnatomy = { route = SpecimenRoute.ComponentAnatomy },
                     onOpenScrollEffects = { route = SpecimenRoute.ScrollEffects },
                     onOpenPeelSticker = { route = SpecimenRoute.PeelSticker },
+                    onOpenHoneycomb = { route = SpecimenRoute.Honeycomb },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -150,6 +153,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     PeelStickerApp()
                 }
+            SpecimenRoute.Honeycomb ->
+                SpecimenHost(
+                    title = "Honeycomb",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    HoneycombApp()
+                }
         }
     }
 }
@@ -166,6 +177,7 @@ private fun Catalog(
     onOpenComponentAnatomy: () -> Unit,
     onOpenScrollEffects: () -> Unit,
     onOpenPeelSticker: () -> Unit,
+    onOpenHoneycomb: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -251,6 +263,14 @@ private fun Catalog(
                     "white, sparkle, prism, ripple and halftone. After sucodee (@sucodeee).",
             testTag = "open-peel-sticker",
             onOpen = onOpenPeelSticker,
+        )
+        SpecimenCard(
+            name = "Honeycomb",
+            summary =
+                "A 2D pan of circles packed in a honeycomb. They shrink and fade as they leave " +
+                    "the centre. After Shubham Singh (@Shubham_iosdev).",
+            testTag = "open-honeycomb",
+            onOpen = onOpenHoneycomb,
         )
     }
 }
