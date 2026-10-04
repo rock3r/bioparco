@@ -47,6 +47,8 @@ include(":scroll-effects")
 
 include(":peel-sticker")
 
+include(":hairline")
+
 include(":tracing")
 
 include(":showcase")
