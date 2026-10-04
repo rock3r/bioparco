@@ -79,8 +79,9 @@ caption. All nineteen match. To capture them again, follow the note at the top o
 
 ### Where it differs
 
-- Desktop has no `prefers-reduced-motion` query, so reduced motion is a checkbox. It does what the
-  original's does: springs and tweens land at once, and Phosphor and Slow stop their ambient motion.
+- Desktop has no `prefers-reduced-motion` query, so reduced motion is a checkbox, and each
+  `HairlineFigure` takes its own. It does what the original's does: springs and tweens land at once,
+  and Phosphor and Slow stop their ambient motion. Phosphor then also stops asking for frames.
 - The theme is a parameter rather than CSS custom properties, with the original's two palettes.
 - There is no `IntersectionObserver`: the grid is lazy, so a figure scrolled away is disposed.
 - The accessible name is the figure's content description; there is no ARIA live region.

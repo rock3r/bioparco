@@ -63,8 +63,10 @@ fun HairlineFigure(
     val scope = rememberCoroutineScope()
     val stage = remember(figure) { ComposeStage(scope) }
     DisposableEffect(stage) {
-        ReducedMotion.enabled = reducedMotion
-        val mounted = MountedFigure(figure, stage, intensity.toDouble()) { currentOnRead(it) }
+        stage.reduced = reducedMotion
+        val mounted = stage.inside {
+            MountedFigure(figure, stage, intensity.toDouble()) { currentOnRead(it) }
+        }
         stage.mounted = mounted
         stage.invalidate()
         onDispose {
@@ -72,9 +74,11 @@ fun HairlineFigure(
             stage.dispose()
         }
     }
-    LaunchedEffect(stage, intensity) { stage.mounted?.update(intensity.toDouble()) }
+    LaunchedEffect(stage, intensity) {
+        stage.inside { stage.mounted?.update(intensity.toDouble()) }
+    }
     LaunchedEffect(stage, reducedMotion) {
-        if (ReducedMotion.enabled != reducedMotion) ReducedMotion.enabled = reducedMotion
+        stage.reduced = reducedMotion
         stage.wakeAll()
     }
     LaunchedEffect(stage) { stage.runFrames() }
@@ -158,6 +162,10 @@ private class ComposeStage(private val scope: CoroutineScope) : Stage {
     private var redrawCount by mutableIntStateOf(0)
 
     var mounted: MountedFigure? = null
+
+    /** This figure's reduced motion. Every call into the figure runs [inside] it. */
+    var reduced = false
+
     var focused by mutableStateOf(false)
     var focusFromPointer by mutableStateOf(false)
 
@@ -187,6 +195,12 @@ private class ComposeStage(private val scope: CoroutineScope) : Stage {
         return { blurHandlers.remove(handler) }
     }
 
+    /**
+     * Runs [block], a call into the figure, with the flag the motion maths reads set to this
+     * figure's.
+     */
+    fun <T> inside(block: () -> T): T = withReducedMotion(reduced, block)
+
     fun invalidate() {
         redrawCount++
     }
@@ -202,13 +216,13 @@ private class ComposeStage(private val scope: CoroutineScope) : Stage {
     }
 
     fun key(name: String): Boolean {
-        val claimed = keyHandlers.toList().fold(false) { any, h -> h(name) || any }
+        val claimed = inside { keyHandlers.toList().fold(false) { any, h -> h(name) || any } }
         invalidate()
         return claimed
     }
 
     fun blur() {
-        blurHandlers.toList().forEach { it() }
+        inside { blurHandlers.toList().forEach { it() } }
         invalidate()
     }
 
@@ -221,7 +235,7 @@ private class ComposeStage(private val scope: CoroutineScope) : Stage {
     suspend fun runFrames() {
         while (true) {
             withFrameNanos {}
-            if (loop.running) Tracing.section("hairline.tick") { loop.frame(now()) }
+            if (loop.running) Tracing.section("hairline.tick") { inside { loop.frame(now()) } }
             invalidate()
             if (!loop.running) wakeups.receiveCatching().getOrNull() ?: return
         }
@@ -242,7 +256,7 @@ private class ComposeStage(private val scope: CoroutineScope) : Stage {
             PointerEventType.Move,
             PointerEventType.Enter -> {
                 leaving?.cancel()
-                pointers.toList().forEach { it.move(p) }
+                inside { pointers.toList().forEach { it.move(p) } }
             }
             PointerEventType.Press -> {
                 leaving?.cancel()
@@ -250,7 +264,7 @@ private class ComposeStage(private val scope: CoroutineScope) : Stage {
                     focusFromPointer = true
                     focus.requestFocus()
                 }
-                pointers.toList().forEach { it.down(p) }
+                inside { pointers.toList().forEach { it.down(p) } }
             }
             PointerEventType.Exit -> leave(pointer)
             PointerEventType.Release -> if (pointer != PointerType.Mouse) leave(pointer)
@@ -263,7 +277,7 @@ private class ComposeStage(private val scope: CoroutineScope) : Stage {
         leaving?.cancel()
         leaving = scope.launch {
             if (pointer != PointerType.Mouse) delay(TOUCH_HOLD_MS)
-            pointers.toList().forEach { it.leave() }
+            inside { pointers.toList().forEach { it.leave() } }
             invalidate()
         }
     }

@@ -16,11 +16,22 @@ import kotlin.math.max
  */
 
 /**
- * The one reduced-motion flag every figure reads. Desktop has no system query for it: the app sets
- * it.
+ * The reduced-motion flag every figure reads. The original's is page-wide; here each figure has its
+ * own, so a host sets it around every call into its figure with [withReducedMotion].
  */
 object ReducedMotion {
     var enabled: Boolean = false
+}
+
+/** Runs [block] with reduced motion [on], then puts the flag back as it was. */
+inline fun <T> withReducedMotion(on: Boolean, block: () -> T): T {
+    val before = ReducedMotion.enabled
+    ReducedMotion.enabled = on
+    try {
+        return block()
+    } finally {
+        ReducedMotion.enabled = before
+    }
 }
 
 fun reducedMotion(): Boolean = ReducedMotion.enabled

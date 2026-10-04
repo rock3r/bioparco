@@ -124,9 +124,14 @@ class ParityTest {
         return GZIPInputStream(res).bufferedReader().readLines().filter { it.isNotEmpty() }
     }
 
-    private class FakeStage : Stage {
+    internal class FakeStage : Stage {
         private var clock = 1000.0
         private val loop = FrameLoop({ clock }, {})
+
+        /** Whether the figure still asks for frames. */
+        val running: Boolean
+            get() = loop.running
+
         private val pointers = ArrayList<PointerHandlers>()
         private val keys = ArrayList<(String) -> Boolean>()
         private val blurs = ArrayList<() -> Unit>()

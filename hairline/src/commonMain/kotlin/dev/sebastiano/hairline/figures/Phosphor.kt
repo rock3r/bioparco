@@ -52,6 +52,9 @@ private const val FRAME_MS = 110.0
 private const val RESUME = 1200.0
 private const val RAMP = 400.0
 
+/** How close to the still a dot must be to count as settled: well under one step of its opacity. */
+private const val SETTLED = 5e-4
+
 private val phosphorLoop =
     listOf(
         listOf(0, 0, 0, 8, 0, 0, 0),
@@ -197,10 +200,15 @@ private class PhosphorFigure(private val els: FigureEls, value: Double) : Figure
 
     private fun tick(dt: Double, now: Double): Boolean {
         val decay = exp(-dt * 1000 / tau)
+        // With reduced motion there is no loop: the dots settle on a composed still, the ripple's
+        // widest ring. Unlike the original, which asks for frames forever, it sleeps once there.
+        var fading = true
         if (reducedMotion() && !painting) {
+            fading = false
             intensity.indices.forEach { i ->
-                intensity[i] =
-                    max(intensity[i] * decay, lit(3, i / PHOSPHOR_N, i % PHOSPHOR_N) * .8).toFloat()
+                val still = lit(3, i / PHOSPHOR_N, i % PHOSPHOR_N) * .8
+                intensity[i] = max(intensity[i] * decay, still).toFloat()
+                if (intensity[i] - still > SETTLED) fading = true
             }
         } else {
             intensity.indices.forEach { intensity[it] = (intensity[it] * decay).toFloat() }
@@ -209,7 +217,7 @@ private class PhosphorFigure(private val els: FigureEls, value: Double) : Figure
         intensity.indices.forEach {
             dots[it].opacity = .14 + .86 * clamp(intensity[it].toDouble(), 0.0, 1.0)
         }
-        return true
+        return fading
     }
 
     private fun animateLoop(dt: Double, now: Double) {

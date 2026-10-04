@@ -1,5 +1,7 @@
 package dev.sebastiano.hairline
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -8,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -49,6 +52,64 @@ class HairlineFigureTest {
             scene.sendPointerEvent(PointerEventType.Exit, Offset(-10f, -10f))
             frames(5)
             assertEquals("rest", caption)
+        } finally {
+            scene.close()
+        }
+    }
+
+    @Test
+    fun reducedMotionBelongsToEachFigure() {
+        // Turntable's caption reads its elevation spring, which follows the pointer's height: one
+        // frame after a move, a reduced figure already reads the target and a moving one does not.
+        val reduced = captionOneFrameAfterMove(reducedMotion = true, neighbourReduced = null)
+        val moving = captionOneFrameAfterMove(reducedMotion = false, neighbourReduced = null)
+        assertTrue(
+            reduced != moving,
+            "the move should change the caption only when reduced: $reduced",
+        )
+        // A reduced neighbour, composed after it, must not make the first figure jump.
+        assertEquals(
+            moving,
+            captionOneFrameAfterMove(reducedMotion = false, neighbourReduced = true),
+        )
+        assertEquals(
+            reduced,
+            captionOneFrameAfterMove(reducedMotion = true, neighbourReduced = false),
+        )
+    }
+
+    private fun captionOneFrameAfterMove(
+        reducedMotion: Boolean,
+        neighbourReduced: Boolean?,
+    ): String {
+        var caption = ""
+        val scene =
+            ImageComposeScene(WIDTH, 2 * HEIGHT, Density(1f)) {
+                Column {
+                    HairlineFigure(
+                        Figure.Turntable,
+                        Modifier.width(WIDTH.dp),
+                        reducedMotion = reducedMotion,
+                        onRead = { caption = it },
+                    )
+                    if (neighbourReduced != null) {
+                        HairlineFigure(
+                            Figure.Turntable,
+                            Modifier.width(WIDTH.dp),
+                            reducedMotion = neighbourReduced,
+                        )
+                    }
+                }
+            }
+        try {
+            var t = 0L
+            repeat(5) { scene.render(t).also { t += FRAME_NS } }
+            // the bottom of the first figure: the elevation spring's target is far from its rest
+            val p = Offset(WIDTH / 2f, HEIGHT * 0.95f)
+            scene.sendPointerEvent(PointerEventType.Enter, p)
+            scene.sendPointerEvent(PointerEventType.Move, p)
+            scene.render(t)
+            return caption
         } finally {
             scene.close()
         }
