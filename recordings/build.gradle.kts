@@ -23,6 +23,7 @@ dependencies {
     implementation(project(":scroll-effects"))
     implementation(project(":peel-sticker"))
     implementation(project(":honeycomb"))
+    implementation(project(":hairline"))
     implementation(project(":tracing"))
 
     testImplementation(libs.junit.jupiter)

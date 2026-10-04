@@ -15,6 +15,7 @@ object RecordingPaths {
     const val SCROLL_EFFECTS = "scroll-effects.mp4"
     const val PEEL_STICKER = "peel-sticker.mp4"
     const val HONEYCOMB = "honeycomb.mp4"
+    const val HAIRLINE = "hairline.mp4"
     const val MIN_USABLE_BYTES = 1_000L
 
     private val houseModules = setOf("showcase", "recordings", "tracing")

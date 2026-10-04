@@ -49,6 +49,8 @@ include(":peel-sticker")
 
 include(":honeycomb")
 
+include(":hairline")
+
 include(":tracing")
 
 include(":showcase")

@@ -61,6 +61,10 @@ class RecordingPathsTest {
             dir.resolve("honeycomb.mp4"),
             RecordingPaths.file(RecordingPaths.HONEYCOMB, dir),
         )
+        assertEquals(
+            dir.resolve("hairline.mp4"),
+            RecordingPaths.file(RecordingPaths.HAIRLINE, dir),
+        )
     }
 
     @Test
@@ -79,6 +83,7 @@ class RecordingPathsTest {
                 "scroll-effects.mp4",
                 "peel-sticker.mp4",
                 "honeycomb.mp4",
+                "hairline.mp4",
             ),
             RecordingPaths.expectedNames(settings),
         )
@@ -160,6 +165,7 @@ class RecordingPathsTest {
                 "scroll-effects.mp4",
                 "peel-sticker.mp4",
                 "honeycomb.mp4",
+                "hairline.mp4",
             ),
             RecordingPaths.missingOutputs(dir),
         )
@@ -174,6 +180,7 @@ class RecordingPathsTest {
         Files.write(dir.resolve("scroll-effects.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("peel-sticker.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("honeycomb.mp4"), ByteArray(2_000))
+        Files.write(dir.resolve("hairline.mp4"), ByteArray(2_000))
         assertEquals(emptyList<String>(), RecordingPaths.missingOutputs(dir))
     }
 }

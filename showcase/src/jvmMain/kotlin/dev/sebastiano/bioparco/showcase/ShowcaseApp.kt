@@ -25,6 +25,7 @@ import dev.sebastiano.borderbeam.App as BorderBeamApp
 import dev.sebastiano.componentanatomy.App as ComponentAnatomyApp
 import dev.sebastiano.dotmatrixrecorder.App as DotMatrixRecorderApp
 import dev.sebastiano.grabbystepper.App
+import dev.sebastiano.hairline.App as HairlineApp
 import dev.sebastiano.honeycomb.App as HoneycombApp
 import dev.sebastiano.peelsticker.App as PeelStickerApp
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
@@ -49,6 +50,7 @@ private enum class SpecimenRoute {
     ScrollEffects,
     PeelSticker,
     Honeycomb,
+    Hairline,
 }
 
 @Composable
@@ -71,6 +73,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenScrollEffects = { route = SpecimenRoute.ScrollEffects },
                     onOpenPeelSticker = { route = SpecimenRoute.PeelSticker },
                     onOpenHoneycomb = { route = SpecimenRoute.Honeycomb },
+                    onOpenHairline = { route = SpecimenRoute.Hairline },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -161,6 +164,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     HoneycombApp()
                 }
+            SpecimenRoute.Hairline ->
+                SpecimenHost(
+                    title = "Hairline",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    HairlineApp()
+                }
         }
     }
 }
@@ -178,6 +189,7 @@ private fun Catalog(
     onOpenScrollEffects: () -> Unit,
     onOpenPeelSticker: () -> Unit,
     onOpenHoneycomb: () -> Unit,
+    onOpenHairline: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -271,6 +283,14 @@ private fun Catalog(
                     "the centre. After Shubham Singh (@Shubham_iosdev).",
             testTag = "open-honeycomb",
             onOpen = onOpenHoneycomb,
+        )
+        SpecimenCard(
+            name = "Hairline",
+            summary =
+                "Nineteen isometric line figures that answer the pointer: cards, pillars, a " +
+                    "turntable, a vault and more. A port of Lucas Marques's hairline (MIT).",
+            testTag = "open-hairline",
+            onOpen = onOpenHairline,
         )
     }
 }
