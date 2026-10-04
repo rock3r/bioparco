@@ -96,6 +96,14 @@ an eye for detail, and the passion to care about these things.
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/peel-sticker.mp4)
 
+### [Honeycomb](honeycomb/)
+
+**Seb** · [Shubham Singh](https://x.com/Shubham_iosdev)’s [honeycomb view](https://x.com/Shubham_iosdev/status/2106375285553992047)
+
+![Honeycomb](https://static.sebastiano.dev/stable/bioparco/honeycomb.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/honeycomb.mp4)
+
 ### [Hairline](hairline/)
 
 **Chris** · [Lucas Marques](https://github.com/lucasmarkes)’s [hairline](https://github.com/lucasmarkes/hairline) (MIT)
@@ -129,6 +137,7 @@ Or visit one enclosure directly:
 ./gradlew :component-anatomy:run
 ./gradlew :scroll-effects:run
 ./gradlew :peel-sticker:run
+./gradlew :honeycomb:run
 ./gradlew :hairline:run
 ...
 ```

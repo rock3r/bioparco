@@ -88,6 +88,7 @@ list):
 - `recordings/build/recordings/component-anatomy.mp4`
 - `recordings/build/recordings/scroll-effects.mp4`
 - `recordings/build/recordings/peel-sticker.mp4`
+- `recordings/build/recordings/honeycomb.mp4`
 - `recordings/build/recordings/hairline.mp4`
 
 ### Linux / Xvfb
@@ -141,6 +142,7 @@ Stable download URLs:
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/component-anatomy.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/scroll-effects.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/peel-sticker.mp4
+- https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/honeycomb.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/hairline.mp4
 
 ## Traces
@@ -168,15 +170,16 @@ a push to `main`) runs them under `xvfb-run` on Ubuntu and uploads every MP4 to 
 floating release. A skipped or empty recording fails the job instead of publishing a
 partial set.
 
-### Prove all eleven MP4s
+### Prove all twelve MP4s
 
 On the `recordings` CI job, the "Record specimens" step must list every enclosure
 as `PASSED` (`AchievementBadgeRecordingTest`, `BorderBeamRecordingTest`, `ChatBubbleRecordingTest`,
 `ComponentAnatomyRecordingTest`, `DotMatrixRecorderRecordingTest`, `GrabbyStepperRecordingTest`,
-`HairlineRecordingTest`, `PeelStickerRecordingTest`, `ProcessingFieldRecordingTest`,
-`ScrollEffectsRecordingTest`, `ThinkingOrbsRecordingTest`) and `recordings/build/recordings/` must
-contain eleven files each larger than 1 KB. The task fails closed if any name is missing. A run filtered with `--tests` records only
-the enclosures it matches, so it skips this check.
+`HairlineRecordingTest`, `HoneycombRecordingTest`, `PeelStickerRecordingTest`,
+`ProcessingFieldRecordingTest`, `ScrollEffectsRecordingTest`, `ThinkingOrbsRecordingTest`) and
+`recordings/build/recordings/` must contain twelve files each larger than 1 KB. The task fails closed
+if any name is missing. A run filtered with `--tests` records only the enclosures it matches, so it
+skips this check.
 
 Locally, same gate under Xvfb:
 
