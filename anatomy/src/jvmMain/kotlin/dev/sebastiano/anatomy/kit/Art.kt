@@ -118,8 +118,11 @@ class FadeLineMark(
     val shape = Shape(pathOf(points))
 }
 
-/** A named group that live code moves by a screen offset. */
-class GroupMark(val part: String, val art: Art) : Mark()
+/**
+ * A named group that live code moves by a screen offset. Its drawing is clipped to [clip], which
+ * stays put while the group moves: the original's `data-hold` clip and `holdStill`.
+ */
+class GroupMark(val part: String, val art: Art, val clip: Shape? = null) : Mark()
 
 /** Static art, in painter's order. */
 class Art(val marks: List<Mark>) {
@@ -247,9 +250,13 @@ class ArtBuilder {
         marks.add(HaloMark(Shape(path), blur))
     }
 
-    /** A group that live code moves as one: a carriage, a plunger, a drawer. */
-    fun group(part: String, build: ArtBuilder.() -> Unit) {
-        marks.add(GroupMark(part, art(build)))
+    /**
+     * A group that live code moves as one: a carriage, a plunger, a drawer. With [clip], what it
+     * draws is clipped to a path that holds still while the group moves, so a rod built with
+     * `rodOut` slides out of its gland: `group("rod", clip = rod.clip) { solid(rod.paths) }`.
+     */
+    fun group(part: String, clip: IsoPath? = null, build: ArtBuilder.() -> Unit) {
+        marks.add(GroupMark(part, art(build), clip?.let { Shape(it) }))
     }
 }
 

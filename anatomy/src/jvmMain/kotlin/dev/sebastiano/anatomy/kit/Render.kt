@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke as DrawStroke
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
@@ -107,15 +108,20 @@ class IsoScope(
             is HaloMark -> drawHalo(mark)
             is FadeLineMark -> drawFadeLine(mark)
             is GroupMark -> {
-                val offset = offsetOf(mark.part)
-                if (offset == null) {
-                    drawArt(mark.art, offsetOf)
-                } else {
-                    draw.translate(offset.x.toFloat(), offset.y.toFloat()) {
-                        drawArt(mark.art, offsetOf)
-                    }
-                }
+                val clip = mark.clip
+                if (clip == null) drawGroup(mark, offsetOf)
+                else draw.clipPath(clip.path) { drawGroup(mark, offsetOf) }
             }
+        }
+    }
+
+    /** A group moved by its offset; its clip, applied outside the move, holds still. */
+    private fun drawGroup(mark: GroupMark, offsetOf: (String) -> Flat?) {
+        val offset = offsetOf(mark.part)
+        if (offset == null) {
+            drawArt(mark.art, offsetOf)
+        } else {
+            draw.translate(offset.x.toFloat(), offset.y.toFloat()) { drawArt(mark.art, offsetOf) }
         }
     }
 
