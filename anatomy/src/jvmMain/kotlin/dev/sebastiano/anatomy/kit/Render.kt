@@ -78,6 +78,25 @@ class IsoScope(
         if (!path.isEmpty) drawLine(LineMark(Shape(path), tone, stroke, Free.None, width, 1.0))
     }
 
+    /** Paints dots now: rivets on a moving part, a counter's lamps. */
+    fun dots(points: List<Flat>, size: Double = 0.5, tone: Tone = Tone.Mid) {
+        if (points.isNotEmpty()) drawDots(DotsMark(points, null, size, tone))
+    }
+
+    /** Paints face text now: digits a machine displays, which change as it runs. */
+    fun faceText(
+        matrix: FaceMatrix,
+        text: String,
+        size: Double = 3.0,
+        tone: Tone = Tone.Mid,
+        anchor: Anchor = Anchor.Start,
+    ) = drawText(TextMark(matrix, text, size, tone, anchor))
+
+    /** Paints [art] moved by a screen [offset]: one copy of a part that appears several times. */
+    fun drawArt(art: Art, offset: Flat) {
+        draw.translate(offset.x.toFloat(), offset.y.toFloat()) { drawArt(art) }
+    }
+
     private fun drawMark(mark: Mark, offsetOf: (String) -> Flat?) {
         when (mark) {
             is SolidMark -> drawSolid(mark)

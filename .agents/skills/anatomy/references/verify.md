@@ -17,6 +17,7 @@ review shots somewhere ignored (`.amp/in/artifacts/` or `build/`), never into th
 ./gradlew :anatomy:capture --args="dial-indicator --hover 0.7,0.4 --times 1.5"          # pointer at 70% across
 ./gradlew :anatomy:capture --args="dial-indicator --times 0,1.2,2.4,3.6,4.8"            # the tour: name-<ms>.png
 ./gradlew :anatomy:capture --args="dial-indicator --key Right,Right --times 1"          # keys after Tab focuses it
+./gradlew :anatomy:capture --args="token-bucket --click 0.5,0.4 --times 0.4"            # a press and release
 ./gradlew :anatomy:capture --args="dial-indicator --zoom 330,170,140,110"               # 4× close-up of x,y,w,h
 ./gradlew :anatomy:capture --args="dial-indicator --reduced --times 2"                  # reduced motion
 ```
@@ -30,6 +31,7 @@ review shots somewhere ignored (`.amp/in/artifacts/` or `build/`), never into th
 | `--scale` | 2 | Pixels per dp. |
 | `--times` | 0 | Seconds after the first frame; the scene's clock is simulated, so motion is exact and repeatable. |
 | `--hover x,y` | | The pointer, as fractions of the card's width and of the whole capture's height, from the start. |
+| `--click x,y` | | A press and release there after the first frame, in the same fractions as `--hover`. |
 | `--key` | | Keys sent in order after a Tab focuses the figure: `Right`, `Left`, `Up`, `Down`, `Home`, `End`, `Space`, `Enter`, `Escape`, `Tab`. |
 | `--zoom x,y,w,h` | | A region in card dp (from the card's top-left corner), rendered at `--zoom-scale`. |
 | `--zoom-scale` | 4 | |

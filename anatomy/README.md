@@ -38,6 +38,7 @@ Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. 
 | Figure | What it shows |
 |---|---|
 | Dial indicator | A dial gauge on a stand over a carriage of three gauge blocks. Hover to slide the carriage: the plunger rides onto the block under it, and one turn of the needle is 20 px of travel, so each block reads its own height. Arrow keys step block to block. |
+| Token bucket | A token dispenser explaining a token bucket rate limiter. A feed wheel under a hopper drops one token a second into a magazine that holds eight, and stops while it is full. Click or press Space to send a request: the plunger pushes the bottom token out to the payout box, or strokes empty and the request is refused. A burst of eight passes at once, then one a second. |
 
 ## Making a new one
 
@@ -46,6 +47,10 @@ Ask an agent in this repository for a figure that explains something, for exampl
 [skill](../.agents/skills/anatomy/SKILL.md) has it collect the true numbers, invent the object,
 write a parts list, build the geometry once with the kit, paint it back to front, frame it, make it
 live, and then review its own PNGs in both themes and in close-up.
+
+The token bucket was made that way: an agent with no other context got only that one-line prompt
+and this skill, and built, reviewed and tested the figure in about 22 minutes. What it found
+missing in the skill and the kit was then added to both.
 
 ```bash
 ./gradlew :anatomy:capture --args="dial-indicator --out shots/dial.png"

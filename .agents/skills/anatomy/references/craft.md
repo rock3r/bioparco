@@ -204,7 +204,8 @@ and the lock screw is a small slab plus a cylinder head on the side.
 | Crease (top/side join) | `Faint` (default), `Lo` on `Hi` parts |
 
 A `solid` with `lit = true` gets a lit edge and a lighter top. Use it for the moving subject, the
-plunger or a picked drawer. A line in `Tone.Lit` is the needle or pointer of that subject.
+plunger or a picked drawer. "One accent" means one subject: several solids that together are the
+thing to watch (a stack of tokens, a set of pins) may all be lit. A line in `Tone.Lit` is the needle or pointer of that subject.
 
 ## 5. Painter's order
 
@@ -217,6 +218,9 @@ plunger or a picked drawer. A line in `Tone.Lit` is the needle or pointer of tha
   part can pass in front of and behind the same neighbour, split the neighbour or bound the motion so
   the order never changes. If it truly must change, draw the moving part in more than one slot and
   show only the one that is right for this frame.
+- **Stacked parts.** Where one part sits above another at the same floor position (a stack of
+  coins, a lid on a box), the upper one is nearer the viewer wherever they overlap on screen: paint the
+  lower one first, also when the upper one is moving.
 - **Things standing on a stepped surface.** Order the steps so the taller ones are further back. A
   probe resting on a lower step then can't be hidden by a taller one in front of it.
 - Vertical parts that pass through a horizontal one (a post through a clamp) are drawn in two
@@ -231,7 +235,8 @@ plunger or a picked drawer. A line in `Tone.Lit` is the needle or pointer of tha
   42°. Raise the elevation to look into something open: the ripple tank uses 44°.
 - Fit with `fitProjection(boxCorners(...) + tallest points, width, height, pad = 24–34, azimuth = …)`.
   Typical viewBoxes are 600 × 340–380.
-- The object fills about 55–65% of the card. Leave air around it, don't let it touch the corner
+- The object fills about 55–65% of the card's width. A tall object is fitted by its height and comes
+  out narrow: lower its tallest parts or turn its long side toward the viewer. Leave air around it, don't let it touch the corner
   labels, and keep sizes consistent across a set of figures.
 - At 390 wide (`capture --width 390`), check it still reads.
 

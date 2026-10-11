@@ -20,11 +20,16 @@ rulers, a carriage on bushings, knurled knobs, coil springs, a dial gauge whose 
 as tiny dots. The reader understands the idea because they recognise the machine. Every number the
 figure shows comes from the same model that moves its parts.
 
-Open the closest example before you start. Today there is one:
+Open the closest example before you start, in `anatomy/src/jvmMain/kotlin/dev/sebastiano/anatomy/figures/`:
 
-- `anatomy/src/jvmMain/kotlin/dev/sebastiano/anatomy/figures/DialIndicator.kt`, a dial gauge on a
-  stand over a carriage of gauge blocks, about 400 lines. It is a line-for-line port of the
-  original's smallest example and `ParityTest` proves it draws the same paths.
+- `DialIndicator.kt`, a dial gauge on a stand over a carriage of gauge blocks, about 400 lines. It is
+  a line-for-line port of the original's smallest example and `ParityTest` proves it draws the same
+  paths.
+- `TokenBucket.kt`, a token dispenser explaining a token bucket rate limiter: a feed wheel refills a
+  magazine of eight at one token a second, and each request pushes one out or strokes empty. It was
+  made from the one-line prompt by an agent using only this skill. It is the reference for a model
+  class with tests, static art split into layers around moving parts, repeated parts drawn at several
+  offsets, and discrete events (requests, falling tokens) that come and go.
 
 The original's other examples (desk computer, arcade cabinet, Raptor engine, ripple tank, test rig,
 spot plate, turning dial) are worth reading for design even though they are JavaScript:
@@ -115,14 +120,25 @@ is decided there.
 5. **Plan the world.** Use world units of about 1 px of the real thing: x and y on the floor, z up.
    Lay out plans as rounded rectangles `Plan(x, y, w, d, r)` and circles. Choose the camera: azimuth
    45° by default, 35–60° to show the long side, elevation 30° (higher, up to about 44°, to look into
-   something open). Then fit with `fitProjection(points, width, height, pad, azimuth = …)`.
+   something open). Then fit with `fitProjection(points, width, height, pad, azimuth = …)`. Plan the
+   proportions for the card: the viewBox is about 600 × 380, so a tall object is fitted by its height
+   and comes out narrow. Measure how much of the card's *width* it fills (aim for 55–65%); if it is
+   height-bound, lower the tallest parts, or turn the long side toward the viewer, rather than
+   shrinking `pad`.
 6. **Build geometry once.** Put the figure in one file under
    `anatomy/src/jvmMain/kotlin/dev/sebastiano/anatomy/figures/`. An `object` holds the constants,
    the projection `P` and the static `ART`, built once with `art { … }` from the kit (`slabOf`,
    `cylinder`, `extrude`, `planOutline`, `topTicks`, `knurl`, `coil`, `radialTicks` and so on).
    Moving parts are built once at a rest position inside `group("name") { … }` and moved with
    `translateAlong`. Only parts whose shape changes (a needle turning, a coil compressing) are rebuilt
-   per frame and drawn with the scope's `solid` and `line`.
+   per frame and drawn with the scope's `solid`, `line`, `dots` and `faceText`.
+   - **Split the file by job** once it grows: a pure model class (the truth, tested), an `object` for
+     the geometry and art, and one for timing (tour, envelopes, readout). Detekt allows 20 functions
+     per object and per file, and a Figure of 40–80 parts outgrows one object.
+   - **Layers.** `drawArt` paints a whole `Art` in order, so when a moving part sits between static
+     parts, split the static art into layers (`BASE`, `BACK`, `FRONT`, …) and draw the moving parts
+     between them. A part that appears several times at once (tokens on a tray, coins in a chute) is
+     one `Art` drawn at each copy's offset with `drawArt(PART, offset)`.
 7. **Paint back to front, bottom to top.** Sort repeated parts with `depthOf`. Split anything that
    wraps another part into a back half and a front half: the springs around a rod (`coil` returns
    both), the bars of a frame around a carriage. A moving part is drawn in the slot where it

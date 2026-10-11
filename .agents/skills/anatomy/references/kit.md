@@ -81,7 +81,7 @@ sides by how they face the light, darkest first), `top`, `crease`, `bevel`, then
 | Function | Returns |
 |---|---|
 | `knurl(cx, cy, r, z0, z1, count, P, inset = 0.4)` | Vertical lines on the visible half of a cylinder. |
-| `sideArc(cx, cy, r, z, P, steps)` | The visible front half of a horizontal circle on a cylinder side: seams and bands. |
+| `sideArc(cx, cy, r, z, P, steps)` | The visible front half of a horizontal circle on a cylinder side: seams and bands. For the far half (the floor of a hole), sweep the other way with `onTop` over `circleRing` points. |
 | `sideSeam(plan, z, P, steps)` | The same for a box, wrapping its corners and ending on its silhouette. Pass the slab's own `steps` and draw it as the slab's `inner`. |
 | `ringSeam(ring, z, P)` | `sideSeam` for any floor outline. |
 | `sideRing(center, r, Axis.X \| Axis.Y, P)` | A circle on a vertical face (the axis is the face normal): bores, rod ends, lenses. |
@@ -137,9 +137,10 @@ IsoCanvas(WIDTH, HEIGHT, palette, Modifier.fillMaxWidth()) {        // an IsoSco
 ```
 
 - `IsoCanvas(width, height, palette, modifier, clock = { 0.0 }) { … }` scales the viewBox to the
-  available width. Inside, `IsoScope` has `drawArt(art, offsetOf)`, `solid(...)` and `line(...)`
-  for per-frame parts, `palette`, and `draw` (the Compose `DrawScope`, in viewBox units) for anything
-  else. `clock` drives `Stroke.Flow`.
+  available width. Inside, `IsoScope` has `drawArt(art, offsetOf)` and `drawArt(art, offset)` (one
+  copy of a repeated part), `solid`, `line`, `dots` and `faceText` for per-frame parts, `palette`,
+  and `draw` (the Compose `DrawScope`, in viewBox units) for anything else. `clock` drives
+  `Stroke.Flow`.
 - `Plate(fig, title, hint, readout = { text }, palette, modifier, keys, caption) { … }` is the card.
   `readout` is read only by the readout's own text. `keys` are `LegendKey(KeyMark.Lit, "…")`; marks
   are `Raised`, `Flat`, `Lit`, `Edge`, `Dim`, `Dotted`, `Dashed`, `Red`, `Green`, `Blue`.

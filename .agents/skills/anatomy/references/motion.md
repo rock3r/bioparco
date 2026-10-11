@@ -25,7 +25,8 @@ model. `DialIndicatorFigure` is a complete example.
   `rememberFrameLoop` returns.
 - **Reduced motion.** Desktop has no system query, so a figure takes `reducedMotion`. Then `calm` is
   true: targets are reached at once, springs are critically damped, there is no tour, flow or pulse,
-  and the figure still answers input.
+  and the figure still answers input. The model itself keeps running: a bucket still refills and a
+  clock still ticks, only the animation between states is skipped.
 - **Idle tour.** When nobody is interacting, play a scripted loop that shows the point of the figure,
   as a pure function of time (`tourAt(t)`). Stop it on any input, and resume it about 3.6 s after the
   last one (a `LaunchedEffect` keyed on a touch counter that `delay`s, then kicks the loop).
@@ -78,6 +79,15 @@ well under 0.1 ms.
   0.8 px per frame, visible in slow motion. Rebuild a rotating part each frame.
 - **A rod that slides out of a gland** is one full-length rod that moves, clipped at the gland face.
   Never draw it as several overlapping copies.
+
+## Discrete events and things that come and go
+
+Requests, coins, tokens and packets are events, not values. Keep them in a plain list on the
+figure's state, each with its start time (`at = clock`) and whatever it carries. Each frame, derive
+every moving thing's position from its age (`clock - at`) through the same `follow`, `spring` or
+`burst` shapes, draw it, and drop it from the list once it has arrived. The model decides what an
+event means (passed or refused) at the instant it happens; the animation only shows it. The loop
+keeps running while the list is not empty.
 
 ## Envelopes for one-shot events
 

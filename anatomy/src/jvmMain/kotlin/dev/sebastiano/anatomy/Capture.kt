@@ -38,6 +38,7 @@ import org.jetbrains.skia.Surface
  *   … --scale 2                   device pixels per dp (2 by default)
  *   … --times 0,1.2,2.4           shots at these seconds after the first frame: name-<ms>.png
  *   … --hover 0.7,0.5             the pointer at 70% across and 50% down the card, from the start
+ *   … --click 0.5,0.4             a press and release there, after the first frame
  *   … --key Right,Right           keys sent to the figure after it takes focus
  *   … --zoom 300,120,120,80       a close-up of x,y,w,h in card dp, at --zoom-scale (4)
  *   … --reduced                   reduced motion
@@ -54,6 +55,7 @@ private class Options(
     val scale: Float,
     val times: List<Double>,
     val hover: Pair<Float, Float>?,
+    val click: Pair<Float, Float>?,
     val keys: List<String>,
     val zoom: List<Float>?,
     val zoomScale: Float,
@@ -83,10 +85,16 @@ fun main(args: Array<String>) {
     try {
         var time = 0L
         scene.render(time)
-        options.hover?.let { (fx, fy) ->
-            val at = Offset((24 + fx * options.width) * density, bounds.height * fy)
-            scene.sendPointerEvent(PointerEventType.Enter, at)
-            scene.sendPointerEvent(PointerEventType.Move, at)
+        fun at(fraction: Pair<Float, Float>) =
+            Offset((24 + fraction.first * options.width) * density, bounds.height * fraction.second)
+        options.hover?.let {
+            scene.sendPointerEvent(PointerEventType.Enter, at(it))
+            scene.sendPointerEvent(PointerEventType.Move, at(it))
+        }
+        options.click?.let {
+            scene.sendPointerEvent(PointerEventType.Move, at(it))
+            scene.sendPointerEvent(PointerEventType.Press, at(it))
+            scene.sendPointerEvent(PointerEventType.Release, at(it))
         }
         if (options.keys.isNotEmpty()) {
             press(scene, Key.Tab)
@@ -186,6 +194,7 @@ private fun parse(args: Array<String>): Options? {
         scale = value("--scale")?.toFloat() ?: 2f,
         times = numbers("--times")?.map { it.toDouble() }.orEmpty(),
         hover = numbers("--hover")?.let { it[0] to it[1] },
+        click = numbers("--click")?.let { it[0] to it[1] },
         keys = value("--key")?.split(',')?.map { it.trim() }.orEmpty(),
         zoom = numbers("--zoom"),
         zoomScale = value("--zoom-scale")?.toFloat() ?: 4f,
