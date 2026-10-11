@@ -299,8 +299,22 @@ outline kinks.
 - **Smooth shading is heavier.** Use `sphereOf` for balls and keep `rows` low on small parts. Build
   round parts once into static art; rebuild one per frame only if it really turns.
 
+## 11. Shader layer
+
+The original's `gl.mjs`, as a Skia runtime shader (SkSL) drawn inside the same `IsoCanvas` between
+two `drawArt` calls (`Shader.kt`). Read `shaders.md` before using it: the camera contract, the layer
+stack, the inks for light and dark, and the craft rules.
+
+| Function | What it does |
+|---|---|
+| `glCamera(P)` | The `ShaderCamera` (origin, `k`, `sinA cosA sinE cosE`) the shader sees. |
+| `SKSL_ISO` | The prelude: `project`, `rayOf`, `onFloor`, `onWallX`, `onWallY`, `towardViewer`, `pixelOf`, noise, `tonemap`, `inkFor`, `over`, `finish`. |
+| `shaderLayer(fragment, width, height, camera, fixed, onError)` | Compiles `SKSL_ISO + fragment`; null if it doesn't compile. Make it once. |
+| `IsoScope.drawShader(layer, time, area) { set(name, value) }` | Draws it now over `area` (viewBox units): screen-blended in dark, ink on paper in light. |
+| `shaderArea(points, P, pad)` | The screen box around world points, for `area`. |
+
 ## Not in the Compose kit yet
 
-`tube.mjs` (`tubePieces`), `audit.mjs` (`recorder`, `settle`, `auditOrExit`), `gl.mjs` and the 3D
-runtime. When one of them is the only honest way to draw a part, say so to the user instead of
-faking it.
+`tube.mjs` (`tubePieces`), `audit.mjs` (`recorder`, `settle`, `auditOrExit`) and the 3D runtime (and
+so `gl.mjs`'s `GLSL_TURN` and `glslPose` for shaders on turning groups). When one of them is the only
+honest way to draw a part, say so to the user instead of faking it.

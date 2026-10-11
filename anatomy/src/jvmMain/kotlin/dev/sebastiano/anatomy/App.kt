@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.sebastiano.anatomy.figures.BunsenBurnerFigure
 import dev.sebastiano.anatomy.figures.DialIndicatorFigure
 import dev.sebastiano.anatomy.figures.TokenBucketFigure
 import dev.sebastiano.anatomy.kit.Palette
@@ -35,7 +36,8 @@ import org.jetbrains.jewel.ui.component.Text
 /** The figures built with the kit, in the order the page shows them. */
 enum class Figure(val id: String, val title: String) {
     DialIndicator("dial-indicator", "Dial indicator"),
-    TokenBucket("token-bucket", "Token bucket");
+    TokenBucket("token-bucket", "Token bucket"),
+    BunsenBurner("bunsen-burner", "Bunsen burner");
 
     companion object {
         fun of(id: String): Figure? = entries.firstOrNull { it.id == id }
@@ -53,6 +55,7 @@ fun FigureContent(
     when (figure) {
         Figure.DialIndicator -> DialIndicatorFigure(palette, reducedMotion, modifier)
         Figure.TokenBucket -> TokenBucketFigure(palette, reducedMotion, modifier)
+        Figure.BunsenBurner -> BunsenBurnerFigure(palette, reducedMotion, modifier)
     }
 }
 
