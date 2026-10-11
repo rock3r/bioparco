@@ -20,6 +20,7 @@ review shots somewhere ignored (`.amp/in/artifacts/` or `build/`), never into th
 ./gradlew :anatomy:capture --args="token-bucket --click 0.5,0.4 --times 0.4"            # a press and release
 ./gradlew :anatomy:capture --args="dial-indicator --zoom 330,170,140,110"               # 4× close-up of x,y,w,h
 ./gradlew :anatomy:capture --args="dial-indicator --reduced --times 2"                  # reduced motion
+./gradlew :anatomy:capture --args="dial-indicator --lines --out shots/lines.png"        # line ends, ringed
 ```
 
 | Option | Default | What it does |
@@ -36,9 +37,60 @@ review shots somewhere ignored (`.amp/in/artifacts/` or `build/`), never into th
 | `--zoom x,y,w,h` | | A region in card dp (from the card's top-left corner), rendered at `--zoom-scale`. |
 | `--zoom-scale` | 4 | |
 | `--reduced` | | Reduced motion. |
+| `--lines` | | Check line ends on each shot (see "Line ends"): print the report, ring loose ends in red on the PNG, write the report to a `.txt` beside it, and exit 1 if any end floats. |
 
 Read every PNG you make: open it with `view_media` and look. Then run the figure for real with
 `./gradlew :anatomy:run` when you can, since the pointer feel only shows live.
+
+## Line ends
+
+A screenshot only shows a line stopping in the middle of a face if you look in the right place.
+`--lines` checks the drawing itself: every mark the figure painted in the frame being shot, per-frame
+parts and moved groups included, as the original's `scripts/lines.mjs` does in headless Chrome.
+
+```sh
+./gradlew :anatomy:capture --args="token-bucket --lines --out shots/lines.png"
+./gradlew :anatomy:capture --args="token-bucket --lines --times 0,1.5,3 --out shots/lines.png"   # poses
+./gradlew :anatomy:capture --args="token-bucket --lines --dark --out shots/lines-dark.png"
+```
+```
+line ends: 3 of 208 ends on 52 lines float
+  line faint  start  3.62 from anything   at card 227.6,222.6   view 203.0,170.0   length 64.7   d M203 170L264 191.4…
+```
+
+Every open run of every line in the card (seams, grooves, ribs from `faded`, rule lines, ticks,
+needles, pointers, wires) must end within 1 viewBox unit of another stroke, a dot or an outline, or
+under a fill painted after it. A short straight mark (up to 7 units: a tick) needs one end rooted
+within 2 units; both ends floating fails. A solid's own outline, crease and bevel aren't checked
+(lines land on them), and neither are lines fainter than 0.3, the ramps of a `fadeLine`, or a `free`
+end. `line(path, free = Free.Start)` (or `End`, `Both`; the per-frame `line` takes it too) marks an
+end that is meant to stop: rule lines that stand for printed text, a needle's tail, a pointer's tip.
+Use it for nothing else.
+
+Each loose end is printed `at card x,y` in dp, ready for `--zoom`, and `view x,y` in the figure's
+viewBox units, with the start of its path (`IsoPath.svg()`) so you can find it in the source.
+`build-brief` and other wrappers hide a task's output, so read the report from the `.txt` written
+beside each PNG (`shots/lines.txt`, or `shots/lines-<ms>.txt` with `--times`); a non-zero exit only
+says something floats. Run it in both themes and in every pose the figure rests in, and at moments
+of its motion, and fix every line until it prints 0. `FigureLineEndsTest` keeps every registered
+figure at 0 in its resting pose, so a new figure must pass it too.
+
+| You see | Fix |
+|---|---|
+| A seam or weld line on a box inset from the corners | `sideSeam(plan, z, P, steps)` as the slab's `inner`: it wraps the corners and ends on the silhouette. |
+| A stiffener or panel line on one face, inset at both ends | Run it edge to edge: from the face's bottom to its top, or from end to end. |
+| Ticks floating on a bare plate or hanging below an edge | Put them on a ruler strip, rooted on its edge (`topTicks` `edge`, `sideTicks` `top` on the face's top edge). |
+| Vent or grille lines | Closed slots: a thin rounded outline, not a line. |
+| A line that runs under a part and stops just past it | Draw it before the part, full length, and let the part hide it. |
+| The floor of a bore seen through its mouth pokes out past the rim | Keep only the stretch of the floor's circle inside the mouth, so it ends on the mouth's ring. |
+| Rule lines on a label plate, a needle's tail | `free`. |
+
+How it differs from the original, because it reads marks instead of a browser's SVG: it is the same
+rules with the same tolerances, and on the dial indicator it counts the same 367 ends on 23 lines.
+It sees what `IsoScope` paints, not anything a figure draws straight on `draw`; it doesn't model
+clipping; a fill hides an end when it is painted later and covers the point, without the browser's
+hit testing (so a dashed line's end in a gap isn't treated differently); and opacity is the mark's
+own (`faded` levels, dot tones and alphas, the halo's opacity), since there are no CSS groups.
 
 ## Close-ups
 
@@ -78,6 +130,8 @@ seams, bevels, label plates, scales, the brackets that hold things), never decor
 **Lines**
 - [ ] At 4×, every line ends on a face, another line or a terminal dot. Nothing stops in the air;
   every `free` end is a rule line standing for text, a needle tail or a pointer tip.
+- [ ] **Line ends zero.** `capture --lines` prints `line ends: 0` in both themes, in every resting
+  pose and at moments of the motion (read the `.txt` beside each PNG).
 - [ ] No leader lines, balloons, dimension arrows or floating labels; at most one engraved label.
 - [ ] Painter's order is right everywhere and in every pose: nothing behind shows through, springs and
   frames are split.

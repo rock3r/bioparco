@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.skiaPaint
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
@@ -41,6 +42,30 @@ import org.jetbrains.skia.MaskFilter
 /** The hairline weight in screen px. */
 const val WEIGHT: Float = 0.6f
 
+/**
+ * Receives every mark an [IsoScope] paints, in painting order, with the screen offset (in viewBox
+ * units) it was painted at: group offsets, `drawArt(art, offset)` and any `draw.translate`
+ * included. A [WireMark] arrives after its line, which arrives as its own [LineMark]. The line-end
+ * check (`LineEnds.kt`) reads what a figure really drew this way.
+ */
+interface MarkRecorder {
+    /**
+     * A frame starts: device px = [origin] + viewBox units × [scale]. Forget the previous frame.
+     */
+    fun begin(scale: Double, origin: Flat) {}
+
+    fun record(mark: Mark, offset: Flat)
+
+    companion object {
+        /**
+         * The recorder every [IsoCanvas] hands its scope, read each frame. Review tools set it
+         * (`capture --lines`, tests) so figures need no parameter for it; null, the default,
+         * records nothing and costs nothing.
+         */
+        @Volatile var active: MarkRecorder? = null
+    }
+}
+
 /** What a figure draws with: the canvas in viewBox units, the theme, and the clock. */
 class IsoScope(
     val draw: DrawScope,
@@ -50,7 +75,32 @@ class IsoScope(
     val textMeasurer: TextMeasurer,
     /** Seconds, for marching dashes. */
     val clock: Double,
+    /** Told about every mark painted, when not null. */
+    private val recorder: MarkRecorder? = null,
 ) {
+    // The device matrix when the frame starts, so a mark's offset is the translation added since.
+    private val home: FloatArray? = recorder?.let { sink ->
+        deviceMatrix().also {
+            sink.begin(it[0].toDouble(), Flat(it[2].toDouble(), it[5].toDouble()))
+        }
+    }
+
+    private fun deviceMatrix(): FloatArray =
+        draw.drawContext.canvas.nativeCanvas.localToDeviceAsMatrix33.mat
+
+    private fun record(mark: Mark) {
+        val recorder = recorder ?: return
+        val home = home ?: return
+        val now = deviceMatrix()
+        recorder.record(
+            mark,
+            Flat(
+                ((now[2] - home[2]) / home[0]).toDouble(),
+                ((now[5] - home[5]) / home[4]).toDouble(),
+            ),
+        )
+    }
+
     /** A screen-px length in viewBox units. */
     fun px(value: Float): Float = value * draw.density / unit
 
@@ -74,8 +124,9 @@ class IsoScope(
         tone: Tone = Tone.Lo,
         stroke: Stroke = Stroke.Solid,
         width: Double? = null,
+        free: Free = Free.None,
     ) {
-        if (!path.isEmpty) drawLine(LineMark(Shape(path), tone, stroke, Free.None, width, 1.0))
+        if (!path.isEmpty) drawLine(LineMark(Shape(path), tone, stroke, free, width, 1.0))
     }
 
     /** Paints dots now: rivets on a moving part, a counter's lamps. */
@@ -128,6 +179,7 @@ class IsoScope(
         )
 
     private fun drawSolid(mark: SolidMark) {
+        record(mark)
         val p = palette
         draw.drawPath(mark.fill.path, if (mark.lit) p.face else p.paper, style = Fill)
         if (!mark.flat) {
@@ -154,6 +206,7 @@ class IsoScope(
     }
 
     private fun drawLine(mark: LineMark) {
+        record(mark)
         val stroke =
             when (mark.stroke) {
                 Stroke.Solid -> hairline(mark.width?.toFloat() ?: WEIGHT)
@@ -177,6 +230,7 @@ class IsoScope(
         PathEffect.dashPathEffect(floatArrayOf(px(on), px(off)), px(phase))
 
     private fun drawDots(mark: DotsMark) {
+        record(mark)
         val alpha = palette.dotAlpha(mark.tone)
         mark.points.forEachIndexed { index, point ->
             val each = mark.alphas?.get(index)?.coerceIn(0.0, 1.0)?.toFloat() ?: 1f
@@ -191,6 +245,7 @@ class IsoScope(
 
     private fun drawWire(mark: WireMark) {
         drawLine(mark.line)
+        record(mark)
         for (end in mark.ends) {
             val center = Offset(end.x.toFloat(), end.y.toFloat())
             draw.drawCircle(palette.paper, mark.size.toFloat(), center)
@@ -199,6 +254,7 @@ class IsoScope(
     }
 
     private fun drawText(mark: TextMark) {
+        record(mark)
         val layout =
             textMeasurer.measure(
                 mark.text,
@@ -235,6 +291,7 @@ class IsoScope(
     }
 
     private fun drawHalo(mark: HaloMark) {
+        record(mark)
         draw.drawIntoCanvas { canvas ->
             val paint = Paint().apply { color = palette.halo.copy(alpha = palette.haloOpacity) }
             paint.skiaPaint.maskFilter =
@@ -247,6 +304,7 @@ class IsoScope(
     }
 
     private fun drawFadeLine(mark: FadeLineMark) {
+        record(mark)
         val points = mark.points
         val lengths = DoubleArray(points.size)
         for (index in 1 until points.size) {
@@ -329,7 +387,7 @@ fun IsoCanvas(
     Canvas(modifier.aspectRatio((width / height).toFloat())) {
         val unit = size.width / width.toFloat()
         scale(unit, unit, pivot = Offset.Zero) {
-            IsoScope(this, palette, unit, measurer, clock()).figure()
+            IsoScope(this, palette, unit, measurer, clock(), MarkRecorder.active).figure()
         }
     }
 }

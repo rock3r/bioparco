@@ -27,6 +27,7 @@ import dev.sebastiano.anatomy.kit.Anchor
 import dev.sebastiano.anatomy.kit.Art
 import dev.sebastiano.anatomy.kit.ArtBuilder
 import dev.sebastiano.anatomy.kit.Floor
+import dev.sebastiano.anatomy.kit.Free
 import dev.sebastiano.anatomy.kit.IsoCanvas
 import dev.sebastiano.anatomy.kit.IsoPath
 import dev.sebastiano.anatomy.kit.KeyMark
@@ -482,6 +483,8 @@ fun DialIndicatorFigure(palette: Palette, reducedMotion: Boolean, modifier: Modi
                 d.needleAt((tip - d.CARRIAGE_TOP) / d.PER_TURN),
                 tone = Tone.Lit,
                 width = 1.1,
+                // The tail stops on the bare dial face, as the original's `data-free="start"`.
+                free = Free.Start,
             )
         }
     }

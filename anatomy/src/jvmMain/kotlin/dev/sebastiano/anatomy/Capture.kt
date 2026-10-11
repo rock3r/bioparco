@@ -18,12 +18,19 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import dev.sebastiano.anatomy.kit.Drawing
+import dev.sebastiano.anatomy.kit.Flat
+import dev.sebastiano.anatomy.kit.MarkRecorder
 import dev.sebastiano.anatomy.kit.Palette
+import dev.sebastiano.anatomy.kit.lineEnds
 import java.io.File
+import java.util.Locale
 import kotlin.system.exitProcess
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.jetbrains.skia.EncodedImageFormat
 import org.jetbrains.skia.Image
+import org.jetbrains.skia.Paint
+import org.jetbrains.skia.PaintMode
 import org.jetbrains.skia.Rect
 import org.jetbrains.skia.Surface
 
@@ -42,6 +49,9 @@ import org.jetbrains.skia.Surface
  *   … --key Right,Right           keys sent to the figure after it takes focus
  *   … --zoom 300,120,120,80       a close-up of x,y,w,h in card dp, at --zoom-scale (4)
  *   … --reduced                   reduced motion
+ *   … --lines                     check that every line ends on something (`LineEnds.kt`): print
+ *                                 `line ends: N`, ring each loose end in red on the PNG, write the
+ *                                 report to a .txt beside it, and exit 1 if any end floats
  */
 
 private const val FRAME_NS = 16_666_667L
@@ -60,6 +70,7 @@ private class Options(
     val zoom: List<Float>?,
     val zoomScale: Float,
     val reduced: Boolean,
+    val lines: Boolean,
 )
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -68,6 +79,8 @@ fun main(args: Array<String>) {
     val density = if (options.zoom != null) options.zoomScale else options.scale
     val palette = if (options.dark) Palette.Dark else Palette.Light
     var bounds = IntSize.Zero
+    val drawing = if (options.lines) Drawing() else null
+    MarkRecorder.active = drawing
     val widthPx = ((options.width + 48) * density).toInt()
     val scene =
         ImageComposeScene(widthPx, (TALLEST_DP * density).toInt(), Density(density)) {
@@ -82,6 +95,7 @@ fun main(args: Array<String>) {
                 }
             }
         }
+    var floating = 0
     try {
         var time = 0L
         scene.render(time)
@@ -114,30 +128,91 @@ fun main(args: Array<String>) {
                     options.out.resolveSibling(
                         "${options.out.nameWithoutExtension}-${(seconds * 1000).toLong()}.png"
                     )
-            save(crop(image, options, bounds, density), file)
+            val rect = cropRect(options, bounds, density)
+            val loose =
+                if (drawing == null) emptyList()
+                else checkLines(drawing, palette, density, rect, file).also { floating += it.size }
+            save(crop(image, rect, loose), file)
             println("wrote ${file.path}")
         }
     } finally {
         scene.close()
     }
-    exitProcess(0)
+    exitProcess(if (floating > 0) 1 else 0)
 }
 
-private fun crop(image: Image, options: Options, bounds: IntSize, density: Float): Image {
-    val zoom = options.zoom
-    val rect =
-        if (zoom == null) {
-            Rect.makeXYWH(0f, 0f, bounds.width.toFloat(), bounds.height.toFloat())
-        } else {
-            Rect.makeXYWH(
-                (zoom[0] + 24) * density,
-                (zoom[1] + 24) * density,
-                zoom[2] * density,
-                zoom[3] * density,
-            )
+/**
+ * Runs the line-end check on the frame [drawing] holds, prints the report and writes it beside
+ * [file] as a .txt, and returns where to ring each loose end, in device px within [rect].
+ */
+private fun checkLines(
+    drawing: Drawing,
+    palette: Palette,
+    density: Float,
+    rect: Rect,
+    file: File,
+): List<Offset> {
+    val report = lineEnds(drawing.marks, palette)
+    fun device(at: Flat) = drawing.origin + at * drawing.scale
+    val text = buildString {
+        appendLine(
+            "line ends: ${report.loose.size} of ${report.ends} ends on ${report.lines} lines float"
+        )
+        for (loose in report.loose) {
+            val card = device(loose.at) * (1.0 / density) - Flat(24.0, 24.0)
+            val gap =
+                if (loose.gap.isInfinite()) "nothing nearby"
+                else "${String.format(Locale.ROOT, "%.2f", loose.gap)} from anything"
+            append("  ${loose.what}  ${loose.end.name.lowercase()}")
+            if (loose.mark) append(" (a mark: neither end rooted)")
+            append("  $gap   at card ${oneDecimal(card.x)},${oneDecimal(card.y)}")
+            append("   view ${oneDecimal(loose.at.x)},${oneDecimal(loose.at.y)}")
+            append("   length ${oneDecimal(loose.length)}   d ${loose.d}…")
+            if (loose.alpha < 1)
+                append("   opacity ${String.format(Locale.ROOT, "%.2f", loose.alpha)}")
+            appendLine()
         }
+    }
+    print(text)
+    val log = file.resolveSibling("${file.nameWithoutExtension}.txt")
+    log.absoluteFile.parentFile.mkdirs()
+    log.writeText(text)
+    println("wrote ${log.path}")
+    return report.loose.map { loose ->
+        val at = device(loose.at)
+        Offset(at.x.toFloat() - rect.left, at.y.toFloat() - rect.top)
+    }
+}
+
+private fun cropRect(options: Options, bounds: IntSize, density: Float): Rect {
+    val zoom = options.zoom
+    return if (zoom == null) {
+        Rect.makeXYWH(0f, 0f, bounds.width.toFloat(), bounds.height.toFloat())
+    } else {
+        Rect.makeXYWH(
+            (zoom[0] + 24) * density,
+            (zoom[1] + 24) * density,
+            zoom[2] * density,
+            zoom[3] * density,
+        )
+    }
+}
+
+/** The shot, cut to [rect], with a red ring round each of [rings], as the original's `--out`. */
+private fun crop(image: Image, rect: Rect, rings: List<Offset>): Image {
     val surface = Surface.makeRasterN32Premul(rect.width.toInt(), rect.height.toInt())
     surface.canvas.drawImageRect(image, rect, Rect.makeWH(rect.width, rect.height))
+    if (rings.isNotEmpty()) {
+        // The original's rings: 5 CSS px with a 1.5 px stroke, on a 2× shot.
+        val paint =
+            Paint().apply {
+                color = 0xFFFF0050.toInt()
+                mode = PaintMode.STROKE
+                strokeWidth = 3f
+                isAntiAlias = true
+            }
+        for (ring in rings) surface.canvas.drawCircle(ring.x, ring.y, 10f, paint)
+    }
     return surface.makeImageSnapshot()
 }
 
@@ -199,5 +274,6 @@ private fun parse(args: Array<String>): Options? {
         zoom = numbers("--zoom"),
         zoomScale = value("--zoom-scale")?.toFloat() ?: 4f,
         reduced = "--reduced" in flags,
+        lines = "--lines" in flags,
     )
 }

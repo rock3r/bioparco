@@ -40,6 +40,7 @@ import dev.sebastiano.anatomy.kit.Tone.Hi
 import dev.sebastiano.anatomy.kit.Tone.Lo
 import dev.sebastiano.anatomy.kit.Tone.Mid
 import dev.sebastiano.anatomy.kit.art
+import dev.sebastiano.anatomy.kit.axisVector
 import dev.sebastiano.anatomy.kit.boxCorners
 import dev.sebastiano.anatomy.kit.corners
 import dev.sebastiano.anatomy.kit.cylinder
@@ -56,6 +57,7 @@ import dev.sebastiano.anatomy.kit.planOutline
 import dev.sebastiano.anatomy.kit.radialTicks
 import dev.sebastiano.anatomy.kit.rememberFrameLoop
 import dev.sebastiano.anatomy.kit.ring
+import dev.sebastiano.anatomy.kit.screenRise
 import dev.sebastiano.anatomy.kit.segment
 import dev.sebastiano.anatomy.kit.sideArc
 import dev.sebastiano.anatomy.kit.sideSeam
@@ -66,6 +68,7 @@ import dev.sebastiano.anatomy.kit.translateAlong
 import dev.sebastiano.anatomy.oneDecimal
 import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.acos
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.floor
@@ -288,7 +291,8 @@ object TokenBucketDispenser {
         val blade = Plan(HOME - BLADE_L, -5.0, BLADE_L, 10.0, 1.0)
         solid(slabOf(blade, ZD, TH, P, 3, 0.4), tone = Mid)
         val stem = Floor(blade.x + 4.5, 0.0)
-        line(lineOnTop(Floor(stem.x + 4, 0.0), Floor(HOME, 0.0), ZD + TH, P), tone = Faint)
+        // The groove runs from under the stem, which hides its end, to the blade's front edge.
+        line(lineOnTop(Floor(stem.x, 0.0), Floor(HOME, 0.0), ZD + TH, P), tone = Faint)
         solid(cylinder(stem.x, stem.y, 2.2, ZD + TH, 7.0, P, 20), tone = Mid, crease = null)
         val knob = ZD + TH + 7
         solid(cylinder(stem.x, stem.y, 4.6, knob, 4.0, P, 32, 0.4), tone = Mid)
@@ -437,16 +441,26 @@ object TokenBucketDispenser {
 
     /** The far wall of an empty pocket: where its floor, the feed plate, meets the bore. */
     val POCKET_FLOOR: Art = art {
-        group("pocket") { line(backArc(WC.x, WC.y, R + 0.6, ZF + PLATE_T), tone = Faint) }
+        group("pocket") {
+            line(backArc(WC.x, WC.y, R + 0.6, ZF + PLATE_T, WHEEL_TOP), tone = Faint)
+        }
     }
 
-    /** The far half of a horizontal circle: what shows of a bore's floor through its mouth. */
-    private fun backArc(cx: Double, cy: Double, r: Double, z: Double): IsoPath {
+    /**
+     * What shows of a bore's floor at [z] through its mouth at [top]: the far stretch of the
+     * floor's circle, ending where it passes under the mouth's rim, so both ends land on the
+     * mouth's ring.
+     */
+    private fun backArc(cx: Double, cy: Double, r: Double, z: Double, top: Double): IsoPath {
         val view = towardViewer(P)
         val facing = atan2(view.y, view.x)
+        // On screen the floor is the mouth slid toward the viewer by `shift` floor units; a point
+        // of it shows while it is inside the mouth, within `half` of the far side.
+        val shift = screenRise(top - z, P) / axisVector(P, Point3(view.x, view.y, 0.0)).y
+        val half = acos((shift / (2 * r)).coerceIn(-1.0, 1.0))
         return onTop(
             (0..24).map {
-                val angle = facing + PI / 2 + it / 24.0 * PI
+                val angle = facing + PI - half + it / 24.0 * 2 * half
                 Floor(cx + r * cos(angle), cy + r * sin(angle))
             },
             z,
