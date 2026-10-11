@@ -51,6 +51,8 @@ include(":honeycomb")
 
 include(":hairline")
 
+include(":anatomy")
+
 include(":tracing")
 
 include(":showcase")

@@ -112,6 +112,14 @@ an eye for detail, and the passion to care about these things.
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/hairline.mp4)
 
+### [Anatomy](anatomy/)
+
+**Chris** · Ryan’s [Anatomy](https://github.com/wheresryan22/anatomy) (MIT): the kit, the figures and an agent skill that makes new ones
+
+![Anatomy](https://static.sebastiano.dev/stable/bioparco/anatomy.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/anatomy.mp4)
+
 Recordings are generated automatically with [Spectre](https://spectre.sebastiano.dev).
 README previews are animated, lower quality WebPs; original mp4 files are the full clips.
 
@@ -139,6 +147,7 @@ Or visit one enclosure directly:
 ./gradlew :peel-sticker:run
 ./gradlew :honeycomb:run
 ./gradlew :hairline:run
+./gradlew :anatomy:run
 ...
 ```
 
