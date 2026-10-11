@@ -39,6 +39,7 @@ Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. 
 |---|---|
 | Dial indicator | A dial gauge on a stand over a carriage of three gauge blocks. Hover to slide the carriage: the plunger rides onto the block under it, and one turn of the needle is 20 px of travel, so each block reads its own height. Arrow keys step block to block. |
 | Token bucket | A token dispenser explaining a token bucket rate limiter. A feed wheel under a hopper drops one token a second into a magazine that holds eight, and stops while it is full. Click or press Space to send a request: the plunger pushes the bottom token out to the payout box, or strokes empty and the request is refused. A burst of eight passes at once, then one a second. |
+| Bunsen burner | A Bunsen burner on a lab bench, its flame a shader in the figure's own camera. Hover across or use the arrow keys to turn the air collar: its slots open the ports, the jet draws in primary air, and the lazy luminous yellow flame (about 1,000 °C) shortens into a roaring blue flame with an inner cone (about 1,500 °C). Flame length is Roper's correlation and the cone is Gouy's, for 20 L/h of methane; a ruler zeroed at the rim has its cursor at the tip. |
 
 ## Making a new one
 
@@ -71,6 +72,10 @@ missing in the skill and the kit was then added to both.
 - `Render.kt` paints it the way the original’s CSS styles the SVG: fills in paper colour so nearer
   parts hide farther ones, hairlines 0.6 px at any size, halos blurred through Skia. `Palette.kt`
   is the CSS tokens, one instance per theme.
+- `Shader.kt` is the original’s `gl.mjs`: a Skia runtime shader (SkSL) drawn inside the same
+  canvas between the back and front art, seeing the figure’s own camera through `SKSL_ISO`
+  (`ShaderCameraTest` proves it projects as `iso()` does). It renders in captures too, on Skia’s
+  CPU raster. See the skill’s [shaders reference](../.agents/skills/anatomy/references/shaders.md).
 - `Plate.kt` is the card; `Motion.kt` and `Loop.kt` are `follow`, `spring`, `settle`, the event
   envelopes and the frame loop. A figure writes per-frame state that only its canvas reads, so
   motion redraws and never recomposes, and the loop stops once everything has settled.
@@ -90,9 +95,8 @@ The original kit has more than this port so far:
 - `lathe.mjs` (turned parts on any axis, smooth shading) and `tube.mjs` (pipes and cables).
 - `audit.mjs`, which proves nothing passes through anything, and `scripts/lines.mjs`, the
   line-end check.
-- `gl.mjs`, the WebGL layer for fire, water and light. On Compose this would be a Skia
-  `RuntimeShader` between a back and a front canvas.
-- The beta 3D mode (`turn*.mjs`), and the other seven examples.
+- The beta 3D mode (`turn*.mjs`), with `gl.mjs`'s shaders on turning groups, and the other
+  seven examples.
 
 The skill says so, and keeps figures to what the kit can draw: slabs, cylinders and extrusions.
 
