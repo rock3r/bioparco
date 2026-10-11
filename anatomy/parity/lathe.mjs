@@ -5,9 +5,10 @@
 //   git -C /tmp/anatomy checkout 240a9bf7c50cc6226148762a1017466fcbc08523
 //   node anatomy/parity/lathe.mjs /tmp/anatomy
 //
-// It writes anatomy/src/jvmTest/resources/goldens/lathe.txt: lathe.mjs's functions called with the
+// It writes anatomy/src/jvmTest/resources/goldens/lathe.txt.gz (gzipped): lathe.mjs's functions called with the
 // cases below, one result per line. The cases here and in LatheParityTest must stay in the same
 // order.
+import { gzipSync } from "node:zlib";
 import { writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -260,5 +261,5 @@ for (const [name, options] of cameras) {
   bandsOf(options, name);
   linesOf(options, name);
 }
-writeFileSync(join(OUT, "lathe.txt"), lines.join("\n") + "\n");
+writeFileSync(join(OUT, "lathe.txt.gz"), gzipSync(lines.join("\n") + "\n", { level: 9 }));
 console.log(`wrote ${lines.length} lathe results`);

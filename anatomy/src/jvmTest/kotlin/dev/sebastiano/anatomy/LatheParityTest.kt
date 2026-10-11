@@ -64,6 +64,7 @@ import dev.sebastiano.anatomy.kit.tangentOf
 import dev.sebastiano.anatomy.kit.toneOf
 import dev.sebastiano.anatomy.kit.unit3
 import dev.sebastiano.anatomy.kit.viewOf
+import java.util.zip.GZIPInputStream
 import kotlin.math.cos
 import kotlin.math.sqrt
 import kotlin.test.Test
@@ -71,7 +72,7 @@ import kotlin.test.assertEquals
 
 /**
  * Holds the Kotlin round parts to the original's `kit/lathe.mjs`. The golden
- * `resources/goldens/lathe.txt` is captured by `anatomy/parity/lathe.mjs` (see the note at its
+ * `resources/goldens/lathe.txt.gz` is captured by `anatomy/parity/lathe.mjs` (see the note at its
  * top), which calls the original with the same cases in the same order. Every path must match to
  * the 0.1 the original writes, every number to the digits it prints.
  */
@@ -91,7 +92,11 @@ class LatheParityTest {
             LatheLineCases.linesOf(out, projection, name)
         }
         val expected =
-            javaClass.getResource("/goldens/lathe.txt")!!.readText().trimEnd('\n').split('\n')
+            GZIPInputStream(javaClass.getResourceAsStream("/goldens/lathe.txt.gz")!!)
+                .bufferedReader()
+                .readText()
+                .trimEnd('\n')
+                .split('\n')
         expected.zip(out.lines).forEachIndexed { index, (want, got) ->
             assertEquals(want, got, "line ${index + 1} differs")
         }
