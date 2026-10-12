@@ -27,6 +27,7 @@ import dev.sebastiano.anatomy.figures.BunsenBurnerFigure
 import dev.sebastiano.anatomy.figures.DialIndicatorFigure
 import dev.sebastiano.anatomy.figures.EspressoMachineFigure
 import dev.sebastiano.anatomy.figures.TokenBucketFigure
+import dev.sebastiano.anatomy.figures.RaptorEngineFigure
 import dev.sebastiano.anatomy.figures.TurningDialFigure
 import dev.sebastiano.anatomy.kit.Palette
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
@@ -41,7 +42,8 @@ enum class Figure(val id: String, val title: String) {
     TokenBucket("token-bucket", "Token bucket"),
     BunsenBurner("bunsen-burner", "Bunsen burner"),
     EspressoMachine("espresso-machine", "Espresso machine"),
-    TurningDial("turning-dial", "Turning dial");
+    TurningDial("turning-dial", "Turning dial"),
+    RaptorEngine("raptor-engine", "Raptor 2");
 
     companion object {
         fun of(id: String): Figure? = entries.firstOrNull { it.id == id }
@@ -62,6 +64,7 @@ fun FigureContent(
         Figure.BunsenBurner -> BunsenBurnerFigure(palette, reducedMotion, modifier)
         Figure.EspressoMachine -> EspressoMachineFigure(palette, reducedMotion, modifier)
         Figure.TurningDial -> TurningDialFigure(palette, reducedMotion, modifier)
+        Figure.RaptorEngine -> RaptorEngineFigure(palette, reducedMotion, modifier)
     }
 }
 

@@ -19,6 +19,7 @@ internal val AUDITED_FIGURES: Map<Figure, AuditedFigure> =
     mapOf(
         Figure.EspressoMachine to dev.sebastiano.anatomy.figures.EspressoMachine,
         Figure.TurningDial to TurningDial,
+        Figure.RaptorEngine to dev.sebastiano.anatomy.figures.RaptorEngine,
     )
 
 /**
