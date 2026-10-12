@@ -27,38 +27,42 @@ internal class SpotOcclusion(private val ring: List<Floor>, private val top: Dou
         if (reach <= 0) return false
         val view = SpotRig.VIEW
         if (inside(x + view.x * 0.05, y + view.y * 0.05)) return true
+        val ray = ViewRay(x, y, reach)
+        for (index in ring.indices) {
+            if (ignored(index, edge)) continue
+            if (ray.hits(ring[index], ring[(index + 1) % ring.size])) return true
+        }
+        return false
+    }
+
+    private fun ignored(index: Int, edge: Int) =
+        index == edge || (edge < 0 && (index == -edge - 1 || (index + 1) % ring.size == -edge - 1))
+
+    /** A sight ray up to the top face; bounds reject edges before measuring intersection. */
+    private class ViewRay(val x: Double, val y: Double, val reach: Double) {
+        private val view = SpotRig.VIEW
         val fx = x + view.x * reach
         val fy = y + view.y * reach
         val left = minOf(x, fx)
         val right = maxOf(x, fx)
         val low = minOf(y, fy)
         val high = maxOf(y, fy)
-        for (index in ring.indices) {
-            if (
-                index == edge ||
-                    (edge < 0 && (index == -edge - 1 || (index + 1) % ring.size == -edge - 1))
-            )
-                continue
-            val a = ring[index]
-            val b = ring[(index + 1) % ring.size]
-            if (
-                (a.x < left && b.x < left) ||
-                    (a.x > right && b.x > right) ||
-                    (a.y < low && b.y < low) ||
-                    (a.y > high && b.y > high)
-            )
-                continue
+
+        private fun outside(a: Double, b: Double, min: Double, max: Double) =
+            (a < min && b < min) || (a > max && b > max)
+
+        fun hits(a: Floor, b: Floor): Boolean {
+            if (outside(a.x, b.x, left, right) || outside(a.y, b.y, low, high)) return false
             val ex = b.x - a.x
             val ey = b.y - a.y
             val cross = view.x * ey - view.y * ex
-            if (abs(cross) < 1e-12) continue
+            if (abs(cross) < 1e-12) return false
             val ox = a.x - x
             val oy = a.y - y
             val t = (ox * ey - oy * ex) / cross
             val u = (ox * view.y - oy * view.x) / cross
-            if (t > 0.05 && t < reach && u >= 0 && u <= 1) return true
+            return t > 0.05 && t < reach && u >= 0 && u <= 1
         }
-        return false
     }
 
     private fun cut(edge: Int, fromShown: Boolean, z: Double): Floor {

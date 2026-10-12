@@ -29,6 +29,7 @@ import dev.sebastiano.anatomy.figures.DeskComputerFigure
 import dev.sebastiano.anatomy.figures.DialIndicatorFigure
 import dev.sebastiano.anatomy.figures.EspressoMachineFigure
 import dev.sebastiano.anatomy.figures.RaptorEngineFigure
+import dev.sebastiano.anatomy.figures.SpotPlateFigure
 import dev.sebastiano.anatomy.figures.TokenBucketFigure
 import dev.sebastiano.anatomy.figures.TurningDialFigure
 import dev.sebastiano.anatomy.kit.Palette
@@ -47,7 +48,8 @@ enum class Figure(val id: String, val title: String) {
     TurningDial("turning-dial", "Turning dial"),
     RaptorEngine("raptor-engine", "Raptor 2"),
     DeskComputer("desk-computer", "Desk computer"),
-    ArcadeCabinet("arcade-cabinet", "Arcade cabinet");
+    ArcadeCabinet("arcade-cabinet", "Arcade cabinet"),
+    SpotPlate("spot-plate", "Spot plate");
 
     companion object {
         fun of(id: String): Figure? = entries.firstOrNull { it.id == id }
@@ -71,6 +73,7 @@ fun FigureContent(
         Figure.RaptorEngine -> RaptorEngineFigure(palette, reducedMotion, modifier)
         Figure.DeskComputer -> DeskComputerFigure(palette, reducedMotion, modifier)
         Figure.ArcadeCabinet -> ArcadeCabinetFigure(palette, reducedMotion, modifier)
+        Figure.SpotPlate -> SpotPlateFigure(palette, reducedMotion, modifier)
     }
 }
 
