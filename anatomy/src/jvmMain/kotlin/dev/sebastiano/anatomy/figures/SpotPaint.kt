@@ -31,6 +31,7 @@ internal class SpotPaint(private val palette: Palette) {
     private val bladePalette = palette.copy(top = color(0xFFFBFBF9, 0xFF1B1B1B))
     private val outPalette = palette.copy(top = color(0xFFFEFEFC, 0xFF232323))
     private val leadPalette = bladePalette.copy(litTop = bladePalette.top)
+    private val fanHaloPalette = palette.copy(haloOpacity = 1f)
     private val rowCache = LinkedHashMap<SpotRow, List<Art>>()
 
     private fun glassArt(shape: SpotGlass, joined: Boolean): Art = art {
@@ -84,7 +85,10 @@ internal class SpotPaint(private val palette: Palette) {
     private fun fan(scope: IsoScope, pose: SpotFanPose) =
         with(scope) {
             // CSS blur(4px), opacity .8, translateY(1.5px); the kit halo already drops 3 units.
-            drawArt(art { halo(pose.halo, 4.0, 0.8) }, Flat(0.0, -1.5))
+            // CSS overrides the theme opacity rather than multiplying it as kit halos do.
+            withPalette(fanHaloPalette) {
+                drawArt(art { halo(pose.halo, 4.0, 0.8) }, Flat(0.0, -1.5))
+            }
             pose.blades.forEachIndexed { index, blade ->
                 val lead = index == SpotRig.ROWS
                 val out = !lead && pose.out[index]
