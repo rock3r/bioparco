@@ -4,6 +4,7 @@ package dev.sebastiano.anatomy.figures
 
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -127,15 +128,36 @@ fun RaptorEngineFigure(palette: Palette, reducedMotion: Boolean, modifier: Modif
             },
             cancel = { leave[0]?.cancel() },
         )
-    Column(modifier) {
+    BoxWithConstraints(modifier) {
+        RaptorPlate(live, order, hits, layers, palettes, palette, texts, controls, maxWidth < NARROW) { frame }
+    }
+}
+
+/** Under 480 dp the original assumes a finger: "Tap to take apart". */
+private val NARROW = 480.dp
+
+@Composable
+private fun RaptorPlate(
+    live: RaptorLive,
+    order: IntArray,
+    hits: RaptorHits,
+    layers: RaptorLayers,
+    palettes: RaptorPalettes,
+    palette: Palette,
+    texts: RaptorTexts,
+    controls: RaptorControls,
+    narrow: Boolean,
+    frame: () -> Long,
+) {
+    Column {
         Plate(
             fig = "Fig 6",
             title = "Raptor 2 · test stand",
-            hint = "Hover the engine to take it apart",
+            hint = if (narrow) "Tap to take apart" else "Hover the engine to take it apart",
             readout = { texts.readout },
             palette = palette,
         ) {
-            RaptorCanvas(live, order, hits, layers, palettes, palette, texts, controls) { frame }
+            RaptorCanvas(live, order, hits, layers, palettes, palette, texts, controls, frame)
         }
         RaptorLegend(texts, palette, controls, Modifier.padding(top = 12.dp))
     }
