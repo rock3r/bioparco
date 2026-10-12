@@ -211,6 +211,7 @@ fun IsoScope.drawShader(
     area: Rect = Rect(0f, 0f, layer.width.toFloat(), layer.height.toFloat()),
     values: ShaderLayer.() -> Unit = {},
 ) {
+    if (ShaderFrames.skip) return
     layer.values()
     val paint = layer.paintFor(this, time)
     draw.drawIntoCanvas { canvas ->
@@ -219,6 +220,14 @@ fun IsoScope.drawShader(
             paint,
         )
     }
+}
+
+/**
+ * Offscreen captures render every frame up to a shot on the CPU, where a full-canvas shader costs
+ * seconds a frame; `capture` sets [skip] on the frames it doesn't keep, so only the shots pay.
+ */
+object ShaderFrames {
+    @Volatile var skip = false
 }
 
 /** The screen box, in viewBox units, around [points] seen through [projection], grown by [pad]. */

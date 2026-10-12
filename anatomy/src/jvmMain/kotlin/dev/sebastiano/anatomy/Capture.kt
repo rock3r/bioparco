@@ -22,6 +22,7 @@ import dev.sebastiano.anatomy.kit.Drawing
 import dev.sebastiano.anatomy.kit.Flat
 import dev.sebastiano.anatomy.kit.MarkRecorder
 import dev.sebastiano.anatomy.kit.Palette
+import dev.sebastiano.anatomy.kit.ShaderFrames
 import dev.sebastiano.anatomy.kit.audit.AuditedFigure
 import dev.sebastiano.anatomy.kit.lineEnds
 import dev.sebastiano.anatomy.kit.turn.TurnHook
@@ -135,10 +136,12 @@ fun main(args: Array<String>) {
         val shots = options.times.ifEmpty { listOf(0.0) }
         for (seconds in shots) {
             val until = (seconds * 1e9).toLong()
+            ShaderFrames.skip = true
             while (time < until) {
                 time += FRAME_NS
                 scene.render(time)
             }
+            ShaderFrames.skip = false
             val image = scene.render(time)
             val file =
                 if (shots.size == 1) options.out
@@ -284,6 +287,8 @@ private fun keyOf(name: String): Key =
         "Enter" -> Key.Enter
         "Escape" -> Key.Escape
         "Tab" -> Key.Tab
+        "i",
+        "I" -> Key.I
         else -> error("unknown key $name")
     }
 
