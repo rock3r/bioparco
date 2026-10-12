@@ -57,3 +57,8 @@ tasks.register<JavaExec>("capture") {
     javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }
     systemProperty("java.awt.headless", "true")
 }
+
+// Settling the Raptor (Fig 6) measures 1.7 million overlaps across its explode's depth states.
+tasks.withType<Test>().configureEach { maxHeapSize = "4g" }
+
+tasks.named<JavaExec>("capture") { maxHeapSize = "4g" }
