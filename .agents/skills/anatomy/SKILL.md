@@ -46,9 +46,15 @@ Open the closest example before you start, in `anatomy/src/jvmMain/kotlin/dev/se
   joystick microswitches. `ArcadeMachine` is the tested live model; `ArcadePaint` paints cached
   geometry and reads each frame only inside `IsoCanvas`.
 
+- `Spot*.kt`, Fig 11: the original's spot plate, held to 26,764 golden lines from its TypeScript
+  by `SpotPlateParityTest`. Six glass pairs share one distance field per pair, with Float32
+  marching squares, quarter-pixel contour keys and a special tangent pose. `SpotMotion` drives
+  the feeler fan and all pairs with one double-eased merge control. It is the reference for
+  shapes that run together, concave glass shading and optical highlights, and one control
+  driving many parts. Use `capture --turn merge=16.25` to hold a threshold pose.
 
-The original's other examples (ripple tank, test rig and
-spot plate) are worth reading for design even though they are JavaScript:
+The original's other examples (ripple tank and test rig) are worth reading for design even though
+they are JavaScript:
 https://github.com/wheresryan22/anatomy/tree/main/examples. The test rig is the quality bar.
 
 ## The one idea that matters

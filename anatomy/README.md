@@ -45,6 +45,7 @@ Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. 
 | Raptor 2 | The original's Raptor engine, ported line for line: a Raptor 2 hanging in a vertical test stand, about 270 solids in 478 depth-sorted items. Hover, the arrow keys or the legend take it apart into its eleven assemblies on staggered springs, re-sorting the painter's order every frame, and light one; I, Enter or the Ignite button fires it through chill-down, the preburners and main stage at 300 bar and 230 tf, with the plume, Mach diamonds, splash and steam as shaders between the stand and the engine. Its parts are drawn and recorded by the kit's recording helpers (`PartRecorder`), and `capture --audit` passes on it with the original's report. |
 | Desk computer (Fig 7) | The original's 1984-style all-in-one computer, with 58 moving keycaps, a coiled keyboard cord, a floppy slot and a CRT recessed into the case front. Type or click the keys; Backspace erases, Return clears, and Escape or a click on the case switches power. The picture collapses to a line and a dot when switched off. Its three-phrase tour resumes after nine seconds idle; reduced motion keeps input working without the tour or collapse. |
 | Arcade cabinet (Fig 8) | The original's upright cabinet with its side off: 243 solids and 15 cables in 349 settled items. C, 5 or a click on the quarters/coin door drops a quarter through the mech and down a 30° chute, past the switch wire into the cash box. Pulses reach the meter and board; the relay wakes the marquee and CRT, which warms up, self-tests and runs a native 224 × 288 attract game in the tilted screen plane. Left/right tilt the stick and close the opposite microswitch; Space/Enter fire, Escape switches off. Input pauses the repeating tour for 12 seconds. Reduced motion disables the tour and pulses and accepts coins immediately. |
+| Spot plate (Fig 11) | The original's lab spot plate: six pairs of R30/R22 glass drops at gaps of 4, 10, 16, 24, 32 and 44 px. Each pair is drawn from one distance field and runs together when its gap is smaller than merge. Slide across the card or use arrows (Shift: four), Page Up/Down (eight), Home/End to open a fan of six feeler blades, each stopping at its own gap. The fan moves continuously; glass contours use the original quarter-pixel keys and tangent treatment. Reduced motion still answers input; the idle tour resumes 4.2 seconds after disengagement. |
 
 ## Making a new one
 
@@ -111,6 +112,7 @@ to the 0.1 the original writes:
 | `RaptorParityTest` | `examples/raptor-engine/build.mjs` run in Node: the back art, every recorded item in settled order (name, assembly, ride, key, lift, move, every element of its drawing) and every route; and the live figure's baked paint order against a fresh settle | 478 items, 4,842 lines, exact |
 | `DeskParityTest` | Every element and attribute of both committed built desk-computer pages, including face matrices, nested clips, CRT content, 58 keycaps and both rocker poses (`parity/desk-computer.mjs`) | 1,181 lines per theme, exact, no numeric tolerance |
 | `ArcadeParityTest` | `examples/arcade-cabinet/build.mjs` run in Node: back art, every recorded item in settled order (name, piece, key, move, every drawing path and native screen element), face matrices and routes; the baked paint order against a fresh settle | 349 items, 15 routes, 3,141 lines, exact |
+| `SpotPlateParityTest` | Original `spot-plate` TypeScript bundled with esbuild and run in Node (`parity/spot-plate.mjs`): all static geometry, 11 fan poses, 90 glass poses including both sides of every merge/key/plain threshold and exact tangency, every shade/glint/depth and model words/field samples | 26,764 lines, exact paths and numbers, no tolerance |
 
 The line check is proven against the original’s on the dial indicator: both report 0 loose ends of
 367 on 23 lines. To capture a golden again, follow the note at the top of its script.
@@ -118,6 +120,12 @@ On the desk computer, both themes report 0 loose ends of 82 on 82 lines at rest 
 Switched off, both report 2 of 82: the original reflection ends float once the lit picture is gone.
 That inherited geometry is preserved. Counts include source endpoints hidden by a clip, but never
 new endpoints introduced by clipping, matching the original checker.
+On the spot plate, Kotlin reports 0 loose ends of 440 on 42 lines in both themes across the
+threshold sweep. The React reference at merge 20 reports 15 of 590 on 105 lines: it checks
+glass creases and optical highlights as ordinary lines. The port keeps their geometry, counts
+creases as solid edges, and identifies optical highlights separately from physical texture.
+The intentionally short blade and protractor rules have free ends. Hold a precise pose with
+`build-brief :anatomy:capture --args="spot-plate --turn merge=16.25 --lines"`.
 
 ### Not ported yet
 
