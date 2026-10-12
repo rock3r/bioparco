@@ -238,14 +238,13 @@ fun PartRecorder.valveOn(
     put(piece, add3(centre, mul3(up, (s0 + s1) / 2)), listOf(neck), 0.2, move, name = "$id.neck") {
         solid(discPaths(s0, s1, r * 0.5, neckFrame, projection), tone)
     }
-    return if (up.z > 0.99) boxActuator(piece, centre, up, s1, r, move, tone, id, owner)
+    return if (up.z > 0.99) boxActuator(piece, centre, s1, r, move, tone, id, owner)
     else canActuator(piece, centre, up, s1, r, move, tone, id, owner)
 }
 
 private fun PartRecorder.boxActuator(
     piece: String,
     centre: Point3,
-    up: Point3,
     s1: Double,
     r: Double,
     move: Point3?,

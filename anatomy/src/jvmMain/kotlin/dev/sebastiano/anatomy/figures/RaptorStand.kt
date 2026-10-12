@@ -61,7 +61,7 @@ import kotlin.math.sqrt
  * splices, cable tray and ladder. It records the deck, cone, deluge and columns for the audit.
  */
 
-private val FRAME_OWNER = "stand.frame"
+private const val FRAME_OWNER = "stand.frame"
 
 private fun meta(name: String) = ShapeMeta(name = name, owner = FRAME_OWNER)
 

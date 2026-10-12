@@ -76,7 +76,6 @@ private class Outlet(val tangent: Point3, val start: Point3)
 
 private fun RaptorBuild.volute(
     piece: String,
-    frame: Frame,
     spiral: List<Point3>,
     radius: (Double) -> Double,
     reach: Double,
@@ -134,7 +133,6 @@ internal fun RaptorBuild.oxygenPump() {
     val outlet =
         volute(
             "otp",
-            ENGINE,
             spiral,
             { 2.4 + 4.2 * it },
             7.0,
@@ -253,7 +251,7 @@ internal fun RaptorBuild.methanePump() {
         )
     val spiral = spiral(FTP, 238.0, 15.2 + 2 + 0.3, 15.2 + 5.6 + 0.3, -140 * DEG, 36 * DEG, 48)
     val outlet =
-        volute("ftp", FTP, spiral, { 2 + 3.6 * it }, 7.5, FTP_FLANGE_R to 2.4, "ftp.housing", 16.0)
+        volute("ftp", spiral, { 2 + 3.6 * it }, 7.5, FTP_FLANGE_R to 2.4, "ftp.housing", 16.0)
     fvTan = outlet.tangent
     fuelStart = outlet.start
     parts.band(

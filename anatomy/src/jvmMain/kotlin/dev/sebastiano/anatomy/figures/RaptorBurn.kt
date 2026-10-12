@@ -139,6 +139,22 @@ internal class RaptorBurn {
      * while anything burns or glows; [ended] is set on the frame the burn goes cold.
      */
     fun step(dt: Double, clock: Double, home: Boolean, calm: Boolean): Boolean {
+        val lit = advance(dt, clock, home, calm)
+        chamber(dt, calm)
+        val glow = glowOf(lit, dt, calm)
+        settleGlows(lit, dt, calm)
+        if (on && stopping >= 0 && pc < 0.2 && !popped && !calm) {
+            popAt = clock
+            popped = true
+        }
+        coolDown()
+        bursts(glow, clock, calm)
+        readout()
+        return on || view.active
+    }
+
+    /** Disarms once the assemblies are home, runs the burn's clock, stops it on time. */
+    private fun advance(dt: Double, clock: Double, home: Boolean, calm: Boolean): Boolean {
         if (on && armed && home) {
             armed = false
             if (calm) t = MAIN + 0.5
@@ -148,26 +164,20 @@ internal class RaptorBurn {
         if (on && stopping < 0 && t >= stopAt) stopping = t
         val lit = on && !armed && stopping < 0
         if (lit && t >= MAIN && before < MAIN && !calm) mainAt = clock
-        chamber(dt, calm)
-        val glow = glowOf(lit, dt, calm)
-        settleGlows(lit, dt, calm)
-        if (on && stopping >= 0 && pc < 0.2 && !popped && !calm) {
-            popAt = clock
-            popped = true
-        }
+        return lit
+    }
+
+    /** Ends a shutdown once the chamber is empty and the purge has run. */
+    private fun coolDown() {
         ended = false
-        if (on && stopping >= 0 && pc < 0.003 && abs(pcRate) < 0.01 && t - stopping > 0.9) {
-            on = false
-            t = -1.0
-            pc = 0.0
-            pcRate = 0.0
-            glowStop = null
-            phase = BurnPhase.Cold
-            ended = true
-        }
-        bursts(glow, clock, calm)
-        readout()
-        return on || view.active
+        if (!on || stopping < 0 || pc >= 0.003 || abs(pcRate) >= 0.01 || t - stopping <= 0.9) return
+        on = false
+        t = -1.0
+        pc = 0.0
+        pcRate = 0.0
+        glowStop = null
+        phase = BurnPhase.Cold
+        ended = true
     }
 
     /** True on the frame the burn went cold. */
@@ -258,21 +268,26 @@ internal class RaptorBurn {
         v.shockR = 26 + 900 * max(0.0, sinceMain)
         v.ringR = 600 * max(0.0, sinceMain - 0.08)
         v.popR = 24 + 70 * (1 - exp(-max(0.0, sincePop) / 0.25))
-        v.active =
-            pc > 1e-3 ||
-                pre.x > 1e-3 ||
-                vent.x > 1e-3 ||
-                smoke.x > 1e-3 ||
-                v.flash > 1e-3 ||
-                v.shockA > 1e-3 ||
-                v.ringA > 1e-3 ||
-                v.pop > 1e-3 ||
-                (sinceMain > 0 && sinceMain < 0.6)
+        v.active = activeOf(sinceMain)
         v.veiled = smoke.x > 1e-3 || vent.x > 1e-3 || v.shockA > 1e-3
         val preLit = pre.x * smooth(0.0, 0.05, pc)
         v.rim = (pc * 0.85 + preLit * 0.45 + v.flash * 0.6 + v.pop * 0.7).coerceIn(0.0, 1.0)
         v.deckGlow =
             (pc * 0.9 * splash.x + v.flash * 0.5 + preLit * 0.12 + v.pop * 0.25).coerceIn(0.0, 1.0)
+    }
+
+    /** True while anything of the burn still shows: the layers draw only then. */
+    private fun activeOf(sinceMain: Double): Boolean {
+        val v = view
+        return pc > 1e-3 ||
+            pre.x > 1e-3 ||
+            vent.x > 1e-3 ||
+            smoke.x > 1e-3 ||
+            v.flash > 1e-3 ||
+            v.shockA > 1e-3 ||
+            v.ringA > 1e-3 ||
+            v.pop > 1e-3 ||
+            (sinceMain > 0 && sinceMain < 0.6)
     }
 
     private fun readout() {

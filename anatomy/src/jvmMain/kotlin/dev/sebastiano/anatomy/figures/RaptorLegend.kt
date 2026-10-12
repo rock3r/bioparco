@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -107,8 +108,10 @@ private fun PartButton(
     val focused by source.collectIsFocusedAsState()
     val lit = on || hovered || focused
     val shown = remember { BooleanArray(1) }
+    val onShow by rememberUpdatedState(show)
+    val onHide by rememberUpdatedState(hide)
     LaunchedEffect(hovered, focused) {
-        if (hovered || focused) show() else if (shown[0]) hide()
+        if (hovered || focused) onShow() else if (shown[0]) onHide()
         shown[0] = hovered || focused
     }
     Row(

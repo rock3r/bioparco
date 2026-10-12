@@ -238,6 +238,13 @@ internal fun RaptorBuild.feedLines() {
             free = true to true,
         ),
     )
+    pressLines()
+    purgeLines()
+    igniterLines()
+}
+
+/** The pressurisation lines up to the quick disconnects under the beam. */
+private fun RaptorBuild.pressLines() {
     val pressLoxRoute =
         listOf(
             pressLox,
@@ -277,6 +284,10 @@ internal fun RaptorBuild.feedLines() {
             free = true to true,
         ),
     )
+}
+
+/** The purge lines into the dome and the methane pump's turbine. */
+private fun RaptorBuild.purgeLines() {
     val dome = domeAt(-150.0, 212.0)
     val purgeChamber =
         listOf(
@@ -311,7 +322,6 @@ internal fun RaptorBuild.feedLines() {
         "plumbing.purge-ftp",
         PipeOptions(bands = listOf(0.35, 0.7), free = true to true),
     )
-    igniterLines()
 }
 
 private fun RaptorBuild.jacketLines() {

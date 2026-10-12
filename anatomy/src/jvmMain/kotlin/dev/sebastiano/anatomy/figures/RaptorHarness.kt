@@ -145,26 +145,7 @@ private fun RaptorBuild.senseRoutes(): List<List<Point3>> {
                 name = "nozzle.sense-pad",
             ),
         )
-    val face =
-        parts.boss(
-            "chamber",
-            polar(56.0, 29.4, 180.0),
-            dir(56.0),
-            1.3,
-            1.4,
-            BossOptions(host = listOf(jackets[1]), name = "chamber.sense-port"),
-        )
-    val tee = add3(face, mul3(dir(56.0), sqrt(1.7 * 1.7 - 1.3 * 1.3)))
-    parts.ballAt(
-        "chamber",
-        tee,
-        1.7,
-        Tone.Hi,
-        name = "chamber.sense-tee",
-        owner = "chamber.sense-port",
-    )
-    val outward = unit3(add3(dir(56.0), Point3(0.0, 0.0, 1.0)))
-    val tip = add3(tee, mul3(outward, sqrt(1.7 * 1.7 - (0.75 * 1.3) * (0.75 * 1.3))))
+    val (tip, outward) = senseTip()
     val toBlock = Point3(b.x + 6, b.y - 6, low + 5)
     val chamberElbow =
         parts.elbow(
@@ -212,6 +193,31 @@ private fun RaptorBuild.senseRoutes(): List<List<Point3>> {
             polar(40.0, 44.0, 256.0),
         ) + above(b.x + 9.5),
     )
+}
+
+/** The chamber's sense port, its tee and where the sense line leaves it, and which way. */
+private fun RaptorBuild.senseTip(): Pair<Point3, Point3> {
+    val face =
+        parts.boss(
+            "chamber",
+            polar(56.0, 29.4, 180.0),
+            dir(56.0),
+            1.3,
+            1.4,
+            BossOptions(host = listOf(jackets[1]), name = "chamber.sense-port"),
+        )
+    val tee = add3(face, mul3(dir(56.0), sqrt(1.7 * 1.7 - 1.3 * 1.3)))
+    parts.ballAt(
+        "chamber",
+        tee,
+        1.7,
+        Tone.Hi,
+        name = "chamber.sense-tee",
+        owner = "chamber.sense-port",
+    )
+    val outward = unit3(add3(dir(56.0), Point3(0.0, 0.0, 1.0)))
+    val tip = add3(tee, mul3(outward, sqrt(1.7 * 1.7 - (0.75 * 1.3) * (0.75 * 1.3))))
+    return tip to outward
 }
 
 private class Transducer(
@@ -480,6 +486,11 @@ private fun RaptorBuild.harness(move: Point3) {
             )
         parts.cable("controller", harnessRoute(h), "controller.${h.name}", options)
     }
+    clampStuds(degs, clamps, move)
+}
+
+/** The harness clamps and the studs on the dome that hold them. */
+private fun RaptorBuild.clampStuds(degs: List<Double>, clamps: List<Clamp>, move: Point3) {
     clamps.forEachIndexed { index, c ->
         val deg = degs[index]
         parts.clampAt("controller", c.centre, c.axis, c.radius, move, bundle = "harness")

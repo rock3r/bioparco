@@ -249,7 +249,10 @@ internal fun RaptorBuild.chamber() {
                     s1,
                     29.4,
                     options =
-                        TurnedOptions(name = "chamber.jacket", inner = arcOf(ENGINE, seam, 29.4, P)),
+                        TurnedOptions(
+                            name = "chamber.jacket",
+                            inner = arcOf(ENGINE, seam, 29.4, P),
+                        ),
                 )
             }
     rings =
@@ -282,6 +285,12 @@ internal fun RaptorBuild.chamber() {
                     },
                 ),
         )
+    injectorAndDome()
+    chamberBosses()
+}
+
+/** The injector plate and the dome over it. */
+private fun RaptorBuild.injectorAndDome() {
     injector =
         parts.turned(
             "chamber",
@@ -296,6 +305,10 @@ internal fun RaptorBuild.chamber() {
             RaptorBuild.DOME_PROFILE,
             options = TurnedOptions(extra = { line(circleOf(ENGINE, 222.0, 23.5, P), Tone.Faint) }),
         )
+}
+
+/** The bosses on the jacket, the head and the dome. */
+private fun RaptorBuild.chamberBosses() {
     for (deg in listOf(70, 110, 250)) {
         jacketBoss[deg] =
             parts.boss(
@@ -345,7 +358,9 @@ internal fun RaptorBuild.preburner() {
             242.0,
             22.2,
             options =
-                TurnedOptions(inner = arcOf(ENGINE, 230.0, 22.2, P) + arcOf(ENGINE, 236.0, 22.2, P)),
+                TurnedOptions(
+                    inner = arcOf(ENGINE, 230.0, 22.2, P) + arcOf(ENGINE, 236.0, 22.2, P)
+                ),
         )
     parts.turned(
         "orpb",
