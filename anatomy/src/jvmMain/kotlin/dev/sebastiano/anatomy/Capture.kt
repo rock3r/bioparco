@@ -22,6 +22,7 @@ import dev.sebastiano.anatomy.kit.Drawing
 import dev.sebastiano.anatomy.kit.Flat
 import dev.sebastiano.anatomy.kit.MarkRecorder
 import dev.sebastiano.anatomy.kit.Palette
+import dev.sebastiano.anatomy.kit.audit.AuditedFigure
 import dev.sebastiano.anatomy.kit.lineEnds
 import java.io.File
 import java.util.Locale
@@ -52,6 +53,9 @@ import org.jetbrains.skia.Surface
  *   … --lines                     check that every line ends on something (`LineEnds.kt`): print
  *                                 `line ends: N`, ring each loose end in red on the PNG, write the
  *                                 report to a .txt beside it, and exit 1 if any end floats
+ *   … --audit                     run the geometry audit (`kit/audit`) on a figure that records
+ *                                 itself (`AUDITED_FIGURES`): print the report, write it to
+ *                                 <name>-audit.txt beside the PNG, and exit 1 on any failure
  */
 
 private const val FRAME_NS = 16_666_667L
@@ -71,11 +75,13 @@ private class Options(
     val zoomScale: Float,
     val reduced: Boolean,
     val lines: Boolean,
+    val audit: Boolean,
 )
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main(args: Array<String>) {
     val options = parse(args) ?: exitProcess(2)
+    val audited = auditedFigure(options)
     val density = if (options.zoom != null) options.zoomScale else options.scale
     val palette = if (options.dark) Palette.Dark else Palette.Light
     var bounds = IntSize.Zero
@@ -138,7 +144,25 @@ fun main(args: Array<String>) {
     } finally {
         scene.close()
     }
-    exitProcess(if (floating > 0) 1 else 0)
+    val failing = auditBeside(audited, options.out)
+    exitProcess(if (floating + failing > 0) 1 else 0)
+}
+
+/** Audits [figure], if any, writing the report beside [png]; returns how many problems fail. */
+private fun auditBeside(figure: AuditedFigure?, png: File): Int =
+    if (figure == null) 0
+    else auditFigure(figure, png.resolveSibling("${png.nameWithoutExtension}-audit.txt"))
+
+/** The figure's recorder, with `--audit`; exits if the figure doesn't record itself. */
+private fun auditedFigure(options: Options): AuditedFigure? {
+    if (!options.audit) return null
+    return AUDITED_FIGURES[options.figure]
+        ?: run {
+            System.err.println(
+                "${options.figure.id} records no shapes for the audit (see AUDITED_FIGURES)"
+            )
+            exitProcess(2)
+        }
 }
 
 /**
@@ -275,5 +299,6 @@ private fun parse(args: Array<String>): Options? {
         zoomScale = value("--zoom-scale")?.toFloat() ?: 4f,
         reduced = "--reduced" in flags,
         lines = "--lines" in flags,
+        audit = "--audit" in flags,
     )
 }
