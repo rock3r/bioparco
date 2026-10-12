@@ -70,23 +70,22 @@ still a dense, real machine, never a few slabs.
 - **Check it last.** Before you finish, capture 4× close-ups over the subject and mechanism and add
   the real parts that are missing wherever a region is plain.
 
-## What the Compose kit can draw today
+## What the Compose kit can draw
 
-The kit is a port of the original's core, `iso-kit.mjs`: floor prisms (`slabOf`, `cylinder`,
-`extrude`) with four-tone shading, lines and ticks on faces, knurls, coils, seams, dots, wires, face
-text, halos, and groups that move. It does **not** have the original's turned parts on tilted axes
-(`lathe.mjs`), pipes and cables (`tube.mjs`), the geometry audit (`audit.mjs`), the line-end check,
-WebGL shaders or the 3D mode. So:
+The kit is a port of the original's: floor prisms (`slabOf`, `cylinder`, `extrude`) with four-tone
+shading, lines and ticks on faces, knurls, coils, seams, dots, wires, face text, halos and groups
+that move; turned parts on any axis with smooth shading (`lathe`, `solidOf`, `disc`, `bandsOf`,
+`sphereOf`, `rodOut`, …); pipes, hoses and cables (`tubePieces`); a shader layer for fire, water and
+light (`drawShader`); the geometry audit (`Recorder`, `settle`, `audit`); and the line-end check.
+Each is held to the original's own output by a parity test. Only the original's beta 3D mode is
+missing: when a part must turn in true 3D, say so and propose a version that fits.
 
-- Invent objects whose round parts stand upright (posts, pucks, knobs, feet, dials face up) or lie
-  in a vertical face (`sideRing` for bores, rod ends and lenses). Horizontal rods are thin slabs.
-- A cable is a `wire`: straight runs with terminal dots that land on parts, kept beside the
-  structure, never across the subject's face. Avoid subjects that are mostly pipework.
-- Fire, water and light that lines can't draw are out of scope for now. Say so and pick an object
-  whose mechanism reads without them.
-- You are the audit. Check painter's order and line ends in close-ups (`references/verify.md`).
-
-If a request truly needs a missing piece, tell the user which one and propose a version that fits.
+- Round parts: `references/kit.md` section 10 and `references/craft.md`, "Round parts and pipes".
+- Pipes and cables: `references/kit.md` section 11. Route them as `craft.md` says, record them, and
+  let the audit prove that nothing passes through anything.
+- Shaders: read `references/shaders.md` before writing one.
+- The audit: `references/audit.md`. Once a figure has pipes, cables or round parts, record every
+  item's true shape, `settle` the painter's order from geometry, and run `--audit` to zero.
 
 ## Workflow
 
@@ -159,8 +158,11 @@ is decided there.
       of the tour with `./gradlew :anatomy:capture`. Commands are in `references/verify.md`.
     - **4× close-ups of every junction in both themes**: every place a part sits on another, every
       crossing, every moving part at both ends of its travel, every knurl, tick row and seam.
-    - **Line ends.** Every seam, rule, rib, tick and pointer ends on a stroke, a dot or an outline.
-      Check them in the close-ups: there is no automatic line check yet.
+    - **Run the line check to zero.** `capture --lines` must report `line ends: 0` in both themes and
+      in every resting pose: every seam, rule, rib, tick and pointer ends on a stroke, a dot or an
+      outline. Read the ringed PNG.
+    - **Run the audit to zero** for any figure with pipes, cables or round parts: `capture --audit`
+      must end `audit passed`. Fix an interlock in the geometry, never with a key bias.
     - **Painter's order.** At every pose, nearer parts cover farther ones and nothing sinks into
       anything.
     - Put your PNG next to the dial indicator and ask: is it instantly a real object, rich in small parts
@@ -210,4 +212,6 @@ Read these as you need them:
 - `references/kit.md`: the Kotlin API, with signatures, and how it maps to the original's.
 - `references/motion.md`: live behaviour in Compose: the frame loop, springs, tours, pointer,
   keyboard, accessibility, reduced motion, envelopes for one-shot events, exploded views.
-- `references/verify.md`: the `capture` commands and the review checklist.
+- `references/verify.md`: the `capture` commands, the line check and the review checklist.
+- `references/audit.md`: recording a figure's true shapes, settling painter's order, and the audit.
+- `references/shaders.md`: the shader layer: camera contract, layers, inks for light and dark.

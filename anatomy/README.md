@@ -61,11 +61,16 @@ missing in the skill and the kit was then added to both.
 
 ## How it works
 
-- `Iso.kt` is the original’s `iso-kit.mjs`, function for function and in the same argument order:
+- `Camera.kt`, `Plans.kt`, `Solids.kt` and `Faces.kt` are the original’s `iso-kit.mjs`, function for function and in the same argument order:
   the camera (`iso`, `depthOf`, `fitProjection`), solids (`extrude`, `slabOf`, `cylinder`, with
   four side tones by facing and a lighter top), lines on faces, and the parts library (`knurl`,
   `coil`, `topTicks`, `radialTicks` and the rest). It returns `IsoPath`, a list of polylines,
   where the original returns SVG path strings.
+- The rest of the original kit follows the same way: `lathe.mjs` (turned parts on any axis, smooth
+  shading) is `Frames.kt`, `Profiles.kt`, `Lathe.kt`, `RoundSolids.kt`, `Bands.kt`, `RoundLines.kt`
+  and their neighbours; `tube.mjs` (pipes, hoses and cables) is `Tube.kt` and `TubeRings.kt`;
+  `audit.mjs` (painter's order settled from true depth, and proof that nothing passes through
+  anything) is `kit/audit/`; and `scripts/line-ends.mjs` is `LineEnds.kt`, run by `capture --lines`.
 - `Art.kt` is the retained art a figure builds once, in painter’s order: solids, lines, dots,
   wires, face text, halos, and named groups that live code moves by a screen offset, as the
   original moves a `<g data-part>`.
@@ -82,23 +87,25 @@ missing in the skill and the kit was then added to both.
 
 ### Parity with the original
 
-`ParityTest` holds the kit to the original. Its goldens are the original’s own output (commit
-[`240a9bf`](https://github.com/wheresryan22/anatomy/commit/240a9bf7c50cc6226148762a1017466fcbc08523)):
-225 kit calls over three cameras, and every element of the built dial-indicator page in paint
-order. The Kotlin side must match every path to the 0.1 the original writes. To capture them again,
-follow the note at the top of [`parity/capture.mjs`](parity/capture.mjs).
+The parity tests hold the kit to the original. Their goldens are the original’s own output (commit
+[`240a9bf`](https://github.com/wheresryan22/anatomy/commit/240a9bf7c50cc6226148762a1017466fcbc08523)),
+captured in Node by the scripts in [`parity/`](parity/), and the Kotlin side must match every path
+to the 0.1 the original writes:
+
+| Test | Original | Golden |
+|---|---|---|
+| `ParityTest` | `iso-kit.mjs`, and every element of the built dial-indicator page | 225 calls, 365 elements |
+| `LatheParityTest` | `lathe.mjs` | 2,093 lines |
+| `TubeParityTest` | `tube.mjs` | 93 cases, 18,162 lines |
+| `AuditParityTest` | `audit.mjs`: distances, states, ordering and every check | 852 lines |
+
+The line check is proven against the original’s on the dial indicator: both report 0 loose ends of
+367 on 23 lines. To capture a golden again, follow the note at the top of its script.
 
 ### Not ported yet
 
-The original kit has more than this port so far:
-
-- `lathe.mjs` (turned parts on any axis, smooth shading) and `tube.mjs` (pipes and cables).
-- `audit.mjs`, which proves nothing passes through anything, and `scripts/lines.mjs`, the
-  line-end check.
-- The beta 3D mode (`turn*.mjs`), with `gl.mjs`'s shaders on turning groups, and the other
-  seven examples.
-
-The skill says so, and keeps figures to what the kit can draw: slabs, cylinders and extrusions.
+The beta 3D mode (`turn*.mjs`), with `gl.mjs`'s shaders on turning groups, and the original's other
+examples. The skill says so.
 
 ## Credit and license
 
