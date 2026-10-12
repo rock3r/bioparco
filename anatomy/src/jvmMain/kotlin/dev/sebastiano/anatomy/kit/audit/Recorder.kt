@@ -8,9 +8,8 @@ import dev.sebastiano.anatomy.kit.Projection
 import dev.sebastiano.anatomy.kit.cut
 import dev.sebastiano.anatomy.kit.dot3
 import dev.sebastiano.anatomy.kit.pathLength
+import dev.sebastiano.anatomy.kit.runsOf
 import dev.sebastiano.anatomy.kit.tangentAlong
-import kotlin.math.max
-import kotlin.math.min
 
 /*
  * The recorder: a figure puts each drawn item into it with its art and its true shapes, records
@@ -161,7 +160,7 @@ class Recorder(
     ): List<TubeShape> {
         val o = options
         val total = pathLength(points)
-        val runs = runsAlong(total, o.gaps)
+        val runs = runsOf(total, o.gaps)
         val ride = o.ride ?: o.piece
         val meta =
             ShapeMeta(
@@ -266,26 +265,3 @@ data class RouteOptions(
     val move: Point3 = ZERO,
     val ride: String? = null,
 )
-
-/**
- * The drawn runs of a route of length [total] between [gaps], by arc length. This is
- * `kit/tube.mjs`'s `runsOf(total, gaps)`, the one thing the original audit imports from it.
- */
-internal fun runsAlong(
-    total: Double,
-    gaps: List<Pair<Double, Double>>,
-): List<Pair<Double, Double>> {
-    val cuts =
-        gaps
-            .map { (a, b) -> max(0.0, min(a, b)) to min(total, max(a, b)) }
-            .filter { (a, b) -> b - a > 1e-6 }
-            .sortedBy { it.first }
-    val runs = ArrayList<Pair<Double, Double>>()
-    var at = 0.0
-    for ((a, b) in cuts) {
-        if (a > at + 1e-6) runs.add(at to a)
-        at = max(at, b)
-    }
-    if (total > at + 1e-6) runs.add(at to total)
-    return runs
-}

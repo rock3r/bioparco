@@ -15,6 +15,7 @@ import dev.sebastiano.anatomy.kit.Point3
 import dev.sebastiano.anatomy.kit.Projection
 import dev.sebastiano.anatomy.kit.SolidMark
 import dev.sebastiano.anatomy.kit.TextMark
+import dev.sebastiano.anatomy.kit.TubeMark
 import dev.sebastiano.anatomy.kit.WireMark
 import dev.sebastiano.anatomy.kit.add3
 import dev.sebastiano.anatomy.kit.jsHypot
@@ -78,6 +79,15 @@ private fun solidBox(mark: SolidMark): ScreenBox? {
     return unionBox(box, pathBox(paths.outline))
 }
 
+/** Every path of a tube chunk, as the original measures its `tubeSvg` markup. */
+private fun tubeBox(mark: TubeMark): ScreenBox? {
+    val piece = mark.piece
+    var box = unionBox(pathBox(piece.body), pathBox(piece.edges))
+    if (piece.wide) box = unionBox(unionBox(box, pathBox(piece.shine)), pathBox(piece.shade))
+    for ((ring, _) in piece.rings) box = unionBox(box, pathBox(ring))
+    return box
+}
+
 private fun markBox(mark: Mark): ScreenBox? =
     when (mark) {
         is SolidMark -> solidBox(mark)
@@ -85,6 +95,7 @@ private fun markBox(mark: Mark): ScreenBox? =
         is DotsMark -> dotBox(mark.points, mark.size)
         is WireMark -> unionBox(pathBox(mark.line.shape.iso), dotBox(mark.ends, mark.size))
         is FadeLineMark -> boxOfPoints(mark.points)
+        is TubeMark -> tubeBox(mark)
         is GroupMark -> null
         is HaloMark,
         is TextMark -> null
