@@ -19,11 +19,19 @@ import kotlin.math.min
  * after it. A short straight mark (up to 7 units: a tick) needs one end rooted within 2 units. A
  * solid's outline, crease and bevel are the kit's own and aren't checked, but lines land on them.
  * Lines fainter than 0.3 aren't checked, and nothing fainter than 0.1 is something to land on.
- * `free` ends, and the ramps of a `fadeLine`, are meant to stop and aren't checked.
+ * `free` ends, and the ramps of a `fadeLine`, are meant to stop and aren't checked. A tube is
+ * treated as the original treats `tubeSvg`'s elements: its body and stripes are fills that hide
+ * ends painted before them, and its edges (`tb-edge`) and rings are strokes to land on, but neither
+ * is checked. Under a group's `clip` only what shows inside it counts: a line is checked where the
+ * clip lets it show, an end the clip cuts is where it goes out of sight and isn't checked, and
+ * outlines, dots and fills clipped away are nothing to land on or hide under.
  */
 
-/** One mark as painted: the art, and the screen offset it was painted at. */
-class Drawn(val mark: Mark, val offset: Flat)
+/**
+ * One mark as painted: the art, the screen offset it was painted at, and the clips it was painted
+ * inside, already placed on screen.
+ */
+class Drawn(val mark: Mark, val offset: Flat, val clips: List<IsoPath> = emptyList())
 
 /** A [MarkRecorder] that keeps what the latest frame painted. */
 class Drawing : MarkRecorder {
@@ -47,8 +55,8 @@ class Drawing : MarkRecorder {
         this.origin = origin
     }
 
-    override fun record(mark: Mark, offset: Flat) {
-        list.add(Drawn(mark, offset))
+    override fun record(mark: Mark, offset: Flat, clips: List<IsoPath>) {
+        list.add(Drawn(mark, offset, clips))
     }
 }
 
@@ -120,7 +128,7 @@ private fun checkRun(
     var checked = 0
     val result =
         End.entries.associateWith { end ->
-            if (line.free.excuses(end)) {
+            if (line.free.excuses(end) || line.cuts[index].excuses(end)) {
                 0.0
             } else {
                 checked++
@@ -166,6 +174,8 @@ private class CheckedLine(
     val element: Int,
     val order: Int,
     val runs: List<IsoPath.Run>,
+    /** Which ends of each run a clip cut: they go out of sight there and aren't checked. */
+    val cuts: List<Free>,
     val free: Free,
     val alpha: Double,
     val what: String,
@@ -180,8 +190,17 @@ private class Segment(val element: Int, val run: Int, val index: Int, val a: Fla
 
 private class Round(val center: Flat, val r: Double) : Landing()
 
-/** A fill that hides a line end painted before it: a solid's silhouette, a dense dot. */
-private class Cover(val order: Int, val runs: List<List<Flat>>?, val center: Flat, val r: Double)
+/**
+ * A fill that hides a line end painted before it: a solid's silhouette, a dense dot. It hides only
+ * inside the [clips] it was painted in.
+ */
+private class Cover(
+    val order: Int,
+    val runs: List<List<Flat>>?,
+    val center: Flat,
+    val r: Double,
+    val clips: List<IsoPath>,
+)
 
 /** Everything a frame painted, sorted into lines to check, things to land on and covers. */
 private class Board(drawn: List<Drawn>, private val palette: Palette) {
@@ -190,11 +209,19 @@ private class Board(drawn: List<Drawn>, private val palette: Palette) {
     private val grid = HashMap<Long, MutableList<Landing>>()
     private var elements = 0
 
+    // The clips of the mark being added.
+    private var clips: List<IsoPath> = emptyList()
+
     init {
         drawn.forEachIndexed { order, item ->
             val wire = (drawn.getOrNull(order + 1)?.mark as? WireMark)?.line === item.mark
+            clips = item.clips
             add(order, item.mark, item.offset, wire)
         }
+    }
+
+    private fun cover(order: Int, fill: IsoPath, offset: Flat) {
+        covers += Cover(order, fill.at(offset).map { it.points }, Flat(0.0, 0.0), 0.0, clips)
     }
 
     private fun add(order: Int, mark: Mark, offset: Flat, wire: Boolean) {
@@ -226,9 +253,9 @@ private class Board(drawn: List<Drawn>, private val palette: Palette) {
                 }
             is HaloMark ->
                 if (palette.haloOpacity >= COVER) {
-                    val runs = mark.shape.iso.at(offset + Flat(0.0, HALO_DROP))
-                    covers += Cover(order, runs.map { it.points }, Flat(0.0, 0.0), 0.0)
+                    cover(order, mark.shape.iso, offset + Flat(0.0, HALO_DROP))
                 }
+            is TubeMark -> addTube(order, mark, offset)
             is TextMark,
             is GroupMark -> Unit
         }
@@ -237,7 +264,7 @@ private class Board(drawn: List<Drawn>, private val palette: Palette) {
     private fun addSolid(order: Int, mark: SolidMark, offset: Flat) {
         val element = elements++
         val paths = mark.paths
-        covers += Cover(order, paths.fill.at(offset).map { it.points }, Flat(0.0, 0.0), 0.0)
+        cover(order, paths.fill, offset)
         addSegments(element, paths.outline.at(offset))
         if (mark.crease != null) {
             addSegments(element, paths.crease.at(offset))
@@ -247,6 +274,22 @@ private class Board(drawn: List<Drawn>, private val palette: Palette) {
             for (shade in paths.shades) addSegments(element, shade.at(offset))
             addSegments(element, paths.top.at(offset))
         }
+    }
+
+    /**
+     * The original's line-end check sees `tubeSvg`'s body, shine and shade as opaque fills, and its
+     * rings (not `iso-line`) and edges (`tb-edge`, skipped) as strokes it never checks.
+     */
+    private fun addTube(order: Int, mark: TubeMark, offset: Flat) {
+        val element = elements++
+        cover(order, mark.piece.body, offset)
+        if (mark.piece.wide) {
+            cover(order, mark.piece.shine, offset)
+            cover(order, mark.piece.shade, offset)
+        }
+        for ((alpha, ring) in mark.rings) if (alpha >= VISIBLE)
+            addSegments(element, ring.iso.at(offset))
+        addSegments(element, mark.edges.iso.at(offset))
     }
 
     private fun addLine(
@@ -259,9 +302,13 @@ private class Board(drawn: List<Drawn>, private val palette: Palette) {
     ) {
         if (alpha < VISIBLE) return
         val element = elements++
-        addSegments(element, runs)
+        val shown = clipRuns(runs, clips)
+        if (shown.isEmpty()) return
+        val visible = shown.map { it.run }
+        addSegmentsShown(element, visible)
         if (alpha >= LEAST) {
-            lines += CheckedLine(element, order, runs, free, alpha, what, d.take(36))
+            val cuts = shown.map { it.cut }
+            lines += CheckedLine(element, order, visible, cuts, free, alpha, what, d.take(36))
         }
     }
 
@@ -275,13 +322,18 @@ private class Board(drawn: List<Drawn>, private val palette: Palette) {
     }
 
     private fun addRound(order: Int, center: Flat, r: Double, cover: Boolean) {
-        if (r <= 0) return
+        if (r <= 0 || !insideClips(center, clips)) return
         val round = Round(center, r)
         cells(center.x - r, center.y - r, center.x + r, center.y + r) { add(it, round) }
-        if (cover) covers += Cover(order, null, center, r)
+        if (cover) covers += Cover(order, null, center, r, clips)
     }
 
+    /** Strokes to land on, where the current clips let them show. */
     private fun addSegments(element: Int, runs: List<IsoPath.Run>) {
+        addSegmentsShown(element, clipRuns(runs, clips).map { it.run })
+    }
+
+    private fun addSegmentsShown(element: Int, runs: List<IsoPath.Run>) {
         runs.forEachIndexed { index, run ->
             val points = if (run.closed) run.points + run.points.first() else run.points
             for (i in 0 until points.size - 1) {
@@ -310,8 +362,9 @@ private class Board(drawn: List<Drawn>, private val palette: Palette) {
     /** Whether [p] is under a fill painted after the mark painted at [order]. */
     fun hidden(order: Int, p: Flat): Boolean = covers.any { cover ->
         cover.order > order &&
-            if (cover.runs == null) distance(p, cover.center) <= cover.r
-            else winding(cover.runs, p) != 0
+            (if (cover.runs == null) distance(p, cover.center) <= cover.r
+            else winding(cover.runs, p) != 0) &&
+            insideClips(p, cover.clips)
     }
 
     /** How far [p], the [end] of [line]'s run [run], is from anything to land on. */
@@ -358,9 +411,7 @@ private fun Free.excuses(end: End): Boolean =
         (this == Free.End && end == End.End)
 
 /** A kit path where it was painted. */
-private fun IsoPath.at(offset: Flat): List<IsoPath.Run> =
-    if (offset.x == 0.0 && offset.y == 0.0) runs
-    else runs.map { run -> IsoPath.Run(run.points.map { it + offset }, run.closed) }
+private fun IsoPath.at(offset: Flat): List<IsoPath.Run> = moved(offset).runs
 
 private fun describe(kind: String, tone: Tone, stroke: Stroke = Stroke.Solid): String =
     "$kind ${tone.name.lowercase()}" +
@@ -395,24 +446,6 @@ private fun fadePieces(mark: FadeLineMark): List<Pair<List<Flat>, Free>> {
         if (total - end - start > 0.05) add(piece(start, total - end) to Free.None)
         if (end > 0.05) add(piece(total - end, total) to Free.End)
     }
-}
-
-/** Nonzero winding of [p] in [runs], each closed: SVG's default fill rule. */
-private fun winding(runs: List<List<Flat>>, p: Flat): Int {
-    var winding = 0
-    for (run in runs) {
-        for (i in run.indices) {
-            val a = run[i]
-            val b = run[(i + 1) % run.size]
-            val side = (b.x - a.x) * (p.y - a.y) - (p.x - a.x) * (b.y - a.y)
-            if (a.y <= p.y) {
-                if (b.y > p.y && side > 0) winding++
-            } else if (b.y <= p.y && side < 0) {
-                winding--
-            }
-        }
-    }
-    return winding
 }
 
 private fun distance(a: Flat, b: Flat): Double = hypot(a.x - b.x, a.y - b.y)

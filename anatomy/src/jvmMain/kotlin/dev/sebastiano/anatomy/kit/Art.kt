@@ -12,18 +12,6 @@ import androidx.compose.ui.graphics.Path
  * so the same art paints in both themes.
  */
 
-/** Line and fill tones. Solids use the first four; lines may also be `Lit` or a colour channel. */
-enum class Tone {
-    Hi,
-    Mid,
-    Lo,
-    Faint,
-    Lit,
-    Red,
-    Green,
-    Blue,
-}
-
 /** How a line is stroked. `Flow` dashes march along the line, for things moving along a path. */
 enum class Stroke {
     Solid,
@@ -116,6 +104,21 @@ class FadeLineMark(
     val tone: Tone,
 ) : Mark() {
     val shape = Shape(pathOf(points))
+}
+
+/**
+ * One chunk of a tube, as the original's `tubeSvg` draws it: the body in the middle side tone, the
+ * shine and shade stripes when the piece is wide, its rings in steps of opacity, then its [tone]
+ * edges. Each chunk is its own mark, so it depth-sorts among the parts it passes.
+ */
+class TubeMark(val piece: TubePiece, val tone: Tone) : Mark() {
+    val body = Shape(piece.body)
+    val shine = Shape(piece.shine)
+    val shade = Shape(piece.shade)
+    val edges = Shape(piece.edges)
+    /** The rings joined per opacity level, as `ringsSvg` groups them. */
+    val rings: List<Pair<Double, Shape>> =
+        ringLevels(piece.rings).map { (alpha, d) -> alpha to Shape(d) }
 }
 
 /**
@@ -243,6 +246,14 @@ class ArtBuilder {
         anchor: Anchor = Anchor.Start,
     ) {
         marks.add(TextMark(matrix, text, size, tone, anchor))
+    }
+
+    /**
+     * One chunk of a tube from `tubePieces`, with [tone] edges. Add each chunk where its `mid`
+     * sorts among the parts it passes, so a pipe weaves between them.
+     */
+    fun tube(piece: TubePiece, tone: Tone = Tone.Hi) {
+        marks.add(TubeMark(piece, tone))
     }
 
     /** A soft shadow under a base or a lifted part. [blur] is in screen px. */

@@ -125,6 +125,7 @@ val ART: Art = art {
 | `wire(from, to, via = [], tone = Lo, stroke, ends = Ends.Both, size = 1.2)` | A connector with terminal dots. |
 | `faceText(matrix, text, size = 3.0, tone = Mid, anchor = Anchor.Start)` | Engraved text on a face, in the monospace face. |
 | `halo(path, blur = 9.0)` | A soft shadow, blurred, dropped 3 units. |
+| `tube(piece, tone = Hi)` | One chunk of a pipe from `tubePieces` (section 11), with `tone` edges. Add each chunk at its own depth. |
 | `group(part, clip = null) { … }` | Art that live code moves by a screen offset. A `clip` path holds still while the group moves (the original's `data-hold` and `holdStill`): a rod sliding out of a gland (`rodOut`, section 10). |
 | `add(art)` | Art built elsewhere. |
 
@@ -140,7 +141,7 @@ IsoCanvas(WIDTH, HEIGHT, palette, Modifier.fillMaxWidth()) {        // an IsoSco
 
 - `IsoCanvas(width, height, palette, modifier, clock = { 0.0 }) { … }` scales the viewBox to the
   available width. Inside, `IsoScope` has `drawArt(art, offsetOf)` and `drawArt(art, offset)` (one
-  copy of a repeated part), `solid`, `line`, `dots` and `faceText` for per-frame parts, `palette`,
+  copy of a repeated part), `solid`, `line`, `dots`, `faceText` and `tube` for per-frame parts, `palette`,
   and `draw` (the Compose `DrawScope`, in viewBox units) for anything else. `clock` drives
   `Stroke.Flow`.
 - `Plate(fig, title, hint, readout = { text }, palette, modifier, keys, caption) { … }` is the card.
@@ -299,7 +300,75 @@ outline kinks.
 - **Smooth shading is heavier.** Use `sphereOf` for balls and keep `rows` low on small parts. Build
   round parts once into static art; rebuild one per frame only if it really turns.
 
-## 11. Shader layer
+## 11. Pipes, tubes and cables
+
+The Compose port of the original's `kit/tube.mjs`, in `Tube.kt`, `TubeParts.kt`, `TubeRings.kt` and
+`TubeRuns.kt`, painted by `ArtBuilder.tube` (`TubeMark`, `TubeRender.kt`). `TubeParityTest` holds
+every piece to the original's output, path for path.
+
+| Function | What it does |
+|---|---|
+| `tubePieces(points3, radius, P, maxLength = 30.0, spacing = 2.2, closed = false, breaks = emptyList(), gaps = emptyList(), caps = true to true, stripes: Boolean? = null, rings: Rings? = null)` | Splits a 3D route into chunks of at most `maxLength` world units. Each one is drawn as a 2D ribbon with a body in the middle side tone, a shine band toward the light, a shade band away from it, and two edge lines. Neighbouring pieces overlap by 0.5 units, and the edge lines are cut from the same overlapped span as the body, so neither a seam nor a notch in the outline shows at a joint. The shine and shade run 0.5 further than the body at every open end, so a stripe covers the anti-aliased cut of the body under it and its own cut lies on the neighbour's identical stripe; every frame normal is a central difference along the whole route, so the stripes of two chunks coincide exactly where they overlap. `radius` is a `Double` or a function of `t` (0 to 1 along the route), for tapers and volutes. `breaks` are arc lengths where a chunk must end (at a crossing, or where the pipe turns back past a part). `gaps` are `from to to` arc-length spans that are not drawn because a collar, clamp, valve or fitting covers them; the pipe ends flat on each side of a gap. Every end next to a gap gets an elliptical cap (the projected cross-section, with its outer half-arc as an edge), and so do the route's own two ends unless `caps` says otherwise (`false to false`, or `false to true` for a branch whose start hides inside a tee collar), so a pipe meets a flange face along the right curve instead of a straight cut. The stripes follow the cap: onto the outward half of the ellipse when the end face is turned away, and up to its inner rim (drawn as an edge) when the face is turned toward you. A closed route with no gaps wraps its first and last pieces round each other. |
+| `TubePiece` | What `tubePieces` returns, one per chunk: `mid` (the chunk's centre in world space, to depth-sort it), `body`, `shine`, `shade`, `edges` (`IsoPath`s), `wide`, `rings` and `ringTone`, `points` and `radii` (the chunk's 3D centreline and radii), `ends` (which ends are real ends rather than joints with a neighbour, as a `Pair`), `from` and `to`. `wide` is true when the route is wide enough on screen (over 1.3 px) for its shine and shade bands, decided once for the whole route from its widest point, so a taper never drops its stripes at one chunk joint; `stripes = true` or `false` overrides it. |
+| `ArtBuilder.tube(piece, tone = Tone.Hi)`, `IsoScope.tube(piece, tone)` | Paints a piece as the original's `tubeSvg` does: body, then shine and shade on `wide` pieces, then the rings, then the `tone` edges. Each piece is its own mark. |
+| `Rings(pitch = 3.0, twist = 0.0, cross = false, fade = 0.1 to 0.55, phase = 0.0, steps = 16, tone = Tone.Lo)` | The `rings` option: a texture that follows the pipe's cross-section, for a braid, corrugation, tape wrap or armour. Stations sit every `pitch` units of 3D arc length from the route's start (`phase` shifts them), so the pattern is continuous through every chunk joint; each is drawn as the visible front arc of the cross-section there, split into `steps` short segments whose opacity is `fadeOf(facing, fade)`, so the texture fades toward both limbs instead of ending on a hard line (`fade = null` draws them at full strength). `twist` (in radii) turns each ring into a helix that advances that far from limb to limb, and `cross = true` adds the other hand, for a braid. Rings run over each chunk's stripe overhang, so the later chunk at a joint draws an identical piece over its own body's cut, and stop on real ends and gap faces (rings keep a third of a pitch off an end face, helices end on it). They are stroked 0.45 px with butt caps in `tone`, grouped in opacity steps of 0.05 (`ringLevels(piece.rings)`, the original's `ringsSvg`). |
+| `runsOf(total, gaps)` | The drawn `from to to` spans of a route of length `total` once `gaps` are taken out. It sits beside the lathe's `runsOf(flags)`. |
+| `crossingsOf(points, centre, axis, radius)` | Arc lengths where a route crosses the disc of a clamp or collar (the plane through `centre` normal to `axis`, within `radius`). Turn each into a gap of the clamp's thickness. |
+
+`gaps` and `breaks` are arc lengths along the route as `tubePieces` measures it: on its
+`resample(points3, spacing)`, so `pathLength(resample(route, 2.2))` is the length to gap the far
+end against.
+
+The renderer paints a piece in the original's `ISO_CSS` styles in both palettes: `.tb-body` in
+`shades[2]`, `.tb-shine` in `top`, `.tb-shade` in `shades[0]`, `.tb-ring` and the `.tb-edge` hairline
+in their tones. The line-end check treats a piece as the original's `line-ends.mjs` treats
+`tubeSvg`: body and stripes are fills that hide ends painted before them, edges and rings are
+strokes to land on, and neither is checked.
+
+**Depth-sorting tubes.** A pipe runs between parts at many depths, so draw each piece at its own
+depth: give it the key `dot3(piece.mid, viewOf(P))`, next to the solids it passes, and add every
+item to the art in key order. Use short pieces (`maxLength` 6–18) where a pipe weaves between
+neighbours, and long ones (400) for a ring that lies flat on the floor. To split a pipe between
+layers (art drawn before and after a moving part), test `piece.mid`.
+
+```kotlin
+val view = viewOf(P)
+val items = ArrayList<Pair<Double, ArtBuilder.() -> Unit>>()
+fun put(at: Point3, draw: ArtBuilder.() -> Unit) { items += dot3(at, view) to draw }
+
+val route = fillet(listOf(Point3(-60.0, -20.0, 8.0), Point3(-20.0, -20.0, 8.0), Point3(-20.0, -20.0, 40.0)), 2.6 * 4.0)
+tubePieces(route, 4.0, P, maxLength = 12.0).forEach { piece -> put(piece.mid) { tube(piece) } }
+put(PUMP_CENTRE) { solid(PUMP, tone = Tone.Mid) }
+
+val ART = art { items.sortedBy { it.first }.forEach { (_, draw) -> draw() } }
+```
+
+**Anything that wraps a pipe splits it.** A collar, band, bellows disc, clamp or valve body is wider
+than the pipe it sits on. If the pipe runs through it as one chunk, the chunk is both behind and in
+front of the collar and no key can order them: the collar either hides the pipe's near side or the
+pipe paints over the collar's face. Gap the pipe at the collar (`gaps = listOf(at - t / 2 to at +
+t / 2)`): the far piece ends at the collar's back face, the near piece starts at its front face, and
+both order cleanly. Clamps on a cable do the same through `crossingsOf`.
+
+A good `pipe()` helper (the original's Raptor has one):
+1. `fillet` the control points with a bend of 2.6 × r (at least 3), with `projection = P, tube = r`
+   so a bend seen edge-on grows until its outline can't fold back. A valve or bellows needs a
+   straight leg at least as long as its body plus both fillet cuts (`rBend · tan(turn / 2)` each);
+   put it on a bend and its ends cut into the pipe.
+2. Work out the collars first (end flanges, bands, bellows discs, the valve body) and pass their
+   spans as `gaps`. An end flange's back face sits on the route end and the disc runs back along
+   the pipe: `disc(-t / 2, t / 2, r, frameAlong(sub3(end, mul3(tangent, t / 2)), tangent), P)`, with
+   the gap `total - t to total`.
+3. `tubePieces` the route and put each piece at its own depth.
+4. Draw the collars at their own depths.
+
+A cable helper adds a terminal dot (`dots`) at an end that stays with its own assembly and a
+connector shell at an end that lands on another one, so every cable still ends on something when
+the figure comes apart. A line that must leave a port facing the viewer starts from an elbow (a ball
+on the boss, `sphereOf`, rim on sphere at both joints, the line leaving it toward its next point),
+so the turn happens inside a fitting.
+
+## 12. Shader layer
 
 The original's `gl.mjs`, as a Skia runtime shader (SkSL) drawn inside the same `IsoCanvas` between
 two `drawArt` calls (`Shader.kt`). Read `shaders.md` before using it: the camera contract, the layer
@@ -315,6 +384,6 @@ stack, the inks for light and dark, and the craft rules.
 
 ## Not in the Compose kit yet
 
-`tube.mjs` (`tubePieces`), `audit.mjs` (`recorder`, `settle`, `auditOrExit`) and the 3D runtime (and
+`audit.mjs` (`recorder`, `settle`, `auditOrExit`) and the 3D runtime (and
 so `gl.mjs`'s `GLSL_TURN` and `glslPose` for shaders on turning groups). When one of them is the only
 honest way to draw a part, say so to the user instead of faking it.

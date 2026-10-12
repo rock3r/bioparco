@@ -87,8 +87,11 @@ figure at 0 in its resting pose, so a new figure must pass it too.
 
 How it differs from the original, because it reads marks instead of a browser's SVG: it is the same
 rules with the same tolerances, and on the dial indicator it counts the same 367 ends on 23 lines.
-It sees what `IsoScope` paints, not anything a figure draws straight on `draw`; it doesn't model
-clipping; a fill hides an end when it is painted later and covers the point, without the browser's
+It sees what `IsoScope` paints, not anything a figure draws straight on `draw`; under a group's
+`clip` it checks only what the clip lets show, an end the clip cuts is out of sight and isn't checked,
+and what the clip hides is nothing to land on; a tube piece's body and stripes hide ends painted
+before them and its edges and rings are landings, never checked (`tb-edge` is in the original's skip
+list); a fill hides an end when it is painted later and covers the point, without the browser's
 hit testing (so a dashed line's end in a gap isn't treated differently); and opacity is the mark's
 own (`faded` levels, dot tones and alphas, the halo's opacity), since there are no CSS groups.
 

@@ -9,12 +9,17 @@ import dev.sebastiano.anatomy.kit.Free
 import dev.sebastiano.anatomy.kit.GroupMark
 import dev.sebastiano.anatomy.kit.IsoPath
 import dev.sebastiano.anatomy.kit.LineEndReport
+import dev.sebastiano.anatomy.kit.Point3
+import dev.sebastiano.anatomy.kit.Projection
 import dev.sebastiano.anatomy.kit.SolidMark
 import dev.sebastiano.anatomy.kit.SolidPaths
+import dev.sebastiano.anatomy.kit.TubePiece
 import dev.sebastiano.anatomy.kit.WireMark
 import dev.sebastiano.anatomy.kit.art
 import dev.sebastiano.anatomy.kit.lineEnds
 import dev.sebastiano.anatomy.kit.pathOf
+import dev.sebastiano.anatomy.kit.tubePieces
+import kotlin.math.sqrt
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -187,6 +192,35 @@ class LineEndsTest {
         assertEquals(0, report.loose.size)
     }
 
+    @Test
+    fun `a tube's body hides the ends painted before it, and its edges are not checked`() {
+        val report = check {
+            face()
+            line(segment(0.0, 20.0, 20.0, 20.0))
+            tube(pipe())
+        }
+        assertEquals(0, report.loose.size)
+        assertEquals(1, report.lines)
+    }
+
+    @Test
+    fun `a line may end on a tube's edge but not under a tube painted before it`() {
+        val piece = pipe()
+        // The pipe runs along screen x at y 20, its top edge 2 units above.
+        val edge = check {
+            face()
+            tube(piece)
+            line(segment(20.0, 0.0, 20.0, 17.6))
+        }
+        assertEquals(0, edge.loose.size)
+        val under = check {
+            face()
+            tube(piece)
+            line(segment(20.0, 0.0, 20.0, 20.0))
+        }
+        assertEquals(End.End, under.loose.single().end)
+    }
+
     private fun check(build: ArtBuilder.() -> Unit): LineEndReport =
         lineEnds(art(build).drawn(Flat(0.0, 0.0)))
 
@@ -195,6 +229,13 @@ class LineEndsTest {
         val square =
             pathOf(listOf(Flat(0.0, 0.0), Flat(40.0, 0.0), Flat(40.0, 40.0), Flat(0.0, 40.0)), true)
         solid(SolidPaths(square, square, IsoPath.Empty, square, emptyList()), flat = true)
+    }
+
+    /** A pipe of radius 2 along screen x from 5 to 35 at y 20: the floor's y axis, seen head-on. */
+    private fun pipe(): TubePiece {
+        val front = Projection(Flat(20.0, 20.0), 1.0 / sqrt(1.6), azimuth = 90.0, elevation = 0.0)
+        val route = listOf(Point3(-15.0, 0.0, 0.0), Point3(15.0, 0.0, 0.0))
+        return tubePieces(route, 2.0, front).single()
     }
 
     private fun segment(x0: Double, y0: Double, x1: Double, y1: Double): IsoPath =

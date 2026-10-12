@@ -19,6 +19,7 @@ import dev.sebastiano.anatomy.kit.SolidMark
 import dev.sebastiano.anatomy.kit.SolidPaths
 import dev.sebastiano.anatomy.kit.TextMark
 import dev.sebastiano.anatomy.kit.Tone
+import dev.sebastiano.anatomy.kit.TubeMark
 import dev.sebastiano.anatomy.kit.WireMark
 import dev.sebastiano.anatomy.kit.axisVector
 import dev.sebastiano.anatomy.kit.boxCorners
@@ -119,7 +120,8 @@ class ParityTest {
                     serialize(mark.art, offsets)
                 }
                 is WireMark,
-                is FadeLineMark -> error("not in this figure")
+                is FadeLineMark,
+                is TubeMark -> error("not in this figure")
             }
         }
     }

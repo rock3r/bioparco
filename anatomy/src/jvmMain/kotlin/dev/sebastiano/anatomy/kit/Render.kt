@@ -55,7 +55,11 @@ interface MarkRecorder {
      */
     fun begin(scale: Double, origin: Flat) {}
 
-    fun record(mark: Mark, offset: Flat)
+    /**
+     * [mark] painted at [offset], inside every clip in [clips] (a group's `clip`, already placed
+     * where it was applied, in viewBox units): only what lies inside all of them shows.
+     */
+    fun record(mark: Mark, offset: Flat, clips: List<IsoPath> = emptyList())
 
     companion object {
         /**
@@ -81,25 +85,28 @@ class IsoScope(
 ) {
     // The device matrix when the frame starts, so a mark's offset is the translation added since.
     private val home: FloatArray? = recorder?.let { sink ->
-        deviceMatrix().also {
+        draw.drawContext.canvas.nativeCanvas.localToDeviceAsMatrix33.mat.also {
             sink.begin(it[0].toDouble(), Flat(it[2].toDouble(), it[5].toDouble()))
         }
     }
 
-    private fun deviceMatrix(): FloatArray =
-        draw.drawContext.canvas.nativeCanvas.localToDeviceAsMatrix33.mat
+    // The clips of the groups being painted, where they were applied, for the recorder.
+    private val clips = ArrayList<IsoPath>()
 
-    private fun record(mark: Mark) {
-        val recorder = recorder ?: return
-        val home = home ?: return
-        val now = deviceMatrix()
-        recorder.record(
-            mark,
-            Flat(
-                ((now[2] - home[2]) / home[0]).toDouble(),
-                ((now[5] - home[5]) / home[4]).toDouble(),
-            ),
+    /** The translation added since the frame started, in viewBox units; null when not recording. */
+    private fun here(): Flat? {
+        val home = home ?: return null
+        val now = draw.drawContext.canvas.nativeCanvas.localToDeviceAsMatrix33.mat
+        return Flat(
+            ((now[2] - home[2]) / home[0]).toDouble(),
+            ((now[5] - home[5]) / home[4]).toDouble(),
         )
+    }
+
+    internal fun record(mark: Mark) {
+        val recorder = recorder ?: return
+        val offset = here() ?: return
+        recorder.record(mark, offset, clips.toList())
     }
 
     /** A screen-px length in viewBox units. */
@@ -158,10 +165,17 @@ class IsoScope(
             is TextMark -> drawText(mark)
             is HaloMark -> drawHalo(mark)
             is FadeLineMark -> drawFadeLine(mark)
+            is TubeMark -> drawTube(mark)
             is GroupMark -> {
                 val clip = mark.clip
-                if (clip == null) drawGroup(mark, offsetOf)
-                else draw.clipPath(clip.path) { drawGroup(mark, offsetOf) }
+                if (clip == null) {
+                    drawGroup(mark, offsetOf)
+                } else {
+                    val at = here()
+                    if (at != null) clips.add(clip.iso.moved(at))
+                    draw.clipPath(clip.path) { drawGroup(mark, offsetOf) }
+                    if (at != null) clips.removeAt(clips.size - 1)
+                }
             }
         }
     }
@@ -176,7 +190,7 @@ class IsoScope(
         }
     }
 
-    private fun hairline(width: Float = WEIGHT, effect: PathEffect? = null) =
+    internal fun hairline(width: Float = WEIGHT, effect: PathEffect? = null) =
         DrawStroke(
             width = px(width),
             cap = StrokeCap.Round,
