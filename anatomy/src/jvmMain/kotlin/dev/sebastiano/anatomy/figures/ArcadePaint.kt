@@ -63,6 +63,7 @@ internal class ArcadePaint(palette: Palette) {
     fun paint(scope: IsoScope, m: ArcadeMachine) =
         with(scope) {
             val picture = m.picture()
+            colors.tick(m, picture)
             drawArt(ArcadeCabinet.BUILD.back)
             solid(tray, Tone.Lo)
             for (i in 0 until m.stack) drawArt(stack[i])
@@ -97,8 +98,8 @@ internal class ArcadePaint(palette: Palette) {
         val value = (kotlin.math.round(m.stick * 1000) / 1000)
         if (value == tilt) return
         tilt = value
-        upper = ArcadeParts.upper(value * 0.21)
-        lower = ArcadeParts.lower(value * 0.21)
+        upper = ArcadeParts.upper(m.stick * 0.21)
+        lower = ArcadeParts.lower(m.stick * 0.21)
     }
 
     private fun item(
@@ -191,10 +192,7 @@ internal class ArcadePaint(palette: Palette) {
     private fun bezel(s: IsoScope, m: ArcadeMachine, p: ArcadePicture) =
         with(s) {
             draw.clipPath(opening) {
-                drawPath(
-                    glass,
-                    if (p.bright > 0.05 && p.sx > 0) palette.litShade else palette.shades[0],
-                )
+                drawPath(glass, colors.glassInk)
                 draw.clipPath(glass) { screen.paint(s, m, p) }
                 for ((tone, path) in ArcadeBezel.RECESS) drawPath(
                     path.toComposePath(),
@@ -230,37 +228,12 @@ internal class ArcadePaint(palette: Palette) {
             draw.withTransform({ transform(a.matrix.composeMatrix()) }) {
                 when (name) {
                     "marquee.plexi" -> {
-                        drawPath(
-                            a.painted[0],
-                            if (marqueeLevel(m) > 0.5) palette.lit else palette.shades[3],
-                        )
-                        drawRoundRect(
-                            palette.lo,
-                            Offset(-56f, -13.6f),
-                            Size(112f, 27.2f),
-                            androidx.compose.ui.geometry.CornerRadius(2f),
-                            style = Stroke(px(0.5f) / Arcade.KS.toFloat()),
-                        )
+                        drawPath(a.painted[0], colors.marqueeInk)
                     }
                     "fan.rotor" -> {
-                        drawCircle(palette.shades[0], 12f)
+                        drawCircle(palette.shades[0], 12f, Offset.Zero)
                         drawPath(a.painted[0], palette.shades[2])
-                        drawPath(
-                            a.painted[0],
-                            palette.lo,
-                            style = Stroke(px(0.4f) / Arcade.KS.toFloat()),
-                        )
-                        drawCircle(palette.top, 3.4f)
-                        drawCircle(
-                            palette.mid,
-                            3.4f,
-                            style = Stroke(px(0.5f) / Arcade.KS.toFloat()),
-                        )
-                        drawPath(
-                            a.painted[1],
-                            palette.mid,
-                            style = Stroke(px(0.5f) / Arcade.KS.toFloat()),
-                        )
+                        drawCircle(palette.top, 3.4f, Offset.Zero)
                     }
                     "meter.face" -> {
                         drawRoundRect(
@@ -269,15 +242,14 @@ internal class ArcadePaint(palette: Palette) {
                             Size(6.8f, 4.8f),
                             androidx.compose.ui.geometry.CornerRadius(0.4f),
                         )
-                        drawRoundRect(
-                            palette.lo,
-                            Offset.Zero,
-                            Size(6.8f, 4.8f),
-                            androidx.compose.ui.geometry.CornerRadius(0.4f),
-                            style = Stroke(px(0.4f) / Arcade.KS.toFloat()),
-                        )
                     }
                 }
+            }
+            for ((i, path) in a.outlines.withIndex()) {
+                val ink = if (name == "fan.rotor" && i > 0) palette.mid else palette.lo
+                val width =
+                    if (name == "meter.face" || (name == "fan.rotor" && i == 0)) 0.4f else 0.5f
+                draw.drawPath(path, ink, style = Stroke(px(width)))
             }
             if (name == "meter.face") {
                 val matrix =

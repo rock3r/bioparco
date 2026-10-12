@@ -35,8 +35,13 @@ Open the closest example before you start, in `anatomy/src/jvmMain/kotlin/dev/se
   exploded views (staggered springs, per-frame depth re-sorting, `ride`, selection) and the audit.
   Its recording helpers live in the kit as `PartRecorder` (`kit/audit/Parts.kt` and
   `PartsPipes.kt`): draw and record every part through them (see `references/audit.md`).
+- `Arcade*.kt`, Fig 8: the original's arcade cabinet, held to all 349 settled items and 15 routes
+  by `ArcadeParityTest`. It combines recorded concave panels/cables with face-local bitmap art,
+  quarter physics, switch-wire springs, cable pulses, CRT warm-up/self-test/attract states and
+  joystick microswitches. `ArcadeMachine` is the tested live model; `ArcadePaint` paints cached
+  geometry and reads each frame only inside `IsoCanvas`.
 
-The original's other examples (desk computer, arcade cabinet, ripple tank, test rig,
+The original's other examples (desk computer, ripple tank, test rig,
 spot plate, turning dial) are worth reading for design even though they are JavaScript:
 https://github.com/wheresryan22/anatomy/tree/main/examples. The test rig is the quality bar.
 

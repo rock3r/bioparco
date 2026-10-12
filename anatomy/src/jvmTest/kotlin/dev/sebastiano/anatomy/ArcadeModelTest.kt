@@ -2,8 +2,10 @@ package dev.sebastiano.anatomy
 
 import dev.sebastiano.anatomy.figures.Arcade
 import dev.sebastiano.anatomy.figures.ArcadeCoinMotion
+import dev.sebastiano.anatomy.figures.ArcadeGame
 import dev.sebastiano.anatomy.figures.ArcadeMachine
 import dev.sebastiano.anatomy.figures.ArcadeParts
+import dev.sebastiano.anatomy.figures.ArcadePulse
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -97,5 +99,59 @@ class ArcadeModelTest {
         assertEquals(emptyList(), ArcadeParts.closed(0.12, -0.12))
         assertEquals(listOf("left", "down"), ArcadeParts.closed(0.121, -0.121))
         assertEquals(listOf("right", "up"), ArcadeParts.closed(-0.21, 0.21))
+    }
+
+    @Test
+    fun cablePulseWaitsThenTravelsFromFirstChunkToTheMiddleAndLeavesTheEnd() {
+        val pulse = ArcadePulse("cable.video", -0.5, 0.5)
+        fun hot() = (0..10).filter { pulse.hot(it, 11) }
+        assertEquals(emptyList(), hot())
+        pulse.t = 0.0
+        assertEquals(listOf(0), hot())
+        pulse.t = 0.25
+        assertEquals(listOf(5, 6), hot())
+        pulse.t = 0.5
+        assertEquals(emptyList(), hot())
+    }
+
+    @Test
+    fun attractGameHonoursUserInputAndScoresHitsRatherThanAdvancingDuringSelfTest() {
+        val m = ArcadeMachine()
+        val g = ArcadeGame { 0.5 }
+        g.tick(m, 0.1, "test")
+        assertEquals(112.0, g.shipX)
+        assertEquals(0.0, g.offset)
+        g.userAt = m.clock
+        m.stick = -1.0
+        g.tick(m, 1.0, "attract")
+        assertEquals(14.0, g.shipX)
+        m.stick = 1.0
+        g.tick(m, 1.0, "attract")
+        assertEquals(210.0, g.shipX)
+        m.stick = 0.0
+        g.shipX = 43.0
+        m.fire = 1.0
+        repeat(60) { g.tick(m, 0.01, "attract") }
+        assertEquals(17, g.alive.count { it })
+        assertEquals(10, g.score)
+    }
+
+    @Test
+    fun aSecondQuarterAddsCreditWithoutRestartingThePoweredBoard() {
+        val m = ArcadeMachine()
+        m.touring = false
+        m.insertCoin()
+        repeat(800) { m.tick(0.01, false) }
+        val since = m.powerAt
+        m.insertCoin()
+        repeat(300) { m.tick(0.01, false) }
+        assertEquals(2, m.credits)
+        assertEquals(2, m.pile)
+        assertEquals(4129, m.meter)
+        assertEquals(since, m.powerAt)
+        assertEquals("attract", m.picture().mode)
+        assertEquals("Attract mode, 1 credit.", m.status)
+        m.setPower(false)
+        assertEquals(0, m.credits)
     }
 }

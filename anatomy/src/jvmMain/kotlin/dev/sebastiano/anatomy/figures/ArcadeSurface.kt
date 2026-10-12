@@ -2,6 +2,8 @@
 // See anatomy/LICENSE.
 package dev.sebastiano.anatomy.figures
 
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.vector.PathParser
@@ -15,8 +17,10 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /** Face-local paths, parsed once; all inks resolve from the figure's palette when painted. */
-internal class ArcadeSurface(val matrix: FaceMatrix, val paths: List<String>) {
+internal class ArcadeSurface(val matrix: FaceMatrix, val paths: List<String>, rims: List<Path>) {
     val painted: List<Path> = paths.map { PathParser().parsePathString(it).toPath() }
+    /** Project geometry first so the original's non-scaling strokes stay round and uniform. */
+    val outlines = rims.map { it.apply { transform(matrix.composeMatrix()) } }
 
     companion object {
         fun marquee(): ArcadeSurface {
@@ -25,6 +29,7 @@ internal class ArcadeSurface(val matrix: FaceMatrix, val paths: List<String>) {
             return ArcadeSurface(
                 arcadeMatrix(Point3(0.0, 125.02, 338.0), Arcade.X, Point3(0.0, 0.0, -1.0)),
                 listOf(ArcadeScreen.text("ANATOMY", -w / 2, -6.0, sc)),
+                listOf(Path().apply { addRoundRect(RoundRect(-56f, -13.6f, 56f, 13.6f, 2f, 2f)) }),
             )
         }
 
@@ -32,6 +37,7 @@ internal class ArcadeSurface(val matrix: FaceMatrix, val paths: List<String>) {
             ArcadeSurface(
                 arcadeMatrix(Point3(-58.02, 109.6, 18.4), Arcade.Y, Point3(0.0, 0.0, -1.0)),
                 emptyList(),
+                listOf(Path().apply { addRoundRect(RoundRect(0f, 0f, 6.8f, 4.8f, 0.4f, 0.4f)) }),
             )
 
         fun fan(): ArcadeSurface {
@@ -55,6 +61,11 @@ internal class ArcadeSurface(val matrix: FaceMatrix, val paths: List<String>) {
             return ArcadeSurface(
                 arcadeMatrix(Point3(-18.0, 7.42, 262.0), Arcade.X, Point3(0.0, 0.0, -1.0)),
                 listOf(blades, guard + spokes),
+                listOf(
+                    arcadePath(blades),
+                    Path().apply { addOval(Rect(-3.4f, -3.4f, 3.4f, 3.4f)) },
+                    arcadePath(guard + spokes),
+                ),
             )
         }
     }

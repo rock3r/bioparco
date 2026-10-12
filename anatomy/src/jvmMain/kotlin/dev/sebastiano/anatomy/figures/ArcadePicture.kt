@@ -68,9 +68,13 @@ internal fun arcadeSay(m: ArcadeMachine, p: ArcadePicture): String {
                 "warming · heater ${String.format(Locale.ROOT, "%.1f", minOf(2.2, p.t))} s"
             else -> "credit ${m.credits} · 15.734 kHz" + controlSay(m)
         }
-    if (m.power && p.mode == "attract")
-        m.status = "Attract mode, ${m.credits} credit${if (m.credits == 1) "" else "s"}."
-    if (m.power && p.mode == "test") m.status = "Self-test."
+    val now = if (m.power) p.mode else "off"
+    if (now != m.spokenMode) {
+        m.spokenMode = now
+        if (now == "attract")
+            m.status = "Attract mode, ${m.credits} credit${if (m.credits == 1) "" else "s"}."
+        if (now == "test") m.status = "Self-test."
+    }
     return text
 }
 

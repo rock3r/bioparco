@@ -13,6 +13,7 @@ internal class ArcadeMachine {
     var powerAt = -99.0
     var offAt = -99.0
     var lastMode = "none"
+    var spokenMode = ""
     var status = ""
     var meter = 4127
     var credits = 0
