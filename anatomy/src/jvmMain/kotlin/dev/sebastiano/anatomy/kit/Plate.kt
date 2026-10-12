@@ -26,12 +26,19 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke as DrawStroke
 import androidx.compose.ui.graphics.vector.PathParser
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import org.jetbrains.jewel.ui.component.Text
+
+/** The least space between the hint and the readout on one line. */
+private val CORNER_GAP = 16.dp
+
+/** How far the hint moves up when it can't share a line with the readout. */
+private val LINE_STEP = 18.dp
 
 /** Below this card width the hint moves above the readout, as on the original's phones. */
 private val NARROW = 528.dp
@@ -85,14 +92,12 @@ fun Plate(
             Box(Modifier.matchParentSize().padding(horizontal = 20.dp, vertical = 18.dp)) {
                 Corner(fig, palette.text, Modifier.align(Alignment.TopStart))
                 Corner(title.uppercase(), palette.muted, Modifier.align(Alignment.TopEnd), 0.1.em)
-                Corner(
-                    hint.uppercase(),
-                    palette.muted,
-                    Modifier.align(Alignment.BottomStart)
-                        .padding(bottom = if (narrow) 18.dp else 0.dp),
-                    0.1.em,
+                BottomCorners(
+                    stacked = narrow,
+                    modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
+                    hint = { Corner(hint.uppercase(), palette.muted, spacing = 0.1.em) },
+                    readout = { Readout(readout, palette.text) },
                 )
-                Readout(readout, palette.text, Modifier.align(Alignment.BottomEnd))
             }
         }
         if (keys.isNotEmpty() || caption != null) {
@@ -132,6 +137,34 @@ private fun Corner(
         letterSpacing = spacing,
         maxLines = 1,
     )
+}
+
+/**
+ * The hint at bottom left and the readout at bottom right, on one line while they fit. When they
+ * don't, on a narrow card or with a long readout, the hint moves up a line, as on the original's
+ * phones, so the two never run into each other.
+ */
+@Composable
+private fun BottomCorners(
+    stacked: Boolean,
+    hint: @Composable () -> Unit,
+    readout: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Layout(contents = listOf(hint, readout), modifier = modifier) { (hints, readouts), constraints
+        ->
+        val loose = constraints.copy(minWidth = 0, minHeight = 0)
+        val h = hints.first().measure(loose)
+        val r = readouts.first().measure(loose)
+        val gap = CORNER_GAP.roundToPx()
+        val apart = stacked || h.width + gap + r.width > constraints.maxWidth
+        val line = maxOf(h.height, r.height)
+        val height = if (apart) line + LINE_STEP.roundToPx() else line
+        layout(constraints.maxWidth, height) {
+            h.place(0, 0)
+            r.place(constraints.maxWidth - r.width, height - r.height)
+        }
+    }
 }
 
 @Composable
