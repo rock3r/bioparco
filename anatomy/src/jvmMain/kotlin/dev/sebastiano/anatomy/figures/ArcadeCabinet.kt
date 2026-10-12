@@ -138,6 +138,11 @@ internal fun ArcadeBuild.cabinet() {
     box("cleat.back", Point3(56.0, 4.0, 12.0), Point3(60.0, 8.0, 350.0), Tone.Lo)
     box("cleat.top", Point3(56.0, 8.0, 350.0), Point3(60.0, 122.0, 354.0), Tone.Lo)
     box("cleat.front", Point3(56.0, 148.0, 12.0), Point3(60.0, 152.0, 164.0), Tone.Lo)
+    cabinetBoards()
+    marquee()
+}
+
+private fun ArcadeBuild.cabinetBoards() {
     board(
         "floor",
         Arcade.rect(4.0, 152.0, 4.0, 8.0),
@@ -195,14 +200,18 @@ internal fun ArcadeBuild.cabinet() {
     )
     board(
         "cp.front",
-        listOf(Floor(174.0, 170.0), Floor(178.0, 170.0), Floor(178.0, 180.89), Floor(174.0, 181.94)),
+        listOf(
+            Floor(174.0, 170.0),
+            Floor(178.0, 170.0),
+            Floor(178.0, 180.89),
+            Floor(174.0, 181.94),
+        ),
     )
     board(
         "cp.bottom",
         listOf(Floor(152.0, 168.0), Floor(174.0, 170.0), Floor(174.0, 174.0), Floor(152.0, 172.0)),
         tone = Tone.Lo,
     )
-    marquee()
 }
 
 private fun ArcadeBuild.marquee() {
@@ -238,7 +247,13 @@ private fun ArcadeBuild.marquee() {
     turned(
         "speaker.basket",
         Arcade.SPK_F,
-        listOf(Knot(0.0, 5.6), Knot(0.8, 5.6), Knot(0.8, 4.8), Knot(2.4, 2.8, true), Knot(2.8, 2.4)),
+        listOf(
+            Knot(0.0, 5.6),
+            Knot(0.8, 5.6),
+            Knot(0.8, 4.8),
+            Knot(2.4, 2.8, true),
+            Knot(2.8, 2.4),
+        ),
     )
     disc("speaker.magnet", Arcade.SPK_F, 2.8, 3.8, 2.6, Tone.Lo)
 }

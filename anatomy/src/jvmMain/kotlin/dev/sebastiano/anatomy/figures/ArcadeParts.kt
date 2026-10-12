@@ -153,6 +153,23 @@ internal fun ArcadeBuild.controls() {
         prism("stick.bracket", frame, Arcade.rect(0.0, 0.5, -2.2, 2.2), -1.0, 6.8, Tone.Lo)
     }
     disc("stick.bushing", f, -5.2, -3.6, 2.2, Tone.Lo, owner = "stick")
+    val shapes = recordedStickLower(up)
+    put("stick.lower", add3(j, mul3(up, -9.0)), shapes) { add(ArcadeParts.lower()) }
+    put(
+        "stick.bolts",
+        j,
+        corners.map { recorder.solid(ball(it, 0.4, ShapeMeta(name = "stick.bolt"))) },
+        0.1,
+    ) {
+        dots(corners.map(Arcade::at), 0.55, Tone.Mid)
+    }
+    stickUpper()
+    buttons()
+}
+
+private fun ArcadeBuild.recordedStickLower(
+    up: Point3
+): List<dev.sebastiano.anatomy.kit.audit.AuditShape> {
     val pivot = frameAlong(Arcade.PIVOT, up)
     val shapes =
         arrayListOf<dev.sebastiano.anatomy.kit.audit.AuditShape>(
@@ -209,15 +226,12 @@ internal fun ArcadeBuild.controls() {
             )
         )
     }
-    put("stick.lower", add3(j, mul3(up, -9.0)), shapes) { add(ArcadeParts.lower()) }
-    put(
-        "stick.bolts",
-        j,
-        corners.map { recorder.solid(ball(it, 0.4, ShapeMeta(name = "stick.bolt"))) },
-        0.1,
-    ) {
-        dots(corners.map(Arcade::at), 0.55, Tone.Mid)
-    }
+    return shapes
+}
+
+private fun ArcadeBuild.stickUpper() {
+    val j = Arcade.JO
+    val up = Arcade.CPN
     put(
         "stick.upper",
         add3(j, mul3(up, 8.0)),
@@ -248,7 +262,6 @@ internal fun ArcadeBuild.controls() {
     ) {
         add(ArcadeParts.upper())
     }
-    buttons()
 }
 
 private fun ArcadeBuild.buttons() {

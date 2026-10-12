@@ -287,6 +287,9 @@ private fun keyOf(name: String): Key =
         "Enter" -> Key.Enter
         "Escape" -> Key.Escape
         "Tab" -> Key.Tab
+        "c",
+        "C" -> Key.C
+        "5" -> Key.Five
         "i",
         "I" -> Key.I
         else -> error("unknown key $name")

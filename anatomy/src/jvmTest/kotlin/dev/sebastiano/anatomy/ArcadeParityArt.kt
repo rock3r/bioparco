@@ -15,20 +15,7 @@ import java.util.Locale
 internal fun MutableList<String>.arcadeArt(art: Art) {
     art.marks.forEachIndexed { index, mark ->
         when (mark) {
-            is SolidMark -> {
-                val p = mark.paths
-                add("path\t${p.fill.svg()}")
-                if (!mark.flat) {
-                    for (s in p.shades) if (!s.isEmpty) add("path\t${s.svg()}")
-                    add("path\t${p.top.svg()}")
-                }
-                if (mark.crease != null) {
-                    if (!p.crease.isEmpty) add("path\t${p.crease.svg()}")
-                    p.bevel?.takeUnless { it.isEmpty }?.let { add("path\t${it.svg()}") }
-                }
-                mark.inner?.let { arcadeArt(it) }
-                add("path\t${p.outline.svg()}")
-            }
+            is SolidMark -> arcadeSolid(mark)
             is LineMark -> {
                 // A slot is one filled/stroked SVG path, expressed with two kit marks.
                 val previous = art.marks.getOrNull(index - 1)
@@ -72,6 +59,21 @@ internal fun MutableList<String>.arcadeArt(art: Art) {
             else -> error("Not in the cabinet: ${mark.javaClass.simpleName}")
         }
     }
+}
+
+private fun MutableList<String>.arcadeSolid(mark: SolidMark) {
+    val p = mark.paths
+    add("path\t${p.fill.svg()}")
+    if (!mark.flat) {
+        for (s in p.shades) if (!s.isEmpty) add("path\t${s.svg()}")
+        add("path\t${p.top.svg()}")
+    }
+    if (mark.crease != null) {
+        if (!p.crease.isEmpty) add("path\t${p.crease.svg()}")
+        p.bevel?.takeUnless { it.isEmpty }?.let { add("path\t${it.svg()}") }
+    }
+    mark.inner?.let { arcadeArt(it) }
+    add("path\t${p.outline.svg()}")
 }
 
 internal fun arcadeMatrixLine(m: FaceMatrix) =

@@ -33,6 +33,12 @@ internal fun ArcadeBuild.coinDoor() {
         steps = 3,
         bevel = 0.4,
     )
+    coinEntries()
+    doorHardware()
+    mechs()
+}
+
+private fun ArcadeBuild.coinEntries() {
     for (cx in listOf(-42.0, -18.0)) {
         box(
             "door.entry",
@@ -67,6 +73,9 @@ internal fun ArcadeBuild.coinDoor() {
             solid(slabOf(Plan(cx - 5, 159.8, 10.0, 1.2, 0.6), 90.0, 8.0, Arcade.P, 2, 0.3), Tone.Hi)
         }
     }
+}
+
+private fun ArcadeBuild.doorHardware() {
     disc("door.lock", frameAlong(Point3(-30.0, 158.4, 72.0), Arcade.Y), 0.0, 1.6, 2.4, Tone.Hi) {
         line(
             pathOf(
@@ -116,7 +125,6 @@ internal fun ArcadeBuild.coinDoor() {
             free = Free.Both,
         )
     }
-    mechs()
 }
 
 private fun ArcadeBuild.mechs() {

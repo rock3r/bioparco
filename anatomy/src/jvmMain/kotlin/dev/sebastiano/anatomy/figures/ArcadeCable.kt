@@ -109,6 +109,13 @@ internal fun ArcadeBuild.cable(
 }
 
 internal fun ArcadeBuild.harness() {
+    controlHarness()
+    coinHarness()
+    utilityHarness()
+    monitorCables()
+}
+
+private fun ArcadeBuild.controlHarness() {
     box("loom.plug", Point3(-55.0, 147.2, 173.2), Point3(-43.0, 150.4, 176.8))
     val top = 192.1 - (148 - 135.24) * ((192.1 - 181.1) / (177.24 - 135.24))
     box("loom.plug.bracket", Point3(-51.0, 148.0, 176.8), Point3(-47.6, 149.0, top), Tone.Lo)
@@ -146,6 +153,9 @@ internal fun ArcadeBuild.harness() {
             else listOf(tab, Point3(tab.x, tab.y, z), Point3(x, 150.4, z))
         cable("wire.stick.${sw.id}", route, 0.25, ArcadeCable(Tone.Lo, 1.2))
     }
+}
+
+private fun ArcadeBuild.coinHarness() {
     val swx = (-54.4 - 50.7) / 2
     val swz = Arcade.chuteZ(124.0) - 2.4
     cable(
@@ -188,6 +198,9 @@ internal fun ArcadeBuild.harness() {
         0.7,
         ArcadeCable(bend = 5.0, shells = false to true),
     )
+}
+
+private fun ArcadeBuild.utilityHarness() {
     cable(
         "wire.service",
         listOf(
@@ -213,7 +226,6 @@ internal fun ArcadeBuild.harness() {
         ArcadeCable(Tone.Lo, 4.0),
     )
     cable("cord.ac", listOf(Point3(-30.0, 6.0, 22.0), Point3(-30.0, 13.0, 22.0)), 0.9)
-    monitorCables()
 }
 
 private fun ArcadeBuild.monitorCables() {

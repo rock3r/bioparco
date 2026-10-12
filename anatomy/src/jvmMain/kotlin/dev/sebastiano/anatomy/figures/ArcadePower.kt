@@ -18,6 +18,13 @@ import dev.sebastiano.anatomy.kit.ribsOf
 import dev.sebastiano.anatomy.kit.sideSeam
 
 internal fun ArcadeBuild.power() {
+    supply()
+    relayPlate()
+    service()
+    cabinetElectrics()
+}
+
+private fun ArcadeBuild.supply() {
     box("psu.base", Point3(-48.0, 10.0, 8.0), Point3(-20.0, 40.0, 9.4), Tone.Lo) {
         dots(
             listOf(
@@ -81,6 +88,9 @@ internal fun ArcadeBuild.power() {
             Tone.Hi,
         )
     }
+}
+
+private fun ArcadeBuild.relayPlate() {
     box("pw.plate", Point3(58.6, 14.0, 28.0), Point3(60.0, 58.0, 70.0), Tone.Lo) {
         dots(
             listOf(16.0 to 30.0, 56.0 to 30.0, 16.0 to 68.0, 56.0 to 68.0).map { (y, z) ->
@@ -113,7 +123,9 @@ internal fun ArcadeBuild.power() {
         )
     }
     box("pw.filter", Point3(52.6, 18.0, 42.0), Point3(58.6, 34.0, 49.0), Tone.Hi, r = 0.8)
-    service()
+}
+
+private fun ArcadeBuild.cabinetElectrics() {
     disc("cord.grip", frameAlong(Point3(-30.0, 4.0, 22.0), Arcade.Y), 0.0, 2.0, 2.6)
     box("outlet", Point3(-40.0, 4.0, 330.0), Point3(-10.0, 8.0, 338.0)) {
         dots(listOf(-34.0, -25.0, -16.0).map { Arcade.at(Point3(it, 8.0, 334.0)) }, 0.5, Tone.Lo)
