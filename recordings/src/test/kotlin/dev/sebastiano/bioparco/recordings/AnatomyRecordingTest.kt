@@ -100,6 +100,31 @@ private class Tour(private val automator: ComposeAutomator, private val windowTo
         delay(1_000)
         automator.pressKey(KeyEvent.VK_B)
         delay(3_500)
+
+        // Fig 6: hover the Raptor to take it apart, light up assemblies under the pointer, let it
+        // close up again, then fire it and shut it down.
+        scrollTo(Figure.RaptorEngine)
+        delay(1_200)
+        val raptor = canvas(RAPTOR)
+        glide(raptor, 0.5f to 0.98f, 0.5f to 0.45f, steps = 15, ms = 40)
+        delay(2_200)
+        glide(
+            raptor,
+            0.5f to 0.45f,
+            0.38f to 0.3f,
+            0.62f to 0.42f,
+            0.5f to 0.7f,
+            steps = 30,
+            ms = 50,
+        )
+        delay(1_000)
+        glide(raptor, 0.5f to 0.7f, 0.98f to 0.99f, steps = 8, ms = 30)
+        automator.moveTo(raptor.boundsOnScreen.x - 30, raptor.boundsOnScreen.y + 200)
+        delay(2_500)
+        automator.click(automator.allNodes().first { it.text == "IGNITE" })
+        delay(9_000)
+        automator.click(automator.allNodes().first { it.text == "SHUT DOWN" })
+        delay(3_500)
     }
 
     private fun dial(): AutomatorNode = canvas(DIAL)
@@ -170,6 +195,7 @@ private class Tour(private val automator: ComposeAutomator, private val windowTo
         const val BUNSEN = "A Bunsen burner"
         const val ESPRESSO = "A heat-exchanger"
         const val TURNING = "A combination dial"
+        const val RAPTOR = "Raptor 2 on a test stand"
         const val TOP_MARGIN = 40
         const val NOTCH = 60
         const val MAX_NOTCHES = 200
