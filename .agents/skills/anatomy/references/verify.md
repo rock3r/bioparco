@@ -21,6 +21,7 @@ review shots somewhere ignored (`.amp/in/artifacts/` or `build/`), never into th
 ./gradlew :anatomy:capture --args="dial-indicator --zoom 330,170,140,110"               # 4× close-up of x,y,w,h
 ./gradlew :anatomy:capture --args="dial-indicator --reduced --times 2"                  # reduced motion
 ./gradlew :anatomy:capture --args="dial-indicator --lines --out shots/lines.png"        # line ends, ringed
+./gradlew :anatomy:capture --args="<figure> --audit --out shots/figure.png"             # geometry audit
 ```
 
 | Option | Default | What it does |
@@ -38,6 +39,7 @@ review shots somewhere ignored (`.amp/in/artifacts/` or `build/`), never into th
 | `--zoom-scale` | 4 | |
 | `--reduced` | | Reduced motion. |
 | `--lines` | | Check line ends on each shot (see "Line ends"): print the report, ring loose ends in red on the PNG, write the report to a `.txt` beside it, and exit 1 if any end floats. |
+| `--audit` | | Run the geometry audit on a figure that records itself (see "Audit"): print the report, write it to `<name>-audit.txt` beside the PNG, and exit 1 on any failure. |
 
 Read every PNG you make: open it with `view_media` and look. Then run the figure for real with
 `./gradlew :anatomy:run` when you can, since the pointer feel only shows live.
@@ -92,6 +94,26 @@ clipping; a fill hides an end when it is painted later and covers the point, wit
 hit testing (so a dashed line's end in a gap isn't treated differently); and opacity is the mark's
 own (`faded` levels, dot tones and alphas, the halo's opacity), since there are no CSS groups.
 
+## Audit
+
+Screenshots catch what you think to look at. A figure with pipes, cables, round parts or an
+exploded view also needs its geometry checked, because a cable through a duct or a part drawn over
+the thing in front of it is invisible at 1× and obvious at 4×. Record the figure into a `Recorder`,
+settle its painter's keys from the geometry, and audit it (`references/audit.md`). Once the figure's
+object implements `AuditedFigure` and is listed in `AUDITED_FIGURES`:
+
+```sh
+./gradlew :anatomy:capture --args="<figure> --audit --out shots/figure.png"
+```
+
+It prints the report and `audit passed` or `audit failed: n problems`, writes the same text to
+`shots/figure-audit.txt` (read it there: `build-brief` hides a task's output), and exits 1 on any
+failure. A figure that doesn't record itself exits 2 and says so. Every line must print zero,
+assembled, apart and in every replayed frame of an explode; `in passing` and `free ends apart` are
+lists to read, not failures. `references/audit.md` has what each line means and how to fix it. A
+zero audit is necessary, not sufficient: it only checks what was recorded, so run `--lines` and look
+too.
+
 ## Close-ups
 
 The owner finds faults on a close-up of the light theme. Shoot that close-up yourself, everywhere,
@@ -135,6 +157,10 @@ seams, bevels, label plates, scales, the brackets that hold things), never decor
 - [ ] No leader lines, balloons, dimension arrows or floating labels; at most one engraved label.
 - [ ] Painter's order is right everywhere and in every pose: nothing behind shows through, springs and
   frames are split.
+- [ ] **Audit zero.** With pipes, cables, round parts or an explode, `capture --audit` ends `audit
+  passed` (read `<name>-audit.txt`): zero on every failing line, assembled, apart and in every
+  replayed frame. No interlock was hidden with a key bias, and every excused pair (`allow`,
+  `crowd`, `cover`) has been looked at at 8×.
 - [ ] No wire passes through a solid or another wire; wires run beside the structure, not across the
   subject's face.
 - [ ] Every row of dots, rule lines or grooves ends on a real edge or fades out. Seams on boxes wrap
