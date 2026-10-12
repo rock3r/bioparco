@@ -40,8 +40,15 @@ Open the closest example before you start, in `anatomy/src/jvmMain/kotlin/dev/se
   recess walls and clips in a side-face plane, palette-backed fills, measured screen text and a
   cursor, with 58 keycaps driven by a plain input/power/tour model (`DeskModel.kt`).
 
-The original's other examples (arcade cabinet, ripple tank, test rig,
-spot plate, turning dial) are worth reading for design even though they are JavaScript:
+- `Arcade*.kt`, Fig 8: the original's arcade cabinet, held to all 349 settled items and 15 routes
+  by `ArcadeParityTest`. It combines recorded concave panels/cables with face-local bitmap art,
+  quarter physics, switch-wire springs, cable pulses, CRT warm-up/self-test/attract states and
+  joystick microswitches. `ArcadeMachine` is the tested live model; `ArcadePaint` paints cached
+  geometry and reads each frame only inside `IsoCanvas`.
+
+
+The original's other examples (ripple tank, test rig and
+spot plate) are worth reading for design even though they are JavaScript:
 https://github.com/wheresryan22/anatomy/tree/main/examples. The test rig is the quality bar.
 
 ## The one idea that matters

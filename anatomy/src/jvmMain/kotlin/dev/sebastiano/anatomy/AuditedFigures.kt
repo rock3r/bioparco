@@ -20,6 +20,7 @@ internal val AUDITED_FIGURES: Map<Figure, AuditedFigure> =
         Figure.EspressoMachine to dev.sebastiano.anatomy.figures.EspressoMachine,
         Figure.TurningDial to TurningDial,
         Figure.RaptorEngine to dev.sebastiano.anatomy.figures.RaptorEngine,
+        Figure.ArcadeCabinet to dev.sebastiano.anatomy.figures.ArcadeCabinet,
     )
 
 /**

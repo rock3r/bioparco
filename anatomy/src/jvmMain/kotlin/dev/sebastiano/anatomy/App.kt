@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.sebastiano.anatomy.figures.ArcadeCabinetFigure
 import dev.sebastiano.anatomy.figures.BunsenBurnerFigure
 import dev.sebastiano.anatomy.figures.DeskComputerFigure
 import dev.sebastiano.anatomy.figures.DialIndicatorFigure
@@ -45,7 +46,8 @@ enum class Figure(val id: String, val title: String) {
     EspressoMachine("espresso-machine", "Espresso machine"),
     TurningDial("turning-dial", "Turning dial"),
     RaptorEngine("raptor-engine", "Raptor 2"),
-    DeskComputer("desk-computer", "Desk computer");
+    DeskComputer("desk-computer", "Desk computer"),
+    ArcadeCabinet("arcade-cabinet", "Arcade cabinet");
 
     companion object {
         fun of(id: String): Figure? = entries.firstOrNull { it.id == id }
@@ -68,6 +70,7 @@ fun FigureContent(
         Figure.TurningDial -> TurningDialFigure(palette, reducedMotion, modifier)
         Figure.RaptorEngine -> RaptorEngineFigure(palette, reducedMotion, modifier)
         Figure.DeskComputer -> DeskComputerFigure(palette, reducedMotion, modifier)
+        Figure.ArcadeCabinet -> ArcadeCabinetFigure(palette, reducedMotion, modifier)
     }
 }
 

@@ -282,30 +282,36 @@ private fun sendKeys(scene: ImageComposeScene, names: List<String>) {
     }
 }
 
+/** The keys `--key` understands, by the names `drive.mjs` uses. */
+private val KEYS: Map<String, Key> =
+    mapOf(
+        "Right" to Key.DirectionRight,
+        "ArrowRight" to Key.DirectionRight,
+        "Left" to Key.DirectionLeft,
+        "ArrowLeft" to Key.DirectionLeft,
+        "Up" to Key.DirectionUp,
+        "ArrowUp" to Key.DirectionUp,
+        "Down" to Key.DirectionDown,
+        "ArrowDown" to Key.DirectionDown,
+        "Home" to Key.MoveHome,
+        "End" to Key.MoveEnd,
+        "Space" to Key.Spacebar,
+        "Enter" to Key.Enter,
+        "Escape" to Key.Escape,
+        "Tab" to Key.Tab,
+        "Backspace" to Key.Backspace,
+        "Shift" to Key.ShiftLeft,
+        "ShiftRight" to Key.ShiftRight,
+        "Comma" to Key.Comma,
+        "c" to Key.C,
+        "C" to Key.C,
+        "5" to Key.Five,
+        "i" to Key.I,
+        "I" to Key.I,
+    )
+
 private fun keyOf(name: String): Key =
-    when (name) {
-        "Right",
-        "ArrowRight" -> Key.DirectionRight
-        "Left",
-        "ArrowLeft" -> Key.DirectionLeft
-        "Up",
-        "ArrowUp" -> Key.DirectionUp
-        "Down",
-        "ArrowDown" -> Key.DirectionDown
-        "Home" -> Key.MoveHome
-        "End" -> Key.MoveEnd
-        "Space" -> Key.Spacebar
-        "Enter" -> Key.Enter
-        "Escape" -> Key.Escape
-        "Tab" -> Key.Tab
-        "Backspace" -> Key.Backspace
-        "Shift" -> Key.ShiftLeft
-        "ShiftRight" -> Key.ShiftRight
-        "Comma" -> Key.Comma
-        "i",
-        "I" -> Key.I
-        else -> if (name.length == 1) Key.Unknown else error("unknown key $name")
-    }
+    KEYS[name] ?: if (name.length == 1) Key.Unknown else error("unknown key $name")
 
 private fun parse(args: Array<String>): Options? {
     val figure = args.firstOrNull()?.let { Figure.of(it) }
