@@ -121,6 +121,7 @@ class ParityTest {
                     serialize(mark.art, offsets)
                 }
                 is WireMark,
+                is dev.sebastiano.anatomy.kit.FillMark,
                 is VoidMark,
                 is FadeLineMark,
                 is TubeMark -> error("not in this figure")

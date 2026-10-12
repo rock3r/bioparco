@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.sebastiano.anatomy.figures.BunsenBurnerFigure
+import dev.sebastiano.anatomy.figures.DeskComputerFigure
 import dev.sebastiano.anatomy.figures.DialIndicatorFigure
 import dev.sebastiano.anatomy.figures.EspressoMachineFigure
 import dev.sebastiano.anatomy.figures.RaptorEngineFigure
@@ -43,7 +44,8 @@ enum class Figure(val id: String, val title: String) {
     BunsenBurner("bunsen-burner", "Bunsen burner"),
     EspressoMachine("espresso-machine", "Espresso machine"),
     TurningDial("turning-dial", "Turning dial"),
-    RaptorEngine("raptor-engine", "Raptor 2");
+    RaptorEngine("raptor-engine", "Raptor 2"),
+    DeskComputer("desk-computer", "Desk computer");
 
     companion object {
         fun of(id: String): Figure? = entries.firstOrNull { it.id == id }
@@ -65,6 +67,7 @@ fun FigureContent(
         Figure.EspressoMachine -> EspressoMachineFigure(palette, reducedMotion, modifier)
         Figure.TurningDial -> TurningDialFigure(palette, reducedMotion, modifier)
         Figure.RaptorEngine -> RaptorEngineFigure(palette, reducedMotion, modifier)
+        Figure.DeskComputer -> DeskComputerFigure(palette, reducedMotion, modifier)
     }
 }
 

@@ -74,6 +74,8 @@ class LineMark(
     val free: Free,
     val width: Double?,
     val alpha: Double,
+    /** Non-kit surface strokes (scan lines, a CRT beam) are landings, not texture lines. */
+    val checkEnds: Boolean = true,
 ) : Mark()
 
 class DotsMark(
@@ -91,6 +93,7 @@ class TextMark(
     val size: Double,
     val tone: Tone,
     val anchor: Anchor,
+    val spacing: Double = 0.04,
 ) : Mark()
 
 /**

@@ -140,7 +140,8 @@ class RaptorParityTest {
                     )
                 is WireMark,
                 is FadeLineMark,
-                is GroupMark -> error("not in this figure")
+                is GroupMark,
+                is dev.sebastiano.anatomy.kit.FillMark -> error("not in this figure")
             }
         }
     }

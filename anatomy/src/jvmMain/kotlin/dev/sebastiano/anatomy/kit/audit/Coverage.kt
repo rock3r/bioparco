@@ -5,6 +5,7 @@ package dev.sebastiano.anatomy.kit.audit
 import dev.sebastiano.anatomy.kit.Art
 import dev.sebastiano.anatomy.kit.DotsMark
 import dev.sebastiano.anatomy.kit.FadeLineMark
+import dev.sebastiano.anatomy.kit.FillMark
 import dev.sebastiano.anatomy.kit.Flat
 import dev.sebastiano.anatomy.kit.GroupMark
 import dev.sebastiano.anatomy.kit.HaloMark
@@ -98,6 +99,7 @@ private fun markBox(mark: Mark): ScreenBox? =
         is FadeLineMark -> boxOfPoints(mark.points)
         is TubeMark -> tubeBox(mark)
         is VoidMark -> pathBox(mark.shape.iso)
+        is FillMark -> pathBox(mark.shape.iso)
         is GroupMark -> null
         is HaloMark,
         is TextMark -> null

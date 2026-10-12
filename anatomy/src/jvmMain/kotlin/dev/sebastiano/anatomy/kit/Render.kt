@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
@@ -20,16 +19,10 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
-import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.skiaPaint
 import androidx.compose.ui.text.TextMeasurer
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
 import kotlin.math.hypot
 import org.jetbrains.skia.FilterBlurMode
 import org.jetbrains.skia.MaskFilter
@@ -183,6 +176,7 @@ class IsoScope(
             is WireMark -> drawWire(mark)
             is TextMark -> drawText(mark)
             is HaloMark -> drawHalo(mark)
+            is FillMark -> drawFill(mark)
             is VoidMark -> {
                 record(mark)
                 draw.drawPath(mark.shape.path, palette.shades[0])
@@ -194,12 +188,22 @@ class IsoScope(
                 if (clip == null) {
                     drawGroup(mark, offsetOf)
                 } else {
-                    val at = here()
-                    if (at != null) clips.add(clip.iso.moved(at))
-                    draw.clipPath(clip.path) { drawGroup(mark, offsetOf) }
-                    if (at != null) clips.removeAt(clips.size - 1)
+                    clipped(clip) { drawGroup(mark, offsetOf) }
                 }
             }
+        }
+    }
+
+    /**
+     * A face opening's clip, also visible to the line checker; applied before its content moves.
+     */
+    fun clipped(clip: Shape, block: IsoScope.() -> Unit) {
+        val at = here()
+        if (at != null) clips.add(clip.iso.moved(at))
+        try {
+            draw.clipPath(clip.path) { block() }
+        } finally {
+            if (at != null) clips.removeAt(clips.size - 1)
         }
     }
 
@@ -293,43 +297,6 @@ class IsoScope(
         }
     }
 
-    private fun drawText(mark: TextMark) {
-        record(mark)
-        val layout =
-            textMeasurer.measure(
-                mark.text,
-                TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = (TEXT_REFERENCE / draw.density).sp,
-                    letterSpacing = 0.04.em,
-                ),
-            )
-        val anchorX =
-            when (mark.anchor) {
-                Anchor.Start -> 0f
-                Anchor.Middle -> layout.size.width / 2f
-                Anchor.End -> layout.size.width.toFloat()
-            }
-        val shrink = (mark.size / TEXT_REFERENCE).toFloat()
-        val m = mark.matrix
-        val matrix =
-            Matrix().apply {
-                this[0, 0] = m.u.x.toFloat()
-                this[0, 1] = m.u.y.toFloat()
-                this[1, 0] = m.v.x.toFloat()
-                this[1, 1] = m.v.y.toFloat()
-                this[3, 0] = m.origin.x.toFloat()
-                this[3, 1] = m.origin.y.toFloat()
-            }
-        draw.withTransform({
-            transform(matrix)
-            scale(shrink, shrink, Offset.Zero)
-            translate(-anchorX, -layout.firstBaseline)
-        }) {
-            drawText(layout, color = palette.ink(mark.tone))
-        }
-    }
-
     private fun drawHalo(mark: HaloMark) {
         record(mark)
         draw.drawIntoCanvas { canvas ->
@@ -407,7 +374,6 @@ class IsoScope(
     }
 
     private companion object {
-        const val TEXT_REFERENCE = 24.0
         const val HALO_DROP = 3f
         const val FADE_STOPS = 6
     }

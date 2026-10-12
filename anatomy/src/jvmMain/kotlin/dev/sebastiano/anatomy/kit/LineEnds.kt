@@ -128,12 +128,13 @@ private fun checkRun(
     var checked = 0
     val result =
         End.entries.associateWith { end ->
-            if (line.free.excuses(end) || line.cuts[index].excuses(end)) {
+            if (line.free.excuses(end)) {
                 0.0
             } else {
                 checked++
                 val p = if (end == End.Start) first else last
-                if (board.hidden(line.order, p)) 0.0
+                // The browser counts hidden endpoints too; a clip-cut end is hidden, not free.
+                if (line.cuts[index].excuses(end) || board.hidden(line.order, p)) 0.0
                 else board.clearance(line, index, end, p, reach)
             }
         }
@@ -235,6 +236,7 @@ private class Board(drawn: List<Drawn>, private val palette: Palette) {
                     mark.alpha,
                     describe(if (wire) "wire" else "line", mark.tone, mark.stroke),
                     mark.shape.iso.svg(),
+                    mark.checkEnds,
                 )
             is DotsMark -> addDots(order, mark, offset)
             is WireMark ->
@@ -257,6 +259,7 @@ private class Board(drawn: List<Drawn>, private val palette: Palette) {
                 }
             is TubeMark -> addTube(order, mark, offset)
             is VoidMark -> cover(order, mark.shape.iso, offset)
+            is FillMark -> if (mark.alpha >= COVER) cover(order, mark.shape.iso, offset)
             is TextMark,
             is GroupMark -> Unit
         }
@@ -300,6 +303,7 @@ private class Board(drawn: List<Drawn>, private val palette: Palette) {
         alpha: Double,
         what: String,
         d: String,
+        checkEnds: Boolean = true,
     ) {
         if (alpha < VISIBLE) return
         val element = elements++
@@ -307,7 +311,7 @@ private class Board(drawn: List<Drawn>, private val palette: Palette) {
         if (shown.isEmpty()) return
         val visible = shown.map { it.run }
         addSegmentsShown(element, visible)
-        if (alpha >= LEAST) {
+        if (checkEnds && alpha >= LEAST) {
             val cuts = shown.map { it.cut }
             lines += CheckedLine(element, order, visible, cuts, free, alpha, what, d.take(36))
         }

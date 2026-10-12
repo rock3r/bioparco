@@ -93,6 +93,22 @@ class FigureLineEndsTest {
         assertEquals(listOf("End at Flat(x=40.0, y=20.0)"), gone)
     }
 
+    @Test
+    fun `a clip-hidden end is counted like the original but cannot float`() {
+        val figure = art {
+            face()
+            group("window", clip = square(0.0, 0.0, 20.0, 40.0)) {
+                line(segment(0.0, 20.0, 30.0, 20.0))
+            }
+        }
+        val drawing = paint {
+            IsoCanvas(100.0, 50.0, Palette.Light, Modifier.width(200.dp)) { drawArt(figure) }
+        }
+        val report = lineEnds(drawing.marks)
+        assertEquals(2, report.ends)
+        assertEquals(emptyList(), report.loose)
+    }
+
     private fun ArtBuilder.face() {
         val outline = square(0.0, 0.0, 40.0, 40.0)
         solid(SolidPaths(outline, outline, IsoPath.Empty, outline, emptyList()), flat = true)
