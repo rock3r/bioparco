@@ -256,6 +256,7 @@ private class Board(drawn: List<Drawn>, private val palette: Palette) {
                     cover(order, mark.shape.iso, offset + Flat(0.0, HALO_DROP))
                 }
             is TubeMark -> addTube(order, mark, offset)
+            is VoidMark -> cover(order, mark.shape.iso, offset)
             is TextMark,
             is GroupMark -> Unit
         }

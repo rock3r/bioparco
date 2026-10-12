@@ -93,8 +93,17 @@ class TextMark(
     val anchor: Anchor,
 ) : Mark()
 
-/** A soft shadow: the path filled with the halo colour and blurred by [blur] screen px. */
-class HaloMark(val shape: Shape, val blur: Double) : Mark()
+/**
+ * A soft shadow: the path filled with the halo colour and blurred by [blur] screen px, at
+ * [opacity] times the theme's halo opacity.
+ */
+class HaloMark(val shape: Shape, val blur: Double, val opacity: Double = 1.0) : Mark()
+
+/**
+ * A hole seen into, the original's figure-level void fills (`fill: var(--anatomy-shade-0)`, no
+ * stroke): the path filled with the darkest side tone, which covers what is behind it.
+ */
+class VoidMark(val shape: Shape) : Mark()
 
 /** A line that fades out over its first [fadeStart] and last [fadeEnd] screen units. */
 class FadeLineMark(
@@ -256,9 +265,17 @@ class ArtBuilder {
         marks.add(TubeMark(piece, tone))
     }
 
-    /** A soft shadow under a base or a lifted part. [blur] is in screen px. */
-    fun halo(path: IsoPath, blur: Double = 9.0) {
-        marks.add(HaloMark(Shape(path), blur))
+    /** A hole seen into: [path] filled with the darkest side tone, unstroked. */
+    fun void(path: IsoPath) {
+        if (!path.isEmpty) marks.add(VoidMark(Shape(path)))
+    }
+
+    /**
+     * A soft shadow under a base or a lifted part. [blur] is in screen px; [opacity] scales the
+     * theme's halo opacity.
+     */
+    fun halo(path: IsoPath, blur: Double = 9.0, opacity: Double = 1.0) {
+        marks.add(HaloMark(Shape(path), blur, opacity))
     }
 
     /**

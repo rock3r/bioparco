@@ -183,6 +183,10 @@ class IsoScope(
             is WireMark -> drawWire(mark)
             is TextMark -> drawText(mark)
             is HaloMark -> drawHalo(mark)
+            is VoidMark -> {
+                record(mark)
+                draw.drawPath(mark.shape.path, palette.shades[0])
+            }
             is FadeLineMark -> drawFadeLine(mark)
             is TubeMark -> drawTube(mark)
             is GroupMark -> {
@@ -329,7 +333,7 @@ class IsoScope(
     private fun drawHalo(mark: HaloMark) {
         record(mark)
         draw.drawIntoCanvas { canvas ->
-            val paint = Paint().apply { color = palette.halo.copy(alpha = palette.haloOpacity) }
+            val paint = Paint().apply { color = palette.halo.copy(alpha = palette.haloOpacity * mark.opacity.toFloat()) }
             paint.skiaPaint.maskFilter =
                 MaskFilter.makeBlur(FilterBlurMode.NORMAL, mark.blur.toFloat())
             canvas.save()

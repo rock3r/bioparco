@@ -16,6 +16,7 @@ import dev.sebastiano.anatomy.kit.Projection
 import dev.sebastiano.anatomy.kit.SolidMark
 import dev.sebastiano.anatomy.kit.TextMark
 import dev.sebastiano.anatomy.kit.TubeMark
+import dev.sebastiano.anatomy.kit.VoidMark
 import dev.sebastiano.anatomy.kit.WireMark
 import dev.sebastiano.anatomy.kit.add3
 import dev.sebastiano.anatomy.kit.jsHypot
@@ -96,6 +97,7 @@ private fun markBox(mark: Mark): ScreenBox? =
         is WireMark -> unionBox(pathBox(mark.line.shape.iso), dotBox(mark.ends, mark.size))
         is FadeLineMark -> boxOfPoints(mark.points)
         is TubeMark -> tubeBox(mark)
+        is VoidMark -> pathBox(mark.shape.iso)
         is GroupMark -> null
         is HaloMark,
         is TextMark -> null
