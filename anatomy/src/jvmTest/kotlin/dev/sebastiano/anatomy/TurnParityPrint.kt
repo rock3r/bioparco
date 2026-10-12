@@ -229,10 +229,10 @@ private fun ParityLines.frame(at: String, run: TurnRun, f: TurnFrame) {
         }
     }
     put("$at.box", list(f.box, ::f4))
-    val quads = f.quads
+    val quads = f.quadList?.takeIf { f.quadN > 0 }
     put(
         "$at.hull",
-        quads?.joinToString(" | ") { list(it, ::f4) }
+        quads?.take(f.quadN)?.joinToString(" | ") { list(it.buf.copyOfRange(0, 2 * it.n), ::f4) }
             ?: list(f.hull.copyOfRange(0, 2 * f.hullN), ::f4),
     )
     put(

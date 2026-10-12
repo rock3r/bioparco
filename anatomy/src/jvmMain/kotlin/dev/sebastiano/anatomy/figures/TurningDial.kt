@@ -8,6 +8,7 @@ import dev.sebastiano.anatomy.kit.Frame
 import dev.sebastiano.anatomy.kit.Plan
 import dev.sebastiano.anatomy.kit.Point3
 import dev.sebastiano.anatomy.kit.add3
+import dev.sebastiano.anatomy.kit.art
 import dev.sebastiano.anatomy.kit.audit.Recorder
 import dev.sebastiano.anatomy.kit.boxCorners
 import dev.sebastiano.anatomy.kit.cross3
@@ -202,7 +203,8 @@ object TurningDial {
         val art =
             listOf("back", "mid", "front").associateWith { layer ->
                 painted.filter { layers[it.name] == layer }.map { it.name to (it.art ?: Art.Empty) }
-            }
+            }.toMutableMap()
+        art["back"] = listOf("stand.halo" to art { halo(statics.baseHalo()) }) + art.getValue("back")
         return Scene(t, r, built, statics.items, art, live.led!!, live.podAt)
     }
 

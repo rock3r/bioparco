@@ -101,6 +101,35 @@ export function lab() {
   return { T, R, P, out };
 }
 
+/**
+ * A small scene built to pass the orbit audit: a turntable with a block, a post and a pawl. With
+ * [broken], three faults are planted: a lug sunk into the block, a pawl long enough to swing
+ * through it, and a cable climbing straight at the viewer.
+ */
+export function spin(broken = false) {
+  const P = k.fitProjection([[-30, -30, -4], [30, 30, 12], [-30, 30, 0], [30, -30, 0]], 360, 280, { pad: 20, azimuth: 40, elevation: 31 });
+  const R = A.recorder(P);
+  const T = turning(P, { recorder: R });
+  const table = T.group("table", { turn: { pivot: [0, 0] } });
+  const pawl = T.group("pawl", { parent: table, hinge: { point: [10, 6, 0], axis: [0, 0, 1], range: [-20, 20] } });
+  const live = T.layer("live");
+  T.stack(["back", "live", "front"]);
+  T.round({ name: "table.disc", group: table, layer: live, F: VERT(0, 0), s0: 0, s1: 3, r: 20, crease: "lo", material: "steel", details: { ribs: { s0: 0.6, s1: 2.4, count: 60, seams: true, tone: "lo" } } });
+  T.prism({ name: "table.block", group: table, layer: live, plan: { x: -9, y: -7, w: 10, d: 8, r: 1 }, z: 3, h: 5, bevel: 0.4, material: "gold", details: { seams: [5] } });
+  T.round({ name: "table.post", group: table, layer: live, F: VERT(10, 6), s0: 3, s1: 9, r: 1.5, material: "chrome" });
+  T.prism({ name: "pawl.arm", group: pawl, layer: live, F: { o: [0, 0, 0], a: [0, 0, 1], u: [1, 0, 0], v: [0, 1, 0] }, polygon: [[8.5, 4.5], [14, 5], [14, 7], [8.5, 7.5]], s0: 9, s1: 10, bevel: 0.2, material: "brass" });
+  if (broken) {
+    T.prism({ name: "table.lug", group: table, layer: live, plan: { x: -2, y: -4, w: 4, d: 3, r: 0.5 }, z: 6, h: 4, material: "gunmetal" });
+    T.prism({ name: "pawl.blade", group: pawl, layer: live, F: { o: [0, 0, 0], a: [0, 0, 1], u: [1, 0, 0], v: [0, 1, 0] }, polygon: [[-2, 5], [9, 5.3], [9, 6.7], [-2, 7]], s0: 6, s1: 7, material: "chrome" });
+    T.tube({ name: "cable.bad", group: table, layer: live, route: [[-6, -3, 8], [-6 + 8 * Math.cos(0.7), -3 + 8 * Math.sin(0.7) * 0.6, 8 + 8 * Math.sin(0.54)]], r: 0.6, material: "rubber" });
+  }
+  R.put({ name: "stand.floor", layer: "back", svg: "", shapes: [R.solid(A.slab({ x: -30, y: -30, w: 60, d: 60, r: 3 }, -4, 4, { name: "stand.floor", ground: true }))] });
+  const wiggle = (t) => ({ table: 20 + 10 * t, pawl: 20 * Math.sin(2 * Math.PI * t) });
+  const poses = () => Array.from({ length: 180 }, (_, i) => ({ table: i * 2, pawl: 20 * Math.sin(i * 0.3) }));
+  const out = T.build({ statics: R.items, poses, strict: !broken });
+  return { T, R, P, out, wiggle };
+}
+
 function report(name, T, out) {
   const r = out.report;
   put(`${name}.report`, `${r.parts} ${r.groups}`);

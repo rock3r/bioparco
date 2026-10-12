@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import dev.sebastiano.anatomy.figures.BunsenBurnerFigure
 import dev.sebastiano.anatomy.figures.DialIndicatorFigure
 import dev.sebastiano.anatomy.figures.TokenBucketFigure
+import dev.sebastiano.anatomy.figures.TurningDialFigure
 import dev.sebastiano.anatomy.kit.Palette
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.jetbrains.jewel.ui.component.CheckboxRow
@@ -37,7 +38,8 @@ import org.jetbrains.jewel.ui.component.Text
 enum class Figure(val id: String, val title: String) {
     DialIndicator("dial-indicator", "Dial indicator"),
     TokenBucket("token-bucket", "Token bucket"),
-    BunsenBurner("bunsen-burner", "Bunsen burner");
+    BunsenBurner("bunsen-burner", "Bunsen burner"),
+    TurningDial("turning-dial", "Turning dial");
 
     companion object {
         fun of(id: String): Figure? = entries.firstOrNull { it.id == id }
@@ -56,6 +58,7 @@ fun FigureContent(
         Figure.DialIndicator -> DialIndicatorFigure(palette, reducedMotion, modifier)
         Figure.TokenBucket -> TokenBucketFigure(palette, reducedMotion, modifier)
         Figure.BunsenBurner -> BunsenBurnerFigure(palette, reducedMotion, modifier)
+        Figure.TurningDial -> TurningDialFigure(palette, reducedMotion, modifier)
     }
 }
 

@@ -473,14 +473,20 @@ private class TubeEmit(val run: TubeRun, val cam: TurnCam, val f: TurnFrame) {
                 if (p.y > f.box[3]) f.box[3] = p.y
             }
         }
-        f.quads = quads.map { q ->
-            DoubleArray(2 * q.size).also { buf ->
-                q.forEachIndexed { i, p ->
-                    buf[2 * i] = p.x
-                    buf[2 * i + 1] = p.y
-                }
+        val list =
+            f.quadList?.takeIf { it.size == quads.size }
+                ?: MutableList(quads.size) { QuadBuf(DoubleArray(0), 0) }
+        f.quadList = list
+        quads.forEachIndexed { qi, q ->
+            val entry = list[qi]
+            if (entry.buf.size < 2 * q.size) entry.buf = DoubleArray(2 * q.size)
+            q.forEachIndexed { i, p ->
+                entry.buf[2 * i] = p.x
+                entry.buf[2 * i + 1] = p.y
             }
+            entry.n = q.size
         }
+        f.quadN = quads.size
         f.hullN = 0
     }
 

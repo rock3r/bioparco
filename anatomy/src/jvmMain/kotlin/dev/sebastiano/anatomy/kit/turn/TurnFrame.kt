@@ -35,6 +35,9 @@ class Affine(
                 "${turnFix(e, 100.0)} ${turnFix(f, 100.0)})"
 }
 
+/** One quad or cap ring of a tube's footprint: [n] points in [buf]. */
+class QuadBuf(var buf: DoubleArray, var n: Int)
+
 /** The faded lines of one prefix (`v` bevels, `r` ribs and rings) by key, for the audit. */
 class FadeSet(val keys: IntArray, val alphas: DoubleArray)
 
@@ -74,8 +77,12 @@ class TurnFrame(count: Int) {
     var hull = DoubleArray(64)
     var hullN = 0
 
-    /** A tube's quads and cap rings, each `x, y` pairs; null for other parts. */
-    var quads: List<DoubleArray>? = null
+    /**
+     * A tube's quads and cap rings: the first `n` points (`x, y` pairs) of each buffer, the first
+     * [quadN] of them. The buffers are reused from frame to frame, as the original reuses them.
+     */
+    var quadList: MutableList<QuadBuf>? = null
+    var quadN = 0
 
     /** How many opacity levels the faded lines needed this frame. */
     var levels = 0

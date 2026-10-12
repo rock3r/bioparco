@@ -24,6 +24,7 @@ import dev.sebastiano.anatomy.kit.MarkRecorder
 import dev.sebastiano.anatomy.kit.Palette
 import dev.sebastiano.anatomy.kit.audit.AuditedFigure
 import dev.sebastiano.anatomy.kit.lineEnds
+import dev.sebastiano.anatomy.kit.turn.TurnHook
 import java.io.File
 import java.util.Locale
 import kotlin.system.exitProcess
@@ -53,6 +54,9 @@ import org.jetbrains.skia.Surface
  *   … --lines                     check that every line ends on something (`LineEnds.kt`): print
  *                                 `line ends: N`, ring each loose end in red on the PNG, write the
  *                                 report to a .txt beside it, and exit 1 if any end floats
+ *   … --turn dial=37,lift=1,pod=0.5
+ *                                 hold a turning figure at these values (`TurnHook`, the original's
+ *                                 `__isoTurn.set`): its groups, and figure values such as a pod's time
  *   … --audit                     run the geometry audit (`kit/audit`) on a figure that records
  *                                 itself (`AUDITED_FIGURES`): print the report, write it to
  *                                 <name>-audit.txt beside the PNG, and exit 1 on any failure
@@ -76,6 +80,7 @@ private class Options(
     val reduced: Boolean,
     val lines: Boolean,
     val audit: Boolean,
+    val turn: Map<String, Double>?,
 )
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -87,6 +92,7 @@ fun main(args: Array<String>) {
     var bounds = IntSize.Zero
     val drawing = if (options.lines) Drawing() else null
     MarkRecorder.active = drawing
+    TurnHook.values = options.turn
     val widthPx = ((options.width + 48) * density).toInt()
     val scene =
         ImageComposeScene(widthPx, (TALLEST_DP * density).toInt(), Density(density)) {
@@ -300,5 +306,10 @@ private fun parse(args: Array<String>): Options? {
         reduced = "--reduced" in flags,
         lines = "--lines" in flags,
         audit = "--audit" in flags,
+        turn =
+            value("--turn")?.split(',')?.associate { pair ->
+                val (name, number) = pair.split('=')
+                name.trim() to number.trim().toDouble()
+            },
     )
 }

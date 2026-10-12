@@ -231,11 +231,9 @@ fun coverOf(
         if (slot >= polygons) break
         val f = candidate.f
         val points = ArrayList<Flat>()
-        val quads = f.quads
-        if (quads != null) {
-            for (buf in quads) for (i in 0 until buf.size / 2) points.add(
-                Flat(buf[2 * i], buf[2 * i + 1])
-            )
+        val quads = f.quadList
+        if (f.quadN > 0 && quads != null) {
+            for (q in quads) for (i in 0 until q.n) points.add(Flat(q.buf[2 * i], q.buf[2 * i + 1]))
         } else {
             for (i in 0 until f.hullN) points.add(Flat(f.hull[2 * i], f.hull[2 * i + 1]))
         }

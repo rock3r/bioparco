@@ -50,11 +50,11 @@ internal fun t3Apart(a: DoubleArray, an: Int, b: DoubleArray, bn: Int, pad: Doub
 
 /** Whether two parts' footprints are apart by [pad]: hulls, or each tube quad against each. */
 fun turnDisjoint(fa: TurnFrame, fb: TurnFrame, pad: Double): Boolean {
-    val qa = fa.quads
-    val qb = fb.quads
+    val qa = if (fa.quadN > 0) fa.quadList else null
+    val qb = if (fb.quadN > 0) fb.quadList else null
     if (qa == null && qb == null) return t3Apart(fa.hull, fa.hullN, fb.hull, fb.hullN, pad)
-    val listA = qa?.map { it to it.size / 2 } ?: listOf(fa.hull to fa.hullN)
-    val listB = qb?.map { it to it.size / 2 } ?: listOf(fb.hull to fb.hullN)
+    val listA = qa?.map { it.buf to it.n } ?: listOf(fa.hull to fa.hullN)
+    val listB = qb?.map { it.buf to it.n } ?: listOf(fb.hull to fb.hullN)
     for ((a, an) in listA) for ((b, bn) in listB) if (!t3Apart(a, an, b, bn, pad)) return false
     return true
 }
