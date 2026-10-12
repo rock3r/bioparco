@@ -51,7 +51,7 @@ class RaptorParityTest {
     }
 
     private fun raptorLines(): List<String> {
-        val build = RaptorEngine.BUILD
+        val build = SETTLED
         val lines = ArrayList<String>()
         lines += "back"
         lines.serialize(build.backUnder)
@@ -70,6 +70,26 @@ class RaptorParityTest {
         }
         lines += "lip\t${build.lip.svg()}"
         return lines
+    }
+
+    /**
+     * The live figure paints in the order the settle wrote, from `raptor-order.txt`, as the
+     * original's page does from its `data-k` keys. A stale file is rewritten, and the test fails.
+     */
+    @Test
+    fun bakedOrderMatchesTheSettle() {
+        val recorder = SETTLED.recorder
+        val index = recorder.items.withIndex().associate { (at, item) -> item to at }
+        val lines = recorder.painted().map { "${index.getValue(it)}\t${toFixed(it.key, 2)}" }
+        val baked = runCatching { RaptorEngine.bakedOrder().map { (at, key) -> "$at\t${toFixed(key, 2)}" } }
+        if (baked.getOrNull() != lines) {
+            java.io.File("src/jvmMain/resources/raptor-order.txt").apply { parentFile.mkdirs() }.writeText(lines.joinToString("\n", postfix = "\n"))
+        }
+        assertEquals(lines, baked.getOrNull(), "raptor-order.txt was stale: rewritten, run again")
+    }
+
+    private companion object {
+        val SETTLED by lazy { RaptorEngine.settled() }
     }
 
     private fun element(vararg fields: String) = fields.joinToString("\t")
