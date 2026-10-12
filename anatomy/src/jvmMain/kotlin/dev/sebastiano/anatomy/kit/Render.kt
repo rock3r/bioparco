@@ -1,0 +1,406 @@
+// Ported from Anatomy by Ryan (https://github.com/wheresryan22/anatomy), MIT licensed.
+// See anatomy/LICENSE.
+package dev.sebastiano.anatomy.kit
+
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.drawscope.Stroke as DrawStroke
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.skiaPaint
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.rememberTextMeasurer
+import kotlin.math.hypot
+import org.jetbrains.skia.FilterBlurMode
+import org.jetbrains.skia.MaskFilter
+
+/*
+ * Paints art the way the original's `ISO_CSS` styles its SVG: hairlines are 0.6 screen px at any
+ * size (the SVG's non-scaling strokes), dash patterns are in screen px, and geometry is in viewBox
+ * units scaled to the canvas.
+ */
+
+/** The hairline weight in screen px. */
+const val WEIGHT: Float = 0.6f
+
+/**
+ * Receives every mark an [IsoScope] paints, in painting order, with the screen offset (in viewBox
+ * units) it was painted at: group offsets, `drawArt(art, offset)` and any `draw.translate`
+ * included. A [WireMark] arrives after its line, which arrives as its own [LineMark]. The line-end
+ * check (`LineEnds.kt`) reads what a figure really drew this way.
+ */
+interface MarkRecorder {
+    /**
+     * A frame starts: device px = [origin] + viewBox units × [scale]. Forget the previous frame.
+     */
+    fun begin(scale: Double, origin: Flat) {}
+
+    /**
+     * [mark] painted at [offset], inside every clip in [clips] (a group's `clip`, already placed
+     * where it was applied, in viewBox units): only what lies inside all of them shows.
+     */
+    fun record(mark: Mark, offset: Flat, clips: List<IsoPath> = emptyList())
+
+    companion object {
+        /**
+         * The recorder every [IsoCanvas] hands its scope, read each frame. Review tools set it
+         * (`capture --lines`, tests) so figures need no parameter for it; null, the default,
+         * records nothing and costs nothing.
+         */
+        @Volatile var active: MarkRecorder? = null
+    }
+}
+
+/** What a figure draws with: the canvas in viewBox units, the theme, and the clock. */
+class IsoScope(
+    val draw: DrawScope,
+    palette: Palette,
+    /** Canvas px per viewBox unit. */
+    val unit: Float,
+    val textMeasurer: TextMeasurer,
+    /** Seconds, for marching dashes. */
+    val clock: Double,
+    /** Told about every mark painted, when not null. */
+    private val recorder: MarkRecorder? = null,
+) {
+    /** The theme's tokens; a material part paints with its own for a moment (`withPalette`). */
+    var palette: Palette = palette
+        private set
+
+    /** True while marks are recorded: build stand-in marks for the recorder only then. */
+    internal val recording: Boolean
+        get() = recorder != null
+
+    /** Paints [block] with [tokens] in place of the theme's: a material's ramp. */
+    fun withPalette(tokens: Palette, block: IsoScope.() -> Unit) {
+        val saved = palette
+        palette = tokens
+        try {
+            block()
+        } finally {
+            palette = saved
+        }
+    }
+
+    // The device matrix when the frame starts, so a mark's offset is the translation added since.
+    private val home: FloatArray? = recorder?.let { sink ->
+        draw.drawContext.canvas.nativeCanvas.localToDeviceAsMatrix33.mat.also {
+            sink.begin(it[0].toDouble(), Flat(it[2].toDouble(), it[5].toDouble()))
+        }
+    }
+
+    // The clips of the groups being painted, where they were applied, for the recorder.
+    private val clips = ArrayList<IsoPath>()
+
+    /** The translation added since the frame started, in viewBox units; null when not recording. */
+    private fun here(): Flat? {
+        val home = home ?: return null
+        val now = draw.drawContext.canvas.nativeCanvas.localToDeviceAsMatrix33.mat
+        return Flat(
+            ((now[2] - home[2]) / home[0]).toDouble(),
+            ((now[5] - home[5]) / home[4]).toDouble(),
+        )
+    }
+
+    internal fun record(mark: Mark) {
+        val recorder = recorder ?: return
+        val offset = here() ?: return
+        recorder.record(mark, offset, clips.toList())
+    }
+
+    /** A screen-px length in viewBox units. */
+    fun px(value: Float): Float = value * draw.density / unit
+
+    /** Paints [art], moving each group by the offset [offsetOf] gives its part, if any. */
+    fun drawArt(art: Art, offsetOf: (String) -> Flat? = { null }) {
+        for (mark in art.marks) drawMark(mark, offsetOf)
+    }
+
+    /** Paints a solid now: for a part that is rebuilt each frame. */
+    fun solid(
+        paths: SolidPaths,
+        tone: Tone = Tone.Hi,
+        crease: Tone? = Tone.Faint,
+        lit: Boolean = false,
+        flat: Boolean = false,
+    ) = drawSolid(SolidMark(paths, tone, crease, lit, flat, null))
+
+    /** Paints a line now: a needle, a pointer, a spring that compresses. */
+    fun line(
+        path: IsoPath,
+        tone: Tone = Tone.Lo,
+        stroke: Stroke = Stroke.Solid,
+        width: Double? = null,
+        free: Free = Free.None,
+    ) {
+        if (!path.isEmpty) drawLine(LineMark(Shape(path), tone, stroke, free, width, 1.0))
+    }
+
+    /** Paints dots now: rivets on a moving part, a counter's lamps. */
+    fun dots(points: List<Flat>, size: Double = 0.5, tone: Tone = Tone.Mid) {
+        if (points.isNotEmpty()) drawDots(DotsMark(points, null, size, tone))
+    }
+
+    /** Paints face text now: digits a machine displays, which change as it runs. */
+    fun faceText(
+        matrix: FaceMatrix,
+        text: String,
+        size: Double = 3.0,
+        tone: Tone = Tone.Mid,
+        anchor: Anchor = Anchor.Start,
+    ) = drawText(TextMark(matrix, text, size, tone, anchor))
+
+    /** Paints [art] moved by a screen [offset]: one copy of a part that appears several times. */
+    fun drawArt(art: Art, offset: Flat) {
+        draw.translate(offset.x.toFloat(), offset.y.toFloat()) { drawArt(art) }
+    }
+
+    private fun drawMark(mark: Mark, offsetOf: (String) -> Flat?) {
+        when (mark) {
+            is SolidMark -> drawSolid(mark)
+            is LineMark -> drawLine(mark)
+            is DotsMark -> drawDots(mark)
+            is WireMark -> drawWire(mark)
+            is TextMark -> drawText(mark)
+            is HaloMark -> drawHalo(mark)
+            is FillMark -> drawFill(mark)
+            is VoidMark -> {
+                record(mark)
+                draw.drawPath(mark.shape.path, palette.shades[0])
+            }
+            is FadeLineMark -> drawFadeLine(mark)
+            is TubeMark -> drawTube(mark)
+            is GroupMark -> {
+                val clip = mark.clip
+                if (clip == null) {
+                    drawGroup(mark, offsetOf)
+                } else {
+                    clipped(clip) { drawGroup(mark, offsetOf) }
+                }
+            }
+        }
+    }
+
+    /**
+     * A face opening's clip, also visible to the line checker; applied before its content moves.
+     */
+    fun clipped(clip: Shape, block: IsoScope.() -> Unit) {
+        val at = here()
+        if (at != null) clips.add(clip.iso.moved(at))
+        try {
+            draw.clipPath(clip.path) { block() }
+        } finally {
+            if (at != null) clips.removeAt(clips.size - 1)
+        }
+    }
+
+    /** A group moved by its offset; its clip, applied outside the move, holds still. */
+    private fun drawGroup(mark: GroupMark, offsetOf: (String) -> Flat?) {
+        val offset = offsetOf(mark.part)
+        if (offset == null) {
+            drawArt(mark.art, offsetOf)
+        } else {
+            draw.translate(offset.x.toFloat(), offset.y.toFloat()) { drawArt(mark.art, offsetOf) }
+        }
+    }
+
+    internal fun hairline(width: Float = WEIGHT, effect: PathEffect? = null) =
+        DrawStroke(
+            width = px(width),
+            cap = StrokeCap.Round,
+            join = StrokeJoin.Round,
+            pathEffect = effect,
+        )
+
+    private fun drawSolid(mark: SolidMark) {
+        record(mark)
+        val p = palette
+        draw.drawPath(mark.fill.path, if (mark.lit) p.face else p.paper, style = Fill)
+        if (!mark.flat) {
+            mark.shades.forEachIndexed { shade, shape ->
+                if (shape.iso.isEmpty) return@forEachIndexed
+                val color = if (mark.lit) p.litShade else p.shades[shade]
+                draw.drawPath(shape.path, color, style = Fill)
+                if (mark.paths.seamless) draw.drawPath(shape.path, color, style = hairline(0.4f))
+            }
+            val top = if (mark.lit) p.litTop else p.top
+            draw.drawPath(mark.top.path, top, style = Fill)
+            if (mark.paths.seamless) draw.drawPath(mark.top.path, top, style = hairline(0.4f))
+        }
+        if (mark.crease != null) {
+            val color = p.ink(mark.crease)
+            if (!mark.creaseLine.iso.isEmpty) {
+                draw.drawPath(mark.creaseLine.path, color, style = hairline())
+            }
+            mark.bevel?.let { draw.drawPath(it.path, color, style = hairline()) }
+        }
+        mark.inner?.let { drawArt(it) }
+        val edge = if (mark.lit) p.lit else p.ink(mark.tone)
+        draw.drawPath(mark.outline.path, edge, style = hairline())
+    }
+
+    private fun drawLine(mark: LineMark) {
+        record(mark)
+        val stroke =
+            when (mark.stroke) {
+                Stroke.Solid -> hairline(mark.width?.toFloat() ?: WEIGHT)
+                Stroke.Dotted -> hairline(1f, dashes(0.01f, 3.5f))
+                Stroke.Dashed -> hairline(mark.width?.toFloat() ?: WEIGHT, dashes(3f, 3f))
+                Stroke.Flow -> {
+                    // The original's dashes march 32 px every 1.6 s.
+                    val phase = (clock % 1.6 / 1.6 * 32).toFloat()
+                    hairline(mark.width?.toFloat() ?: WEIGHT, dashes(2f, 6f, -phase))
+                }
+            }
+        draw.drawPath(
+            mark.shape.path,
+            palette.ink(mark.tone),
+            alpha = mark.alpha.toFloat(),
+            style = stroke,
+        )
+    }
+
+    private fun drawDots(mark: DotsMark) {
+        record(mark)
+        val alpha = palette.dotAlpha(mark.tone)
+        mark.points.forEachIndexed { index, point ->
+            val each = mark.alphas?.get(index)?.coerceIn(0.0, 1.0)?.toFloat() ?: 1f
+            draw.drawCircle(
+                palette.dot,
+                radius = mark.size.toFloat(),
+                center = Offset(point.x.toFloat(), point.y.toFloat()),
+                alpha = alpha * each,
+            )
+        }
+    }
+
+    private fun drawWire(mark: WireMark) {
+        drawLine(mark.line)
+        record(mark)
+        for (end in mark.ends) {
+            val center = Offset(end.x.toFloat(), end.y.toFloat())
+            draw.drawCircle(palette.paper, mark.size.toFloat(), center)
+            draw.drawCircle(palette.ink(mark.tone), mark.size.toFloat(), center, style = hairline())
+        }
+    }
+
+    private fun drawHalo(mark: HaloMark) {
+        record(mark)
+        draw.drawIntoCanvas { canvas ->
+            val paint =
+                Paint().apply {
+                    color = palette.halo.copy(alpha = palette.haloOpacity * mark.opacity.toFloat())
+                }
+            paint.skiaPaint.maskFilter =
+                MaskFilter.makeBlur(FilterBlurMode.NORMAL, mark.blur.toFloat())
+            canvas.save()
+            canvas.translate(0f, HALO_DROP)
+            canvas.drawPath(mark.shape.path, paint)
+            canvas.restore()
+        }
+    }
+
+    private fun drawFadeLine(mark: FadeLineMark) {
+        record(mark)
+        val points = mark.points
+        val lengths = DoubleArray(points.size)
+        for (index in 1 until points.size) {
+            val a = points[index - 1]
+            val b = points[index]
+            lengths[index] = lengths[index - 1] + hypot(b.x - a.x, b.y - a.y)
+        }
+        val total = lengths.last()
+        if (total < 1e-6) return
+        var start = mark.fadeStart
+        var end = mark.fadeEnd
+        if (start + end > total) {
+            val share = total / (start + end)
+            start *= share
+            end *= share
+        }
+        fun at(length: Double): Flat {
+            var index = 1
+            while (index < points.size - 1 && lengths[index] < length) index++
+            val span = (lengths[index] - lengths[index - 1]).takeIf { it != 0.0 } ?: 1.0
+            val t = ((length - lengths[index - 1]) / span).coerceIn(0.0, 1.0)
+            return points[index - 1] + (points[index] - points[index - 1]) * t
+        }
+        fun piece(from: Double, to: Double): List<Flat> =
+            listOf(at(from)) +
+                points.filterIndexed { i, _ ->
+                    lengths[i] > from + 1e-6 && lengths[i] < to - 1e-6
+                } +
+                at(to)
+        val color = palette.ink(mark.tone)
+        fun ramp(piece: List<Flat>, rising: Boolean) {
+            val stops =
+                Array(FADE_STOPS + 1) { index ->
+                    val t = index.toFloat() / FADE_STOPS
+                    val alpha = smooth(0.0, 1.0, if (rising) t.toDouble() else 1.0 - t).toFloat()
+                    t to color.copy(alpha = alpha)
+                }
+            val first = piece.first()
+            val last = piece.last()
+            val brush =
+                Brush.linearGradient(
+                    *stops,
+                    start = Offset(first.x.toFloat(), first.y.toFloat()),
+                    end = Offset(last.x.toFloat(), last.y.toFloat()),
+                )
+            draw.drawPath(pathOf(piece).toComposePath(), brush, style = hairline())
+        }
+        if (start > 0.05) ramp(piece(0.0, start), rising = true)
+        if (total - end - start > 0.05) {
+            draw.drawPath(
+                pathOf(piece(start, total - end)).toComposePath(),
+                color,
+                style = hairline(),
+            )
+        }
+        if (end > 0.05) ramp(piece(total - end, total), rising = false)
+    }
+
+    private companion object {
+        const val HALO_DROP = 3f
+        const val FADE_STOPS = 6
+    }
+}
+
+/**
+ * A figure's drawing surface: a [width] by [height] viewBox, scaled to the available width. Read
+ * any per-frame state inside [figure], so motion only redraws and never recomposes.
+ */
+@Composable
+fun IsoCanvas(
+    width: Double,
+    height: Double,
+    palette: Palette,
+    modifier: Modifier = Modifier,
+    clock: () -> Double = { 0.0 },
+    figure: IsoScope.() -> Unit,
+) {
+    val measurer = rememberTextMeasurer()
+    Canvas(modifier.aspectRatio((width / height).toFloat())) {
+        val unit = size.width / width.toFloat()
+        scale(unit, unit, pivot = Offset.Zero) {
+            IsoScope(this, palette, unit, measurer, clock(), MarkRecorder.active).figure()
+        }
+    }
+}
+
+/** A dash pattern in viewBox units: [on], [off] and [phase] scaled to the canvas like hairlines. */
+private fun IsoScope.dashes(on: Float, off: Float, phase: Float = 0f) =
+    PathEffect.dashPathEffect(floatArrayOf(px(on), px(off)), px(phase))

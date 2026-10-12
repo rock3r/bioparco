@@ -90,6 +90,7 @@ list):
 - `recordings/build/recordings/peel-sticker.mp4`
 - `recordings/build/recordings/honeycomb.mp4`
 - `recordings/build/recordings/hairline.mp4`
+- `recordings/build/recordings/anatomy.mp4`
 
 ### Linux / Xvfb
 
@@ -144,6 +145,7 @@ Stable download URLs:
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/peel-sticker.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/honeycomb.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/hairline.mp4
+- https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/anatomy.mp4
 
 ## Traces
 

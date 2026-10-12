@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import chatbubble.ChatApp
 import dev.sebastiano.achievementbadge.App as AchievementBadgeApp
+import dev.sebastiano.anatomy.App as AnatomyApp
 import dev.sebastiano.borderbeam.App as BorderBeamApp
 import dev.sebastiano.componentanatomy.App as ComponentAnatomyApp
 import dev.sebastiano.dotmatrixrecorder.App as DotMatrixRecorderApp
@@ -51,6 +52,7 @@ private enum class SpecimenRoute {
     PeelSticker,
     Honeycomb,
     Hairline,
+    Anatomy,
 }
 
 @Composable
@@ -74,6 +76,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenPeelSticker = { route = SpecimenRoute.PeelSticker },
                     onOpenHoneycomb = { route = SpecimenRoute.Honeycomb },
                     onOpenHairline = { route = SpecimenRoute.Hairline },
+                    onOpenAnatomy = { route = SpecimenRoute.Anatomy },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -172,6 +175,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     HairlineApp()
                 }
+            SpecimenRoute.Anatomy ->
+                SpecimenHost(
+                    title = "Anatomy",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    AnatomyApp()
+                }
         }
     }
 }
@@ -190,6 +201,7 @@ private fun Catalog(
     onOpenPeelSticker: () -> Unit,
     onOpenHoneycomb: () -> Unit,
     onOpenHairline: () -> Unit,
+    onOpenAnatomy: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -291,6 +303,15 @@ private fun Catalog(
                     "turntable, a vault and more. A port of Lucas Marques's hairline (MIT).",
             testTag = "open-hairline",
             onOpen = onOpenHairline,
+        )
+        SpecimenCard(
+            name = "Anatomy",
+            summary =
+                "Ideas explained by building them as real, working objects: crafted isometric " +
+                    "figures of shaded solids, with a kit and an agent skill to make more. A port " +
+                    "of Ryan's Anatomy (MIT).",
+            testTag = "open-anatomy",
+            onOpen = onOpenAnatomy,
         )
     }
 }
