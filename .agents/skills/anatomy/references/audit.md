@@ -76,6 +76,45 @@ design), `cut` (the shapes subtracted from this one: a saddle pad is a disc cut 
 `curve` (the smoothed profile of a turned part with no analytic slope, for `wobble`) and `ground`
 (stands on the ground, as a name starting `stand.` does).
 
+### Recording helpers
+
+Drawing a part and recording its true shape are one call with `PartRecorder` (`kit/audit/Parts.kt`,
+`PartsPipes.kt`), the original Raptor's helpers. It wraps a `Recorder` and the figure's assemblies
+(`Piece(name, say, move)`); each helper draws with the kit, records the shape, and puts one item of
+the piece, with the piece's move unless you pass another. Passing a piece's own move vector (the
+same instance) makes a part ride that piece's spring, the original's `rideOf`.
+
+```kotlin
+val pieces = mapOf("chamber" to Piece("Main chamber", "300 bar", Point3(0.0, 0.0, -80.0)), …)
+val parts = PartRecorder(Recorder(P, STAGGER, SPRING), pieces)
+val head = parts.band("chamber", ENGINE, 194.0, 205.0, 33.4)          // a turned band; returns its shape
+val pad = parts.boss("chamber", at, normal, 5.2, 1.0, BossOptions(host = listOf(head), ring = false))
+val duct = parts.pipe("hotgas", listOf(pad, other), 3.6, "hotgas.duct",
+    PipeOptions(flangeR = listOf(1.3), bands = listOf(0.5), free = true to true))
+val port = parts.valveOn("hotgas", duct, 0.5, 3.6)                    // a ball valve and its actuator
+parts.cable("controller", listOf(plug, port.approach, port.port), "controller.cable",
+    CableOptions(move = pieces.getValue("controller").move, shells = false to true))
+parts.recorder.settle()
+```
+
+| Helper | Draws and records |
+|---|---|
+| `put(piece, ref, shapes, bias, move, ride, name) { art }` | One item: its art, its shapes, its key from `ref`. |
+| `tubeItems(piece, route, r, name, TubeOptions)` | A tube chunk by chunk, and its route; returns the owner name. |
+| `turned(piece, F, profile, Style, TurnedOptions)`, `band(…)` | A turned part (smooth knots shade smoothly, 3 rows under r 20, else 5); returns its shape. |
+| `flangeAt(piece, centre, axis, r, thick, FlangeOptions)` | A flange with its bolt circle when it faces you. |
+| `boxAt(piece, plan, z, h, Style, BoxOptions)` | A box with `extra` art on it. |
+| `ballAt`, `elbow` | A ball; a ball elbow on a boss face, returning where the pipe leaves it. |
+| `boss(piece, centre, outward, r, length, BossOptions)`, `padOn(…)` | A boss, or with a `host` a saddle pad whose foot follows the host's surface (bisection on its `sdf`), seated and cut by it. Returns the face. |
+| `pipe(piece, control, r, name, PipeOptions)` | A filleted pipe with flanges or a coupling, bands, bellows and a valve gap, all owned by the pipe. Returns a `PipeRoute`. |
+| `valveOn(piece, line, share, r, …)` | A ball valve on a pipe, its neck and a box or can actuator; returns its cable `ValvePort`. |
+| `cable(piece, points, name, CableOptions)`, `clampAt(…)` | A limp cable cut where it passes its `clamps`, with shells or bare dots at the ends; a clamp for a bundle. |
+| `strut(piece, StrutEnd, StrutEnd, …)` | Ball studs on two hosts (each owned by its host's piece) and a rod between them. |
+
+Two traps the espresso machine found: a flush overlay (a pad face on its host's face) needs a bias
+that puts it in front, and parts that share an `owner` are excused from clearance against each
+other, so give a pipe's own flanges its name and nothing else.
+
 ## Settle and paint
 
 `R.settle()` measures true depth wherever two items overlap, in every state the figure rests in and

@@ -30,8 +30,13 @@ Open the closest example before you start, in `anatomy/src/jvmMain/kotlin/dev/se
   made from the one-line prompt by an agent using only this skill. It is the reference for a model
   class with tests, static art split into layers around moving parts, repeated parts drawn at several
   offsets, and discrete events (requests, falling tokens) that come and go.
+- `Raptor*.kt`, a Raptor 2 hanging in a test stand, a line-for-line port of the original's largest
+  example held to it by `RaptorParityTest`. It is the reference for dense pipework, turned parts,
+  exploded views (staggered springs, per-frame depth re-sorting, `ride`, selection) and the audit.
+  Its recording helpers live in the kit as `PartRecorder` (`kit/audit/Parts.kt` and
+  `PartsPipes.kt`): draw and record every part through them (see `references/audit.md`).
 
-The original's other examples (desk computer, arcade cabinet, Raptor engine, ripple tank, test rig,
+The original's other examples (desk computer, arcade cabinet, ripple tank, test rig,
 spot plate, turning dial) are worth reading for design even though they are JavaScript:
 https://github.com/wheresryan22/anatomy/tree/main/examples. The test rig is the quality bar.
 

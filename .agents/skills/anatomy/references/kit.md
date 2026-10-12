@@ -350,7 +350,7 @@ pipe paints over the collar's face. Gap the pipe at the collar (`gaps = listOf(a
 t / 2)`): the far piece ends at the collar's back face, the near piece starts at its front face, and
 both order cleanly. Clamps on a cable do the same through `crossingsOf`.
 
-A good `pipe()` helper (the original's Raptor has one):
+The kit's `PartRecorder.pipe` (`kit/audit/PartsPipes.kt`, the original Raptor's) does all this; use it rather than writing your own. What it does:
 1. `fillet` the control points with a bend of 2.6 × r (at least 3), with `projection = P, tube = r`
    so a bend seen edge-on grows until its outline can't fold back. A valve or bellows needs a
    straight leg at least as long as its body plus both fillet cuts (`rBend · tan(turn / 2)` each);
