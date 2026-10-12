@@ -48,10 +48,14 @@ import kotlin.math.sqrt
  * moves when the figure comes apart.
  */
 
-/** An assembly of an exploded figure: its [name], what the readout [say]s, its [move] at share 1. */
+/**
+ * An assembly of an exploded figure: its [name], what the readout [say]s, its [move] at share 1.
+ */
 class Piece(val name: String, var say: String, val move: Point3)
 
-/** A filleted pipe or cable route, and the owner its flanges, bands and valve are recorded under. */
+/**
+ * A filleted pipe or cable route, and the owner its flanges, bands and valve are recorded under.
+ */
 class PipeRoute(val points: List<Point3>, val owner: String)
 
 /**
@@ -202,13 +206,24 @@ class PartRecorder(val recorder: Recorder, val pieces: Map<String, Piece>) {
         val steps = o.steps
         val paths =
             if (steps != null)
-                solidOf(profile, frame, projection, steps, bevel = o.bevel, rims = o.rims, smooth = smooth)
-            else solidOf(profile, frame, projection, bevel = o.bevel, rims = o.rims, smooth = smooth)
+                solidOf(
+                    profile,
+                    frame,
+                    projection,
+                    steps,
+                    bevel = o.bevel,
+                    rims = o.rims,
+                    smooth = smooth,
+                )
+            else
+                solidOf(profile, frame, projection, bevel = o.bevel, rims = o.rims, smooth = smooth)
         val mid = (profile.first().s + profile.last().s) / 2
         val id = recorder.nameFor(o.name ?: "$piece.turned${jsRound(profile.first().s).toLong()}")
         val curve = if (smooth != null && smooth.slope == null) profile else null
         val shape =
-            recorder.solid(solid(frame, profile, meta = ShapeMeta(name = id, owner = o.owner, curve = curve)))
+            recorder.solid(
+                solid(frame, profile, meta = ShapeMeta(name = id, owner = o.owner, curve = curve))
+            )
         put(piece, add3(frame.o, mul3(frame.a, mid)), listOf(shape), o.bias, o.move, name = id) {
             solid(paths, style.tone, style.crease, inner = innerOf(o.inner ?: style.inner))
             o.extra(this)
@@ -227,7 +242,9 @@ class PartRecorder(val recorder: Recorder, val pieces: Map<String, Piece>) {
         options: TurnedOptions = TurnedOptions(),
     ): AuditShape = turned(piece, frame, listOf(Knot(s0, r), Knot(s1, r)), style, options)
 
-    /** A flange of radius [r] and thickness [thick] centred on [centre] across [axis], with bolts. */
+    /**
+     * A flange of radius [r] and thickness [thick] centred on [centre] across [axis], with bolts.
+     */
     fun flangeAt(
         piece: String,
         centre: Point3,
@@ -243,11 +260,14 @@ class PartRecorder(val recorder: Recorder, val pieces: Map<String, Piece>) {
         val facing = dot3(frame.a, view)
         val towards = if (facing > 0) thick / 2 else -thick / 2
         val shape =
-            recorder.solid(disc(frame, -thick / 2, thick / 2, r, ShapeMeta(name = id, owner = o.owner)))
+            recorder.solid(
+                disc(frame, -thick / 2, thick / 2, r, ShapeMeta(name = id, owner = o.owner))
+            )
         put(piece, centre, listOf(shape), o.bias, o.move, name = id) {
             solid(paths, o.tone)
             if (abs(facing) > 0.12 && o.bolts > 0) {
-                val bolts = dotsOf(frame, towards, o.boltR ?: (r * 0.74), o.bolts, projection, all = true)
+                val bolts =
+                    dotsOf(frame, towards, o.boltR ?: (r * 0.74), o.bolts, projection, all = true)
                 dots(bolts, 0.42, Tone.Mid)
             }
         }
@@ -274,7 +294,12 @@ class PartRecorder(val recorder: Recorder, val pieces: Map<String, Piece>) {
                 )
             )
         put(piece, centre, listOf(shape), o.bias, o.move, name = id) {
-            solid(slabOf(plan, z, h, projection, o.steps, o.bevel), style.tone, style.crease, inner = innerOf(style.inner))
+            solid(
+                slabOf(plan, z, h, projection, o.steps, o.bevel),
+                style.tone,
+                style.crease,
+                inner = innerOf(style.inner),
+            )
             o.extra(this)
         }
     }
@@ -335,13 +360,31 @@ class PartRecorder(val recorder: Recorder, val pieces: Map<String, Piece>) {
     ): Point3 {
         val o = options
         val host = o.host
-        if (host != null) return padOn(piece, host, centre, outward, r, length, o.copy(name = o.name ?: "$piece.boss"))
+        if (host != null)
+            return padOn(
+                piece,
+                host,
+                centre,
+                outward,
+                r,
+                length,
+                o.copy(name = o.name ?: "$piece.boss"),
+            )
         val frame = frameAlong(centre, outward)
         val id = recorder.nameFor(o.name ?: "$piece.boss")
-        val shape = recorder.solid(disc(frame, 0.0, length, r, ShapeMeta(name = id, owner = o.owner)))
-        put(piece, add3(centre, mul3(frame.a, length / 2)), listOf(shape), o.bias, o.move, name = id) {
+        val shape =
+            recorder.solid(disc(frame, 0.0, length, r, ShapeMeta(name = id, owner = o.owner)))
+        put(
+            piece,
+            add3(centre, mul3(frame.a, length / 2)),
+            listOf(shape),
+            o.bias,
+            o.move,
+            name = id,
+        ) {
             solid(discPaths(0.0, length, r, frame, projection), o.tone)
-            if (o.ring && dot3(frame.a, view) > 0.15) line(circleOf(frame, length, r * 0.55, projection, 16), Tone.Faint)
+            if (o.ring && dot3(frame.a, view) > 0.15)
+                line(circleOf(frame, length, r * 0.55, projection, 16), Tone.Faint)
         }
         return add3(centre, mul3(frame.a, length))
     }
@@ -381,7 +424,8 @@ class PartRecorder(val recorder: Recorder, val pieces: Map<String, Piece>) {
         val shape = recorder.solid(disc(frame, low - 0.05, h, a, meta))
         put(piece, add3(point, mul3(axis, h / 2)), listOf(shape), o.bias, o.move, name = id) {
             solid(saddleOf(frame, a, start, h, projection), o.tone)
-            if (o.ring && dot3(axis, view) > 0.15) line(circleOf(frame, h, a * 0.55, projection, 16), Tone.Faint)
+            if (o.ring && dot3(axis, view) > 0.15)
+                line(circleOf(frame, h, a * 0.55, projection, 16), Tone.Faint)
         }
         return add3(point, mul3(axis, h))
     }
@@ -396,7 +440,11 @@ class PartRecorder(val recorder: Recorder, val pieces: Map<String, Piece>) {
 }
 
 /** How a solid is inked: its edge [tone], its [crease] tone (null for none), an [inner] line. */
-data class Style(val tone: Tone = Tone.Hi, val crease: Tone? = Tone.Faint, val inner: IsoPath? = null)
+data class Style(
+    val tone: Tone = Tone.Hi,
+    val crease: Tone? = Tone.Faint,
+    val inner: IsoPath? = null,
+)
 
 /** The original `turned`'s options. [smooth] is [PartRecorder.AUTO_SMOOTH] unless given. */
 data class TurnedOptions(
@@ -467,4 +515,9 @@ data class TubeOptions(
 
 /** Drawn [SolidPaths] with a [Style]: the original's `S(paths, style)`. */
 fun ArtBuilder.solid(paths: SolidPaths, style: Style) =
-    solid(paths, style.tone, style.crease, inner = style.inner?.takeUnless { it.isEmpty }?.let { art { line(it, Tone.Faint) } })
+    solid(
+        paths,
+        style.tone,
+        style.crease,
+        inner = style.inner?.takeUnless { it.isEmpty }?.let { art { line(it, Tone.Faint) } },
+    )

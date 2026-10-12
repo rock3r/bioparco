@@ -40,7 +40,9 @@ import kotlin.math.sqrt
  * bundles; and ball-ended struts between two hosts.
  */
 
-/** The original `pipe`'s options. A [valve] is `(along, r)`: a share of the length or a distance. */
+/**
+ * The original `pipe`'s options. A [valve] is `(along, r)`: a share of the length or a distance.
+ */
 data class PipeOptions(
     val bend: Double = 2.6,
     val tone: Tone = Tone.Hi,
@@ -69,7 +71,13 @@ private class Collar(
     val gap: Pair<Double, Double>,
 )
 
-private fun collarsOf(line: List<Point3>, r: Double, o: PipeOptions, flanges: Pair<Boolean, Boolean>, rs: List<Double>): List<Collar> {
+private fun collarsOf(
+    line: List<Point3>,
+    r: Double,
+    o: PipeOptions,
+    flanges: Pair<Boolean, Boolean>,
+    rs: List<Double>,
+): List<Collar> {
     val total = pathLength(line)
     val collars = ArrayList<Collar>()
     listOf(0.0 to -1.0, total to 1.0).forEachIndexed { index, (along, sign) ->
@@ -83,11 +91,20 @@ private fun collarsOf(line: List<Point3>, r: Double, o: PipeOptions, flanges: Pa
     if (o.coupling) {
         val thick = max(1.6, r * 1.4)
         val centre = pointAlong(line, total - thick / 2)
-        collars += Collar("coupling", centre, tangentAlong(line, total), r * 1.5, thick, total - thick to total)
+        collars +=
+            Collar(
+                "coupling",
+                centre,
+                tangentAlong(line, total),
+                r * 1.5,
+                thick,
+                total - thick to total,
+            )
     }
     fun ring(along: Double, radius: Double, thick: Double, kind: String) {
         val gap = along - thick / 2 to along + thick / 2
-        collars += Collar(kind, pointAlong(line, along), tangentAlong(line, along), radius, thick, gap)
+        collars +=
+            Collar(kind, pointAlong(line, along), tangentAlong(line, along), radius, thick, gap)
     }
     for (share in o.bands) ring(total * share, r * 1.18, max(0.8, r * 0.7), "band")
     val bellows = o.bellows
@@ -149,7 +166,8 @@ fun PartRecorder.pipe(
     for (c in collars) {
         val bolts = if (c.kind == "flange" && r > 3) 8 else 0
         val tone = if (c.kind == "flange" || c.kind == "coupling") o.tone else Tone.Mid
-        val flange = FlangeOptions(bolts, tone, o.move, o.bias, name = "$owner.${c.kind}", owner = owner)
+        val flange =
+            FlangeOptions(bolts, tone, o.move, o.bias, name = "$owner.${c.kind}", owner = owner)
         flangeAt(piece, c.centre, c.tangent, c.radius, c.thick, flange)
     }
     return PipeRoute(line, owner)
@@ -159,9 +177,9 @@ fun PartRecorder.pipe(
 class ValvePort(val port: Point3, val approach: Point3, val lid: Double? = null)
 
 /**
- * A ball valve of pipe radius [r] on [line] at [share] (of its length, or a distance when over
- * 1), with its neck toward [side] and an actuator on it: a box when it stands straight up, else a
- * round can. Returns the actuator's cable port.
+ * A ball valve of pipe radius [r] on [line] at [share] (of its length, or a distance when over 1),
+ * with its neck toward [side] and an actuator on it: a box when it stands straight up, else a round
+ * can. Returns the actuator's cable port.
  */
 fun PartRecorder.valveOn(
     piece: String,
@@ -200,7 +218,10 @@ fun PartRecorder.valveOn(
             listOf(Knot(r * 2.4, waist), Knot(r * 2.4, 0.0))
     val shape = recorder.solid(body(frame, meridian, ShapeMeta(name = id, owner = owner)))
     put(piece, centre, listOf(shape), move = move, name = id) {
-        solid(lathe(meridian, frame, projection, 36, smooth = Smooth(rows = 3, slope = bulgeSlope)), tone)
+        solid(
+            lathe(meridian, frame, projection, 36, smooth = Smooth(rows = 3, slope = bulgeSlope)),
+            tone,
+        )
         val ends =
             dotsOf(frame, -r * 2.4, r * 1.2, 8, projection, all = true) +
                 dotsOf(frame, r * 2.4, r * 1.2, 8, projection, all = true)
@@ -211,7 +232,9 @@ fun PartRecorder.valveOn(
     val s0 = body * 1.08 - 0.25
     val s1 = body * 1.08 + body * 0.45
     val neck =
-        recorder.solid(disc(neckFrame, s0, s1, r * 0.5, ShapeMeta(name = "$id.neck", owner = owner)))
+        recorder.solid(
+            disc(neckFrame, s0, s1, r * 0.5, ShapeMeta(name = "$id.neck", owner = owner))
+        )
     put(piece, add3(centre, mul3(up, (s0 + s1) / 2)), listOf(neck), 0.2, move, name = "$id.neck") {
         solid(discPaths(s0, s1, r * 0.5, neckFrame, projection), tone)
     }
@@ -235,9 +258,23 @@ private fun PartRecorder.boxActuator(
     val lid = top.z + r * 2.2
     val extra: dev.sebastiano.anatomy.kit.ArtBuilder.() -> Unit = {
         line(planOutline(insetPlan(plan, 0.8), lid, projection, 2), Tone.Faint)
-        dots(listOf(at(Point3(plan.x + 1.2, plan.y + 1.2, lid)), at(Point3(plan.x + plan.w - 1.2, plan.y + plan.d - 1.2, lid))), 0.4, Tone.Mid)
+        dots(
+            listOf(
+                at(Point3(plan.x + 1.2, plan.y + 1.2, lid)),
+                at(Point3(plan.x + plan.w - 1.2, plan.y + plan.d - 1.2, lid)),
+            ),
+            0.4,
+            Tone.Mid,
+        )
     }
-    boxAt(piece, plan, top.z, r * 2.2, Style(tone), BoxOptions(0.3, move, name = "$id.actuator", owner = owner, extra = extra))
+    boxAt(
+        piece,
+        plan,
+        top.z,
+        r * 2.2,
+        Style(tone),
+        BoxOptions(0.3, move, name = "$id.actuator", owner = owner, extra = extra),
+    )
     val port = Point3(top.x, top.y, lid)
     return ValvePort(port, add3(port, Point3(0.0, 0.0, 5.0)), lid)
 }
@@ -257,7 +294,14 @@ private fun PartRecorder.canActuator(
     val end = s1 + r * 2.2
     val can = listOf(Knot(s1, 0.0), Knot(s1, r * 1.5), Knot(end, r * 1.5), Knot(end, 0.0))
     val shape = recorder.solid(body(frame, can, ShapeMeta(name = "$id.actuator", owner = owner)))
-    put(piece, add3(centre, mul3(up, (s1 + end) / 2)), listOf(shape), 0.3, move, name = "$id.actuator") {
+    put(
+        piece,
+        add3(centre, mul3(up, (s1 + end) / 2)),
+        listOf(shape),
+        0.3,
+        move,
+        name = "$id.actuator",
+    ) {
         solid(lathe(can, frame, projection, 32, bevel = 0.6), tone)
         line(circleOf(frame, end, r * 1.1, projection, 24), Tone.Faint)
         dots(dotsOf(frame, end, r * 1.25, 4, projection, phase = PI / 4, all = true), 0.4, Tone.Mid)
@@ -361,7 +405,14 @@ private fun PartRecorder.cableEnd(
     val shape =
         recorder.solid(disc(frame, s0, s1, r * 2, ShapeMeta(name = "$id.shell", owner = id)))
     val facing = dot3(mul3(frame.a, if (index > 0) -1.0 else 1.0), view)
-    put(piece, add3(end, mul3(tangent, (s0 + s1) / 2)), listOf(shape), o.bias + 0.1, o.move, name = "$id.shell") {
+    put(
+        piece,
+        add3(end, mul3(tangent, (s0 + s1) / 2)),
+        listOf(shape),
+        o.bias + 0.1,
+        o.move,
+        name = "$id.shell",
+    ) {
         solid(discPaths(s0, s1, r * 2, frame, projection, bevel = 0.25), Tone.Mid)
         if (facing > 0.2) line(circleOf(frame, outer, r * 1.1, projection, 12), Tone.Faint)
     }
@@ -410,7 +461,14 @@ fun PartRecorder.strut(
         listOf(a, b).map { end ->
             val own = end.host.piece ?: piece
             val ownMove = if (own == piece) move else null
-            val stud = BossOptions(ownMove, name = "$own.ball-stud", host = listOf(end.host), ring = false, owner = "$id.stud")
+            val stud =
+                BossOptions(
+                    ownMove,
+                    name = "$own.ball-stud",
+                    host = listOf(end.host),
+                    ring = false,
+                    owner = "$id.stud",
+                )
             val face = boss(own, end.point, end.normal, stem, lift, stud)
             val centre = add3(face, mul3(end.normal, reach))
             ballAt(own, centre, ball, Tone.Hi, ownMove, name = "$own.ball-stud", owner = "$id.stud")
@@ -422,6 +480,9 @@ fun PartRecorder.strut(
     val end = sqrt(ball * ball - r * r)
     val shape = recorder.solid(disc(frame, end, length - end, r, ShapeMeta(name = id, owner = id)))
     put(piece, lerp3(ca, cb, 0.5), listOf(shape), move = move, name = id) {
-        solid(discPaths(end, length - end, r, frame, projection), Style(inner = arcOf(frame, length * 0.5, r, projection)))
+        solid(
+            discPaths(end, length - end, r, frame, projection),
+            Style(inner = arcOf(frame, length * 0.5, r, projection)),
+        )
     }
 }

@@ -38,13 +38,28 @@ import org.jetbrains.jewel.ui.component.Text
  */
 
 @Composable
-internal fun RaptorLegend(texts: RaptorTexts, palette: Palette, controls: RaptorControls, modifier: Modifier = Modifier) {
+internal fun RaptorLegend(
+    texts: RaptorTexts,
+    palette: Palette,
+    controls: RaptorControls,
+    modifier: Modifier = Modifier,
+) {
     val pieces = RaptorEngine.BUILD.pieces
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
             FireButton(texts, palette, controls)
             Raptor.ORDER.forEachIndexed { index, id ->
-                PartButton(index, pieces.getValue(id).name, texts.selected == id, palette, { controls.show(id) }, controls::leave)
+                PartButton(
+                    index,
+                    pieces.getValue(id).name,
+                    texts.selected == id,
+                    palette,
+                    { controls.show(id) },
+                    controls::leave,
+                )
             }
         }
         Text(RaptorEngine.CAPTION, color = palette.muted, fontSize = 13.sp, lineHeight = 20.sp)
@@ -97,14 +112,22 @@ private fun PartButton(
         shown[0] = hovered || focused
     }
     Row(
-        Modifier.background(if (lit) palette.strong.copy(alpha = 0.04f) else Color.Transparent, RoundedCornerShape(50))
+        Modifier.background(
+                if (lit) palette.strong.copy(alpha = 0.04f) else Color.Transparent,
+                RoundedCornerShape(50),
+            )
             .border(1.dp, palette.strong.copy(alpha = 0.08f), RoundedCornerShape(50))
             .clickable(source, indication = null, onClick = show)
             .padding(horizontal = 10.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(7.dp),
     ) {
-        Text("%02d".format(index + 1), color = palette.muted, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
+        Text(
+            "%02d".format(index + 1),
+            color = palette.muted,
+            fontSize = 10.sp,
+            fontFamily = FontFamily.Monospace,
+        )
         Text(name, color = if (lit) palette.strong else palette.muted, fontSize = 12.5.sp)
     }
 }

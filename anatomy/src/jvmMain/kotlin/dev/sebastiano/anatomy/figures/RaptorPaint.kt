@@ -10,13 +10,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asSkiaPath
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.toArgb
 import dev.sebastiano.anatomy.kit.Flat
 import dev.sebastiano.anatomy.kit.IsoScope
 import dev.sebastiano.anatomy.kit.Palette
@@ -55,8 +55,20 @@ internal class RaptorTokens(
                 rim = Color(0xFFFFB46E),
                 rimSoft = Color(0xFFFF8A3C),
                 rimSoftShare = 0.45f,
-                flash = listOf(Color(0xFFFFF4E6), Color(0x66FFD2A0), Color(0x22FF9A5A), Color(0x00FF9A5A)),
-                deck = listOf(Color(0xFFFFCF98), Color(0xBFFF8A3A), Color(0x47B34A12), Color(0x005A2208)),
+                flash =
+                    listOf(
+                        Color(0xFFFFF4E6),
+                        Color(0x66FFD2A0),
+                        Color(0x22FF9A5A),
+                        Color(0x00FF9A5A),
+                    ),
+                deck =
+                    listOf(
+                        Color(0xFFFFCF98),
+                        Color(0xBFFF8A3A),
+                        Color(0x47B34A12),
+                        Color(0x005A2208),
+                    ),
                 deckShare = 1f,
             )
         val Light =
@@ -64,8 +76,20 @@ internal class RaptorTokens(
                 rim = Color(0xFFC2410C),
                 rimSoft = Color(0xFFEA580C),
                 rimSoftShare = 0.25f,
-                flash = listOf(Color(0xFFFFD9B0), Color(0x44FFB07A), Color(0x14FF8A4A), Color(0x00FF8A4A)),
-                deck = listOf(Color(0xFFC2410C), Color(0x8CEA580C), Color(0x33F97316), Color(0x00F97316)),
+                flash =
+                    listOf(
+                        Color(0xFFFFD9B0),
+                        Color(0x44FFB07A),
+                        Color(0x14FF8A4A),
+                        Color(0x00FF8A4A),
+                    ),
+                deck =
+                    listOf(
+                        Color(0xFFC2410C),
+                        Color(0x8CEA580C),
+                        Color(0x33F97316),
+                        Color(0x00F97316),
+                    ),
                 deckShare = 0.45f,
             )
 
@@ -76,7 +100,13 @@ internal class RaptorTokens(
 /** The palettes an item paints with: its own, lit when selected, a tone down when another is. */
 internal class RaptorPalettes(base: Palette) {
     val plain = base
-    val on = base.copy(hi = base.lit, mid = base.hi, top = base.litTop, shades = List(4) { base.litShade })
+    val on =
+        base.copy(
+            hi = base.lit,
+            mid = base.hi,
+            top = base.litTop,
+            shades = List(4) { base.litShade },
+        )
     val dim = base.copy(hi = base.mid, mid = base.lo)
     val standDim = base.copy(mid = base.lo)
 
@@ -104,23 +134,29 @@ internal class RaptorLayers(val plume: ShaderLayer?, val veil: ShaderLayer?) {
 
 /** Every node's fill paths, for hit-testing the pointer the way `elementFromPoint` does. */
 internal class RaptorHits(nodes: List<RaptorNode>) {
-    private val fills: List<List<Path>> =
-        nodes.map { node ->
-            node.item.art?.marks.orEmpty().mapNotNull { mark ->
-                when (mark) {
-                    is SolidMark -> mark.fill.path
-                    is TubeMark -> mark.body.path
-                    else -> null
-                }
+    private val fills: List<List<Path>> = nodes.map { node ->
+        node.item.art?.marks.orEmpty().mapNotNull { mark ->
+            when (mark) {
+                is SolidMark -> mark.fill.path
+                is TubeMark -> mark.body.path
+                else -> null
             }
         }
-    private val bounds: List<Rect> =
-        fills.map { list -> list.map { it.getBounds() }.reduceOrNull { a, b -> a.union(b) } ?: Rect.Zero }
+    }
+    private val bounds: List<Rect> = fills.map { list ->
+        list.map { it.getBounds() }.reduceOrNull { a, b -> a.union(b) } ?: Rect.Zero
+    }
 
-    private fun Rect.union(o: Rect) = Rect(min(left, o.left), min(top, o.top), maxOf(right, o.right), maxOf(bottom, o.bottom))
+    private fun Rect.union(o: Rect) =
+        Rect(min(left, o.left), min(top, o.top), maxOf(right, o.right), maxOf(bottom, o.bottom))
 
     /** The piece of the topmost node under [point] (viewBox units), in paint [order]. */
-    fun pieceAt(point: Flat, order: IntArray, nodes: List<RaptorNode>, share: (String) -> Double): String? {
+    fun pieceAt(
+        point: Flat,
+        order: IntArray,
+        nodes: List<RaptorNode>,
+        share: (String) -> Double,
+    ): String? {
         for (at in order.indices.reversed()) {
             val index = order[at]
             val node = nodes[index]
@@ -156,15 +192,29 @@ private val DECK_CENTRE = Raptor.at(Point3(0.0, 0.0, 0.0))
 private val EXIT = Raptor.at(Point3(0.0, 0.0, Raptor.Z_EXIT))
 private val LIP_PATH: Path by lazy { RaptorEngine.BUILD.lip.toComposePath() }
 private val DECK_PATH: Path by lazy { RaptorEngine.BUILD.deckTop.toComposePath() }
-private val SHADOW by lazy { dev.sebastiano.anatomy.kit.art { halo(RaptorEngine.BUILD.shadow, opacity = 0.45) } }
+private val SHADOW by lazy {
+    dev.sebastiano.anatomy.kit.art { halo(RaptorEngine.BUILD.shadow, opacity = 0.45) }
+}
 
 /** Paints one frame of the live figure. */
-internal fun IsoScope.drawRaptor(live: RaptorLive, order: IntArray, palettes: RaptorPalettes, layers: RaptorLayers, time: Double) {
+internal fun IsoScope.drawRaptor(
+    live: RaptorLive,
+    order: IntArray,
+    palettes: RaptorPalettes,
+    layers: RaptorLayers,
+    time: Double,
+) {
     val build = RaptorEngine.BUILD
     val v = live.burn.view
     val dark = palette.isDark
     val shake = v.shake
-    val shift = if (shake > 0.01) Offset((sin(live.clock * 47) * shake * 0.5).toFloat(), (cos(live.clock * 59) * shake * 0.5).toFloat()) else Offset.Zero
+    val shift =
+        if (shake > 0.01)
+            Offset(
+                (sin(live.clock * 47) * shake * 0.5).toFloat(),
+                (cos(live.clock * 59) * shake * 0.5).toFloat(),
+            )
+        else Offset.Zero
     draw.translate(shift.x, shift.y) {
         drawArt(build.backUnder)
         deckGlow(v.deckGlow, dark)
@@ -225,7 +275,13 @@ private fun IsoScope.deckGlow(amount: Double, dark: Boolean) {
     val stops = listOf(0f, 0.28f, 0.7f, 1f).zip(tokens.deck).toTypedArray()
     draw.clipPath(DECK_PATH) {
         scale(1f, sinE, pivot = c) {
-            drawCircle(Brush.radialGradient(*stops, center = c, radius = r), r, c, alpha = alpha, blendMode = blend(dark))
+            drawCircle(
+                Brush.radialGradient(*stops, center = c, radius = r),
+                r,
+                c,
+                alpha = alpha,
+                blendMode = blend(dark),
+            )
         }
     }
 }
@@ -236,17 +292,33 @@ private fun IsoScope.rimGlow(rim: Double, jitter: Flat, dark: Boolean) {
     val tokens = RaptorTokens.of(palette)
     draw.translate(jitter.x.toFloat(), jitter.y.toFloat()) {
         drawIntoCanvas { canvas ->
-            val paint = org.jetbrains.skia.Paint().apply {
-                color = tokens.rimSoft.copy(alpha = (rim * tokens.rimSoftShare).toFloat()).toArgbInt()
-                mode = org.jetbrains.skia.PaintMode.STROKE
-                strokeWidth = 7f
-                strokeCap = org.jetbrains.skia.PaintStrokeCap.ROUND
-                maskFilter = org.jetbrains.skia.MaskFilter.makeBlur(org.jetbrains.skia.FilterBlurMode.NORMAL, 4f)
-                blendMode = if (dark) org.jetbrains.skia.BlendMode.SCREEN else org.jetbrains.skia.BlendMode.SRC_OVER
-            }
+            val paint =
+                org.jetbrains.skia.Paint().apply {
+                    color =
+                        tokens.rimSoft
+                            .copy(alpha = (rim * tokens.rimSoftShare).toFloat())
+                            .toArgbInt()
+                    mode = org.jetbrains.skia.PaintMode.STROKE
+                    strokeWidth = 7f
+                    strokeCap = org.jetbrains.skia.PaintStrokeCap.ROUND
+                    maskFilter =
+                        org.jetbrains.skia.MaskFilter.makeBlur(
+                            org.jetbrains.skia.FilterBlurMode.NORMAL,
+                            4f,
+                        )
+                    blendMode =
+                        if (dark) org.jetbrains.skia.BlendMode.SCREEN
+                        else org.jetbrains.skia.BlendMode.SRC_OVER
+                }
             canvas.nativeCanvas.drawPath(LIP_PATH.asSkiaPath(), paint)
         }
-        drawPath(LIP_PATH, tokens.rim, alpha = rim.toFloat(), style = Stroke(px(1.3f), cap = StrokeCap.Round), blendMode = blend(dark))
+        drawPath(
+            LIP_PATH,
+            tokens.rim,
+            alpha = rim.toFloat(),
+            style = Stroke(px(1.3f), cap = StrokeCap.Round),
+            blendMode = blend(dark),
+        )
     }
 }
 
@@ -260,7 +332,13 @@ private fun IsoScope.flash(amount: Double, dark: Boolean) {
     val c = Offset(EXIT.x.toFloat(), (EXIT.y + 6).toFloat())
     val r = minOf(c.x, w - c.x, c.y, h - c.y)
     val stops = listOf(0f, 0.24f, 0.56f, 1f).zip(tokens.flash).toTypedArray()
-    draw.drawRect(Brush.radialGradient(*stops, center = c, radius = r), Offset.Zero, androidx.compose.ui.geometry.Size(w, h), alpha = alpha, blendMode = blend(dark))
+    draw.drawRect(
+        Brush.radialGradient(*stops, center = c, radius = r),
+        Offset.Zero,
+        androidx.compose.ui.geometry.Size(w, h),
+        alpha = alpha,
+        blendMode = blend(dark),
+    )
 }
 
 private fun Color.toArgbInt(): Int = toArgb()

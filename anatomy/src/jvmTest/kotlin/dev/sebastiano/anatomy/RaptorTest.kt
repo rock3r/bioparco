@@ -42,7 +42,23 @@ class RaptorTest {
         live.run(1.0) {
             for ((id, spring) in springs) if (spring.x > 0.01 && id !in started) started[id] = clock
         }
-        assertEquals(listOf("nozzle", "downcomer", "controller", "plumbing", "lox", "ftp", "hotgas", "chamber", "orpb", "otp", "gimbal", "stand"), started.keys.toList())
+        assertEquals(
+            listOf(
+                "nozzle",
+                "downcomer",
+                "controller",
+                "plumbing",
+                "lox",
+                "ftp",
+                "hotgas",
+                "chamber",
+                "orpb",
+                "otp",
+                "gimbal",
+                "stand",
+            ),
+            started.keys.toList(),
+        )
         live.run(2.0)
         assertTrue(live.springs.values.all { it.x == 1.0 }, "every spring settles apart")
         assertEquals("apart · 11 assemblies", live.readout())
@@ -55,7 +71,11 @@ class RaptorTest {
         live.run(0.1)
         assertTrue(live.springs.getValue("gimbal").pending != null, "the gimbal hasn't left yet")
         live.setApart(false)
-        assertEquals(null, live.springs.getValue("gimbal").pending, "a spring already at its goal drops its pending move")
+        assertEquals(
+            null,
+            live.springs.getValue("gimbal").pending,
+            "a spring already at its goal drops its pending move",
+        )
         assertEquals("closing up", live.readout())
         live.run(3.0)
         assertTrue(live.springs.values.all { it.x == 0.0 })
@@ -92,7 +112,14 @@ class RaptorTest {
             peak = maxOf(peak, burn.pc)
         }
         assertEquals(
-            listOf(BurnPhase.Arming, BurnPhase.ChillDown, BurnPhase.Preburners, BurnPhase.Main, BurnPhase.Shutdown, BurnPhase.Cold),
+            listOf(
+                BurnPhase.Arming,
+                BurnPhase.ChillDown,
+                BurnPhase.Preburners,
+                BurnPhase.Main,
+                BurnPhase.Shutdown,
+                BurnPhase.Cold,
+            ),
             phases,
         )
         assertTrue(abs(peak - 1.0) < 0.01, "main stage reaches full chamber pressure, $peak")

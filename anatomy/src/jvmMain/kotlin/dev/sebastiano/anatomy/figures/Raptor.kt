@@ -134,13 +134,37 @@ internal object Raptor {
     fun pieces(): Map<String, Piece> =
         linkedMapOf(
             "gimbal" to
-                Piece("Gimbal and thrust puck", "gimbal · carries 230 tf into the stand", Point3(0.0, 0.0, 0.0)),
-            "otp" to Piece("Oxygen turbopump", "oxygen turbopump · spun by oxygen-rich gas", Point3(0.0, 0.0, -26.0)),
-            "orpb" to Piece("Oxygen-rich preburner", "oxygen-rich preburner · all the oxygen", Point3(0.0, 0.0, -52.0)),
-            "lox" to Piece("Oxygen duct and main valve", "oxygen duct · pump to preburner", out(166.0, 52.0, -12.0)),
+                Piece(
+                    "Gimbal and thrust puck",
+                    "gimbal · carries 230 tf into the stand",
+                    Point3(0.0, 0.0, 0.0),
+                ),
+            "otp" to
+                Piece(
+                    "Oxygen turbopump",
+                    "oxygen turbopump · spun by oxygen-rich gas",
+                    Point3(0.0, 0.0, -26.0),
+                ),
+            "orpb" to
+                Piece(
+                    "Oxygen-rich preburner",
+                    "oxygen-rich preburner · all the oxygen",
+                    Point3(0.0, 0.0, -52.0),
+                ),
+            "lox" to
+                Piece(
+                    "Oxygen duct and main valve",
+                    "oxygen duct · pump to preburner",
+                    out(166.0, 52.0, -12.0),
+                ),
             "chamber" to
-                Piece("Injector and main chamber", "main chamber · 300 bar · no igniter", Point3(0.0, 0.0, -80.0)),
-            "nozzle" to Piece("Nozzle", "nozzle · 1.3 m exit · methane cooled", Point3(0.0, 0.0, -120.0)),
+                Piece(
+                    "Injector and main chamber",
+                    "main chamber · 300 bar · no igniter",
+                    Point3(0.0, 0.0, -80.0),
+                ),
+            "nozzle" to
+                Piece("Nozzle", "nozzle · 1.3 m exit · methane cooled", Point3(0.0, 0.0, -120.0)),
             "ftp" to
                 Piece(
                     "Methane turbopump and fuel-rich preburner",
@@ -148,11 +172,20 @@ internal object Raptor {
                     out(FTP_DEG, 70.0, -46.0),
                 ),
             "hotgas" to
-                Piece("Hot-gas manifold", "hot-gas manifold · fuel-rich gas to the injector", out(FTP_DEG, 36.0, -62.0)),
+                Piece(
+                    "Hot-gas manifold",
+                    "hot-gas manifold · fuel-rich gas to the injector",
+                    out(FTP_DEG, 36.0, -62.0),
+                ),
             "downcomer" to
-                Piece("Downcomer and main fuel valve", "downcomer · methane to the cooling jacket", out(40.0, 66.0, -84.0)),
+                Piece(
+                    "Downcomer and main fuel valve",
+                    "downcomer · methane to the cooling jacket",
+                    out(40.0, 66.0, -84.0),
+                ),
             "plumbing" to Piece("Plumbing", "plumbing", Point3(0.0, 0.0, 0.0)),
-            "controller" to Piece("Engine controller and harness", "engine controller", out(70.0, 70.0, -28.0)),
+            "controller" to
+                Piece("Engine controller and harness", "engine controller", out(70.0, 70.0, -28.0)),
             "stand" to Piece("Stand", "", Point3(0.0, 0.0, 0.0)),
         )
 

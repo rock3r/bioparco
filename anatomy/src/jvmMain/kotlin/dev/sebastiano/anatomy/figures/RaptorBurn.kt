@@ -93,6 +93,7 @@ internal class RaptorBurn {
     private var popped = false
     var phase = BurnPhase.None
         private set
+
     val pre = Settling(0.0)
     val vent = Settling(0.0)
     val smoke = Settling(0.0)
@@ -195,7 +196,8 @@ internal class RaptorBurn {
         val onset = smooth(0.0, 0.1, pc)
         var glow = onset * (1.15 - 0.15 * hue.x)
         if (stopping >= 0 && !calm) {
-            val stop = glowStop ?: Triple(lastGlow, max(onset, 1e-3), max(pc, 1e-3)).also { glowStop = it }
+            val stop =
+                glowStop ?: Triple(lastGlow, max(onset, 1e-3), max(pc, 1e-3)).also { glowStop = it }
             val (g, o, p) = stop
             glow = min(g, g * min(1.0, onset / o) * sqrt(min(1.0, pc / p)))
         }
@@ -205,13 +207,31 @@ internal class RaptorBurn {
     }
 
     private fun settleGlows(lit: Boolean, dt: Double, calm: Boolean) {
-        settle(pre, if (lit && t > VENT && t < MAIN + 0.1) 1.0 else 0.0, dt, if (lit && t < MAIN) 0.06 else 0.12, calm)
-        settle(vent, if (lit && t < MAIN) 1.0 else 0.0, dt, if (lit && t < MAIN) 0.16 else 0.24, calm)
+        settle(
+            pre,
+            if (lit && t > VENT && t < MAIN + 0.1) 1.0 else 0.0,
+            dt,
+            if (lit && t < MAIN) 0.06 else 0.12,
+            calm,
+        )
+        settle(
+            vent,
+            if (lit && t < MAIN) 1.0 else 0.0,
+            dt,
+            if (lit && t < MAIN) 0.16 else 0.24,
+            calm,
+        )
         val longest = RaptorNumbers.PLUME_LENGTH + 60
         val reachTo = 72 * smooth(0.0, 0.12, pc) + (longest - 72) * smooth(0.16, 0.75, pc)
         settle(reach, reachTo, dt, if (stopping >= 0) 0.12 else 0.07, calm)
         val length = RaptorNumbers.PLUME_LENGTH
-        settle(splash, smooth(0.35, 0.9, pc) * smooth(length - 10, length + 40, reach.x), dt, 0.16, calm)
+        settle(
+            splash,
+            smooth(0.35, 0.9, pc) * smooth(length - 10, length + 40, reach.x),
+            dt,
+            0.16,
+            calm,
+        )
         settle(smoke, if (lit && t > MAIN + 0.4) 1.0 else 0.0, dt, if (lit) 0.9 else 1.8, calm)
     }
 
@@ -239,12 +259,20 @@ internal class RaptorBurn {
         v.ringR = 600 * max(0.0, sinceMain - 0.08)
         v.popR = 24 + 70 * (1 - exp(-max(0.0, sincePop) / 0.25))
         v.active =
-            pc > 1e-3 || pre.x > 1e-3 || vent.x > 1e-3 || smoke.x > 1e-3 || v.flash > 1e-3 ||
-                v.shockA > 1e-3 || v.ringA > 1e-3 || v.pop > 1e-3 || (sinceMain > 0 && sinceMain < 0.6)
+            pc > 1e-3 ||
+                pre.x > 1e-3 ||
+                vent.x > 1e-3 ||
+                smoke.x > 1e-3 ||
+                v.flash > 1e-3 ||
+                v.shockA > 1e-3 ||
+                v.ringA > 1e-3 ||
+                v.pop > 1e-3 ||
+                (sinceMain > 0 && sinceMain < 0.6)
         v.veiled = smoke.x > 1e-3 || vent.x > 1e-3 || v.shockA > 1e-3
         val preLit = pre.x * smooth(0.0, 0.05, pc)
         v.rim = (pc * 0.85 + preLit * 0.45 + v.flash * 0.6 + v.pop * 0.7).coerceIn(0.0, 1.0)
-        v.deckGlow = (pc * 0.9 * splash.x + v.flash * 0.5 + preLit * 0.12 + v.pop * 0.25).coerceIn(0.0, 1.0)
+        v.deckGlow =
+            (pc * 0.9 * splash.x + v.flash * 0.5 + preLit * 0.12 + v.pop * 0.25).coerceIn(0.0, 1.0)
     }
 
     private fun readout() {
@@ -253,10 +281,14 @@ internal class RaptorBurn {
         val (text, next) =
             when {
                 armed -> "closing up · arming" to BurnPhase.Arming
-                stopping >= 0 -> (if (pc > 0.01) "shutdown · $bar bar" else "shutdown · purging") to BurnPhase.Shutdown
+                stopping >= 0 ->
+                    (if (pc > 0.01) "shutdown · $bar bar" else "shutdown · purging") to
+                        BurnPhase.Shutdown
                 t < VENT -> "chill-down · venting" to BurnPhase.ChillDown
                 t < MAIN -> "spin-up · preburners lit · $bar bar" to BurnPhase.Preburners
-                else -> "Pc $bar bar · ${RaptorNumbers.fmt(RaptorNumbers.thrust(pc))} tf" to BurnPhase.Main
+                else ->
+                    "Pc $bar bar · ${RaptorNumbers.fmt(RaptorNumbers.thrust(pc))} tf" to
+                        BurnPhase.Main
             }
         say = text
         phase = next

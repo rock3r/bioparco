@@ -94,8 +94,8 @@ class TextMark(
 ) : Mark()
 
 /**
- * A soft shadow: the path filled with the halo colour and blurred by [blur] screen px, at
- * [opacity] times the theme's halo opacity.
+ * A soft shadow: the path filled with the halo colour and blurred by [blur] screen px, at [opacity]
+ * times the theme's halo opacity.
  */
 class HaloMark(val shape: Shape, val blur: Double, val opacity: Double = 1.0) : Mark()
 

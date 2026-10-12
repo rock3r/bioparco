@@ -119,7 +119,12 @@ internal class RaptorBuild {
 
     companion object {
         val DOME_PROFILE =
-            listOf(Knot(210.0, 34.4), Knot(214.0, 34.0, true), Knot(218.0, 32.0, true), Knot(222.0, 27.5))
+            listOf(
+                Knot(210.0, 34.4),
+                Knot(214.0, 34.0, true),
+                Knot(218.0, 32.0, true),
+                Knot(222.0, 27.5),
+            )
         val FTP_LOW_PROFILE =
             listOf(
                 Knot(166.0, 3.5),

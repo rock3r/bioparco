@@ -333,7 +333,10 @@ class IsoScope(
     private fun drawHalo(mark: HaloMark) {
         record(mark)
         draw.drawIntoCanvas { canvas ->
-            val paint = Paint().apply { color = palette.halo.copy(alpha = palette.haloOpacity * mark.opacity.toFloat()) }
+            val paint =
+                Paint().apply {
+                    color = palette.halo.copy(alpha = palette.haloOpacity * mark.opacity.toFloat())
+                }
             paint.skiaPaint.maskFilter =
                 MaskFilter.makeBlur(FilterBlurMode.NORMAL, mark.blur.toFloat())
             canvas.save()

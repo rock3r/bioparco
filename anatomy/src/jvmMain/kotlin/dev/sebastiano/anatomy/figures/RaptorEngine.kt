@@ -10,7 +10,9 @@ import dev.sebastiano.anatomy.kit.audit.AuditedFigure
 import dev.sebastiano.anatomy.kit.audit.Recorder
 import dev.sebastiano.anatomy.kit.dot3
 
-/** One painted item of the live figure: its [key] at rest, its [lift] and screen [shift] at share 1. */
+/**
+ * One painted item of the live figure: its [key] at rest, its [lift] and screen [shift] at share 1.
+ */
 internal class RaptorNode(val item: AuditItem, val key: Double, val lift: Double, val shift: Flat)
 
 /**

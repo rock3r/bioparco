@@ -23,15 +23,21 @@ internal class PieceSpring {
 /** One step of the tour: apart or not, which assembly is shown, whether to fire. */
 internal data class TourStep(val apart: Boolean, val part: String?, val fire: Boolean)
 
-internal class RaptorLive(private val ids: List<String> = Raptor.STAGGER, private val pieces: Map<String, String> = emptyMap()) {
+internal class RaptorLive(
+    private val ids: List<String> = Raptor.STAGGER,
+    private val pieces: Map<String, String> = emptyMap(),
+) {
     val springs: Map<String, PieceSpring> = ids.associateWith { PieceSpring() }
     val burn = RaptorBurn()
     var clock = 0.0
         private set
+
     var apart = false
         private set
+
     var selected: String? = null
         private set
+
     var touring = true
     var tourClock = -1.0
     /** True while the pointer is over the figure. */
@@ -124,7 +130,9 @@ internal class RaptorLive(private val ids: List<String> = Raptor.STAGGER, privat
     /** The readout: the burn's while it burns, else what the engine is doing. */
     fun readout(): String {
         if (burn.on) return burn.say
-        selected?.let { return pieces[it] ?: it }
+        selected?.let {
+            return pieces[it] ?: it
+        }
         if (moving) return if (apart) "taking apart" else "closing up"
         return if (apart) "apart · 11 assemblies" else "1,630 kg · cold"
     }
@@ -159,7 +167,12 @@ internal class RaptorLive(private val ids: List<String> = Raptor.STAGGER, privat
             return when {
                 time < apartFrom -> TourStep(false, null, false)
                 time < listFrom -> TourStep(true, null, false)
-                time < listTo -> TourStep(true, Raptor.ORDER[floor((time - listFrom) / TOUR_STEP).toInt()], false)
+                time < listTo ->
+                    TourStep(
+                        true,
+                        Raptor.ORDER[floor((time - listFrom) / TOUR_STEP).toInt()],
+                        false,
+                    )
                 time < fire -> TourStep(false, null, false)
                 else -> TourStep(false, null, true)
             }

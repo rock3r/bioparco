@@ -26,8 +26,8 @@ import androidx.compose.ui.unit.sp
 import dev.sebastiano.anatomy.figures.BunsenBurnerFigure
 import dev.sebastiano.anatomy.figures.DialIndicatorFigure
 import dev.sebastiano.anatomy.figures.EspressoMachineFigure
-import dev.sebastiano.anatomy.figures.TokenBucketFigure
 import dev.sebastiano.anatomy.figures.RaptorEngineFigure
+import dev.sebastiano.anatomy.figures.TokenBucketFigure
 import dev.sebastiano.anatomy.figures.TurningDialFigure
 import dev.sebastiano.anatomy.kit.Palette
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme

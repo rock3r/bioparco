@@ -129,7 +129,19 @@ fun RaptorEngineFigure(palette: Palette, reducedMotion: Boolean, modifier: Modif
             cancel = { leave[0]?.cancel() },
         )
     BoxWithConstraints(modifier) {
-        RaptorPlate(live, order, hits, layers, palettes, palette, texts, controls, maxWidth < NARROW) { frame }
+        RaptorPlate(
+            live,
+            order,
+            hits,
+            layers,
+            palettes,
+            palette,
+            texts,
+            controls,
+            maxWidth < NARROW,
+        ) {
+            frame
+        }
     }
 }
 
@@ -268,7 +280,10 @@ private fun RaptorCanvas(
                     contentDescription = "${RaptorEngine.STAGE} ${RaptorEngine.LABEL}"
                     stateDescription = texts.describe
                     progressBarRangeInfo =
-                        ProgressBarRangeInfo(texts.valueNow.toFloat(), 0f..Raptor.ORDER.size.toFloat())
+                        ProgressBarRangeInfo(
+                            texts.valueNow.toFloat(),
+                            0f..Raptor.ORDER.size.toFloat(),
+                        )
                 }
                 .pointerInput(Unit) {
                     awaitPointerEventScope {
@@ -280,7 +295,11 @@ private fun RaptorCanvas(
                                 PointerEventType.Move -> {
                                     val p = event.changes.first().position
                                     val at = Flat(p.x / unit, p.y / unit)
-                                    controls.hover(hits.pieceAt(at, order, RaptorEngine.NODES) { live.springs.getValue(it).x })
+                                    controls.hover(
+                                        hits.pieceAt(at, order, RaptorEngine.NODES) {
+                                            live.springs.getValue(it).x
+                                        }
+                                    )
                                 }
                                 PointerEventType.Exit -> controls.leave()
                             }
@@ -291,8 +310,14 @@ private fun RaptorCanvas(
                 .focusable(),
             clock = { live.clock },
         ) {
-            if (frame() >= 0) drawRaptor(live, order, palettes, layers, if (live.still) 0.8 else live.clock)
+            if (frame() >= 0)
+                drawRaptor(live, order, palettes, layers, if (live.still) 0.8 else live.clock)
         }
-        Box(Modifier.semantics { liveRegion = LiveRegionMode.Polite; contentDescription = texts.phase })
+        Box(
+            Modifier.semantics {
+                liveRegion = LiveRegionMode.Polite
+                contentDescription = texts.phase
+            }
+        )
     }
 }
