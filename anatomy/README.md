@@ -43,6 +43,7 @@ Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. 
 | Espresso machine | A heat-exchanger espresso machine with its side panel off and its boiler cut in half, so the heat-exchanger tube shows inside it with the element in the water under it. Click or press Space to pull a shot: the E61 lever rises, the vibration pump pushes fresh water from the tank up into the back of the heat exchanger and on through the upper thermosyphon pipe to the group, the OPV returns the surplus to the tank, the gauge climbs to 9 bar and 36 g falls into the cup in about 27 s. Each dot in the pipes is a quarter millilitre moving at its true speed. It is the first figure built with turned parts, pipes and the geometry audit together, and `capture --audit` passes on it. |
 | Turning dial | The original's 3D example, ported: a combination dial on a raised door plate with a small robot hand lying on its hub, drawn by the turning-groups engine. The dial turns in true 3D with everything on it, an index wheel turns geared to it under a window, a pawl rides its knurl, one finger lifts and taps, and B breaks off a hex pod, which somersaults onto the dial face. Drag round the dial to turn it; arrow keys step one number (Shift: ten), Home brings 0 to the index. |
 | Raptor 2 | The original's Raptor engine, ported line for line: a Raptor 2 hanging in a vertical test stand, about 270 solids in 478 depth-sorted items. Hover, the arrow keys or the legend take it apart into its eleven assemblies on staggered springs, re-sorting the painter's order every frame, and light one; I, Enter or the Ignite button fires it through chill-down, the preburners and main stage at 300 bar and 230 tf, with the plume, Mach diamonds, splash and steam as shaders between the stand and the engine. Its parts are drawn and recorded by the kit's recording helpers (`PartRecorder`), and `capture --audit` passes on it with the original's report. |
+| Desk computer (Fig 7) | The original's 1984-style all-in-one computer, with 58 moving keycaps, a coiled keyboard cord, a floppy slot and a CRT recessed into the case front. Type or click the keys; Backspace erases, Return clears, and Escape or a click on the case switches power. The picture collapses to a line and a dot when switched off. Its three-phrase tour resumes after nine seconds idle; reduced motion keeps input working without the tour or collapse. |
 
 ## Making a new one
 
@@ -77,6 +78,9 @@ missing in the skill and the kit was then added to both.
 - `Art.kt` is the retained art a figure builds once, in painter’s order: solids, lines, dots,
   wires, face text, halos, and named groups that live code moves by a screen offset, as the
   original moves a `<g data-part>`.
+  Palette-backed `FillMark`s and `IsoScope.clipped` let the desk computer paint its logo and
+  picture inside nested face-plane recesses. `FaceMatrix.composeMatrix` shares the face transform
+  with text, and `faceTextAdvance` measures the cursor position rather than guessing glyph widths.
 - `Render.kt` paints it the way the original’s CSS styles the SVG: fills in paper colour so nearer
   parts hide farther ones, hairlines 0.6 px at any size, halos blurred through Skia. `Palette.kt`
   is the CSS tokens, one instance per theme.
@@ -104,9 +108,14 @@ to the 0.1 the original writes:
 | `TurnParityTest` | `turn-build.mjs` and `turn.mjs`: a lab scene and the turning dial built, packed and driven through many poses (frames, order, covers, anchors), V8's trigonometry bit for bit, and the materials | 19,167 lines |
 | `OrbitParityTest` | `turn-audit.mjs`: the orbit audit's report on a small scene, clean and with three planted faults | 103 lines |
 | `RaptorParityTest` | `examples/raptor-engine/build.mjs` run in Node: the back art, every recorded item in settled order (name, assembly, ride, key, lift, move, every element of its drawing) and every route; and the live figure's baked paint order against a fresh settle | 478 items, 4,842 lines, exact |
+| `DeskParityTest` | Every element and attribute of both committed built desk-computer pages, including face matrices, nested clips, CRT content, 58 keycaps and both rocker poses (`parity/desk-computer.mjs`) | 1,181 lines per theme, exact, no numeric tolerance |
 
 The line check is proven against the original’s on the dial indicator: both report 0 loose ends of
 367 on 23 lines. To capture a golden again, follow the note at the top of its script.
+On the desk computer, both themes report 0 loose ends of 82 on 82 lines at rest and while typing.
+Switched off, both report 2 of 82: the original reflection ends float once the lit picture is gone.
+That inherited geometry is preserved. Counts include source endpoints hidden by a clip, but never
+new endpoints introduced by clipping, matching the original checker.
 
 ### Not ported yet
 

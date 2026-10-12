@@ -26,7 +26,9 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.key.utf16CodePoint
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import dev.sebastiano.anatomy.kit.Flat
@@ -90,45 +92,53 @@ fun DeskComputerFigure(palette: Palette, reducedMotion: Boolean, modifier: Modif
             DeskComputer.WIDTH,
             DeskComputer.HEIGHT,
             palette,
-            Modifier.fillMaxWidth()
-                .focusRequester(focus)
-                .onKeyEvent { event ->
-                    if (pc.handle(event)) {
-                        changed()
-                        true
-                    } else false
-                }
-                .focusable()
-                .semantics {
-                    contentDescription =
-                        "Desk computer. Type to write on its screen; Escape switches the power."
-                    stateDescription = readout
-                }
-                .pointerInput(pc) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            val event = awaitPointerEvent()
-                            if (event.type == PointerEventType.Release) {
-                                val pos = event.changes.first().position
-                                val point =
-                                    Flat(
-                                        pos.x / size.width.toDouble() * DeskComputer.WIDTH,
-                                        pos.y / size.width.toDouble() * DeskComputer.WIDTH,
-                                    )
-                                if (pc.click(point)) {
-                                    focus.requestFocus()
-                                    changed()
-                                }
-                            }
-                        }
-                    }
-                },
+            Modifier.fillMaxWidth().deskInput(pc, focus, readout, ::changed),
         ) {
             redraw // Snapshot subscription is draw-phase only; pc itself is a plain model.
             drawDesk(pc, reducedMotion)
         }
     }
 }
+
+private fun Modifier.deskInput(
+    pc: DeskModel,
+    focus: FocusRequester,
+    readout: String,
+    changed: () -> Unit,
+): Modifier =
+    focusRequester(focus)
+        .onKeyEvent { event ->
+            if (pc.handle(event)) {
+                changed()
+                true
+            } else false
+        }
+        .focusable()
+        .semantics {
+            contentDescription =
+                "Desk computer. Type to write on its screen; Escape switches the power."
+            stateDescription = if (readout == "off") "Computer off." else "Computer on. $readout"
+            liveRegion = LiveRegionMode.Polite
+        }
+        .pointerInput(pc) {
+            awaitPointerEventScope {
+                while (true) {
+                    val event = awaitPointerEvent()
+                    if (event.type == PointerEventType.Release) {
+                        val pos = event.changes.first().position
+                        val point =
+                            Flat(
+                                pos.x / size.width.toDouble() * DeskComputer.WIDTH,
+                                pos.y / size.width.toDouble() * DeskComputer.WIDTH,
+                            )
+                        if (pc.click(point)) {
+                            focus.requestFocus()
+                            changed()
+                        }
+                    }
+                }
+            }
+        }
 
 private fun DeskModel.handle(event: KeyEvent): Boolean {
     if (

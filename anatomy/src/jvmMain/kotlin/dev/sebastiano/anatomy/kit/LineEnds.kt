@@ -101,16 +101,15 @@ fun lineEnds(
     val loose = ArrayList<LooseEnd>()
     var ends = 0
     for (line in board.lines) {
+        ends += line.ends
         line.runs.forEachIndexed { index, run ->
-            val found = checkRun(board, line, index, run, slack, reach)
-            ends += found.first
-            loose += found.second
+            loose += checkRun(board, line, index, run, slack, reach)
         }
     }
     return LineEndReport(ends, board.lines.size, loose.sortedByDescending { it.gap })
 }
 
-/** The ends of one run: how many were checked, and the loose ones. */
+/** Loose ends of the visible part of one run; clip cuts are hidden, never floating. */
 private fun checkRun(
     board: Board,
     line: CheckedLine,
@@ -118,23 +117,20 @@ private fun checkRun(
     run: IsoPath.Run,
     slack: Double,
     reach: Double,
-): Pair<Int, List<LooseEnd>> {
+): List<LooseEnd> {
     val points = run.points
-    if (run.closed || points.size < 2) return 0 to emptyList()
+    if (run.closed || points.size < 2) return emptyList()
     val first = points.first()
     val last = points.last()
     val length = lengthOf(points)
-    if (distance(first, last) < 0.05 || length < 0.2) return 0 to emptyList()
-    var checked = 0
+    if (distance(first, last) < 0.05 || length < 0.2) return emptyList()
     val result =
         End.entries.associateWith { end ->
-            if (line.free.excuses(end)) {
+            if (line.free.excuses(end) || line.cuts[index].excuses(end)) {
                 0.0
             } else {
-                checked++
                 val p = if (end == End.Start) first else last
-                // The browser counts hidden endpoints too; a clip-cut end is hidden, not free.
-                if (line.cuts[index].excuses(end) || board.hidden(line.order, p)) 0.0
+                if (board.hidden(line.order, p)) 0.0
                 else board.clearance(line, index, end, p, reach)
             }
         }
@@ -147,19 +143,18 @@ private fun checkRun(
         } else {
             End.entries.filter { result.getValue(it) > slack }
         }
-    return checked to
-        bad.map { end ->
-            LooseEnd(
-                at = if (end == End.Start) first else last,
-                end = end,
-                gap = result.getValue(end),
-                mark = isMark,
-                length = length,
-                alpha = line.alpha,
-                what = line.what,
-                d = line.d,
-            )
-        }
+    return bad.map { end ->
+        LooseEnd(
+            at = if (end == End.Start) first else last,
+            end = end,
+            gap = result.getValue(end),
+            mark = isMark,
+            length = length,
+            alpha = line.alpha,
+            what = line.what,
+            d = line.d,
+        )
+    }
 }
 
 private const val CELL = 6.0
@@ -181,6 +176,8 @@ private class CheckedLine(
     val alpha: Double,
     val what: String,
     val d: String,
+    /** End count before clipping: the browser counts hidden ends, but never new clip cuts. */
+    val ends: Int,
 )
 
 /** Something to land on: a stroked segment, or a dot or terminal dot. */
@@ -313,7 +310,17 @@ private class Board(drawn: List<Drawn>, private val palette: Palette) {
         addSegmentsShown(element, visible)
         if (checkEnds && alpha >= LEAST) {
             val cuts = shown.map { it.cut }
-            lines += CheckedLine(element, order, visible, cuts, free, alpha, what, d.take(36))
+            val ends = runs.sumOf { run ->
+                if (
+                    run.closed ||
+                        run.points.size < 2 ||
+                        distance(run.points.first(), run.points.last()) < 0.05 ||
+                        lengthOf(run.points) < 0.2
+                )
+                    0
+                else End.entries.count { !free.excuses(it) }
+            }
+            lines += CheckedLine(element, order, visible, cuts, free, alpha, what, d.take(36), ends)
         }
     }
 

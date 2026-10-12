@@ -93,6 +93,7 @@ private fun IsoScope.recess(r: DeskRecess, color: Color? = null, content: IsoSco
 
 private fun IsoScope.glassColor(pc: DeskModel): Color {
     val picture = deskPicture(pc.power, pc.powerClock)
+    if (!pc.power && picture.lit) return palette.litShade
     val elapsed = if (pc.power) pc.powerClock else maxOf(0.0, pc.powerClock - 0.26)
     val t = transition(elapsed / 0.5).toFloat()
     return if (picture.lit) lerp(palette.shades[0], palette.litShade, t)
@@ -147,7 +148,7 @@ private fun IsoScope.picture(pc: DeskModel, calm: Boolean) {
             )
         )
         drawFill(FillMark(Shape(scaled(DeskScreen.LOGO)), FillInk.Lit, evenOdd = true))
-        screenText(pc.line, sx, sy, calm || pc.clock % 1.06 < 0.53)
+        screenText(pc.displayText, sx, sy, calm || pc.clock % 1.06 < 0.53)
     }
     if (frame.beam > 0) {
         drawArt(
@@ -174,7 +175,7 @@ private fun IsoScope.picture(pc: DeskModel, calm: Boolean) {
     }
 }
 
-private fun IsoScope.screenText(line: String, sx: Double, sy: Double, cursor: Boolean) {
+private fun IsoScope.screenText(text: String, sx: Double, sy: Double, cursor: Boolean) {
     val plane = DeskScreen.CRT.backPlane
     val at =
         plane.map(
@@ -182,7 +183,6 @@ private fun IsoScope.screenText(line: String, sx: Double, sy: Double, cursor: Bo
             -DeskScreen.MID + (-DeskScreen.TEXT_Z + DeskScreen.MID) * sy,
         )
     val matrix = FaceMatrix(plane.u * sx, plane.v * sy, at)
-    val text = "> $line"
     drawArt(Art(listOf(TextMark(matrix, text, DeskScreen.TEXT_SIZE, Tone.Lit, Anchor.Start, 0.02))))
     if (cursor) {
         val x = DeskScreen.TEXT_X + faceTextAdvance(text, DeskScreen.TEXT_SIZE, 0.02) + 0.4

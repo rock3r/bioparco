@@ -6,10 +6,16 @@ import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.random.Random
 
+private val SCREEN_SPACES = Regex(" +")
+
 /** The computer's input buffer and power, independent of Compose and its frame clock. */
 class DeskModel {
     var line: String = ""
         private set
+
+    // SVG's default whitespace handling also determines the original cursor's advance.
+    val displayText: String
+        get() = "> $line".replace(SCREEN_SPACES, " ").trimEnd()
 
     var power: Boolean = true
         private set

@@ -129,10 +129,7 @@ fun main(args: Array<String>) {
             scene.sendPointerEvent(PointerEventType.Press, at(it))
             scene.sendPointerEvent(PointerEventType.Release, at(it))
         }
-        if (options.keys.isNotEmpty()) {
-            press(scene, Key.Tab)
-            for (name in options.keys) press(scene, keyOf(name))
-        }
+        sendKeys(scene, options.keys)
         val shots = options.times.ifEmpty { listOf(0.0) }
         for (seconds in shots) {
             val until = (seconds * 1e9).toLong()
@@ -266,9 +263,23 @@ private fun save(image: Image, file: File) {
 
 // Synthetic key events are internal API: fine for a review tool, never for the figures.
 @OptIn(InternalComposeUiApi::class)
-private fun press(scene: ImageComposeScene, key: Key) {
-    scene.sendKeyEvent(KeyEvent(key = key, type = KeyEventType.KeyDown))
-    scene.sendKeyEvent(KeyEvent(key = key, type = KeyEventType.KeyUp))
+private fun press(scene: ImageComposeScene, key: Key, codePoint: Int = 0) {
+    scene.sendKeyEvent(KeyEvent(key = key, type = KeyEventType.KeyDown, codePoint = codePoint))
+    scene.sendKeyEvent(KeyEvent(key = key, type = KeyEventType.KeyUp, codePoint = codePoint))
+}
+
+private fun sendKeys(scene: ImageComposeScene, names: List<String>) {
+    if (names.isEmpty()) return
+    press(scene, Key.Tab)
+    for (name in names) {
+        val char =
+            when (name) {
+                "Space" -> ' '
+                "Comma" -> ','
+                else -> name.singleOrNull()
+            }
+        press(scene, keyOf(name), char?.code ?: 0)
+    }
 }
 
 private fun keyOf(name: String): Key =
@@ -287,9 +298,13 @@ private fun keyOf(name: String): Key =
         "Enter" -> Key.Enter
         "Escape" -> Key.Escape
         "Tab" -> Key.Tab
+        "Backspace" -> Key.Backspace
+        "Shift" -> Key.ShiftLeft
+        "ShiftRight" -> Key.ShiftRight
+        "Comma" -> Key.Comma
         "i",
         "I" -> Key.I
-        else -> error("unknown key $name")
+        else -> if (name.length == 1) Key.Unknown else error("unknown key $name")
     }
 
 private fun parse(args: Array<String>): Options? {

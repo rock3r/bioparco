@@ -35,8 +35,12 @@ Open the closest example before you start, in `anatomy/src/jvmMain/kotlin/dev/se
   exploded views (staggered springs, per-frame depth re-sorting, `ride`, selection) and the audit.
   Its recording helpers live in the kit as `PartRecorder` (`kit/audit/Parts.kt` and
   `PartsPipes.kt`): draw and record every part through them (see `references/audit.md`).
+- `DeskComputer.kt`, `DeskKeys.kt`, `DeskScreen.kt` and `DeskRender.kt`, the original's desk
+  computer held to both committed built pages by `DeskParityTest`. It is the reference for nested
+  recess walls and clips in a side-face plane, palette-backed fills, measured screen text and a
+  cursor, with 58 keycaps driven by a plain input/power/tour model (`DeskModel.kt`).
 
-The original's other examples (desk computer, arcade cabinet, ripple tank, test rig,
+The original's other examples (arcade cabinet, ripple tank, test rig,
 spot plate, turning dial) are worth reading for design even though they are JavaScript:
 https://github.com/wheresryan22/anatomy/tree/main/examples. The test rig is the quality bar.
 

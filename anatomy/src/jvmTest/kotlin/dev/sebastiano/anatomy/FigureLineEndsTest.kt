@@ -99,6 +99,8 @@ class FigureLineEndsTest {
             face()
             group("window", clip = square(0.0, 0.0, 20.0, 40.0)) {
                 line(segment(0.0, 20.0, 30.0, 20.0))
+                // Cutting a closed loop opens it on screen but does not create source endpoints.
+                line(square(10.0, 5.0, 30.0, 15.0))
             }
         }
         val drawing = paint {
