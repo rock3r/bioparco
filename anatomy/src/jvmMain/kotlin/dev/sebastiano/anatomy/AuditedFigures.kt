@@ -11,7 +11,8 @@ import java.io.File
  */
 
 /** Each audited figure's recorder, by figure. Add a figure's object here once it records. */
-internal val AUDITED_FIGURES: Map<Figure, AuditedFigure> = emptyMap()
+internal val AUDITED_FIGURES: Map<Figure, AuditedFigure> =
+    mapOf(Figure.EspressoMachine to dev.sebastiano.anatomy.figures.EspressoMachine)
 
 /**
  * Records [figure], runs the audit, prints the report, writes it to [log], and returns how many
