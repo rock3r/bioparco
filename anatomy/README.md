@@ -41,6 +41,7 @@ Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. 
 | Token bucket | A token dispenser explaining a token bucket rate limiter. A feed wheel under a hopper drops one token a second into a magazine that holds eight, and stops while it is full. Click or press Space to send a request: the plunger pushes the bottom token out to the payout box, or strokes empty and the request is refused. A burst of eight passes at once, then one a second. |
 | Bunsen burner | A Bunsen burner on a lab bench, its flame a shader in the figure's own camera. Hover across or use the arrow keys to turn the air collar: its slots open the ports, the jet draws in primary air, and the lazy luminous yellow flame (about 1,000 °C) shortens into a roaring blue flame with an inner cone (about 1,500 °C). Flame length is Roper's correlation and the cone is Gouy's, for 20 L/h of methane; a ruler zeroed at the rim has its cursor at the tip. |
 | Espresso machine | A heat-exchanger espresso machine with its side panel off and its boiler cut in half, so the heat-exchanger tube shows inside it with the element in the water under it. Click or press Space to pull a shot: the E61 lever rises, the vibration pump pushes fresh water from the tank up into the back of the heat exchanger and on through the upper thermosyphon pipe to the group, the OPV returns the surplus to the tank, the gauge climbs to 9 bar and 36 g falls into the cup in about 27 s. Each dot in the pipes is a quarter millilitre moving at its true speed. It is the first figure built with turned parts, pipes and the geometry audit together, and `capture --audit` passes on it. |
+| Turning dial | The original's 3D example, ported: a combination dial on a raised door plate with a small robot hand lying on its hub, drawn by the turning-groups engine. The dial turns in true 3D with everything on it, an index wheel turns geared to it under a window, a pawl rides its knurl, one finger lifts and taps, and B breaks off a hex pod, which somersaults onto the dial face. Drag round the dial to turn it; arrow keys step one number (Shift: ten), Home brings 0 to the index. |
 
 ## Making a new one
 
@@ -99,14 +100,16 @@ to the 0.1 the original writes:
 | `LatheParityTest` | `lathe.mjs` | 2,093 lines |
 | `TubeParityTest` | `tube.mjs` | 93 cases, 18,162 lines |
 | `AuditParityTest` | `audit.mjs`: distances, states, ordering and every check | 852 lines |
+| `TurnParityTest` | `turn-build.mjs` and `turn.mjs`: a lab scene and the turning dial built, packed and driven through many poses (frames, order, covers, anchors), V8's trigonometry bit for bit, and the materials | 19,167 lines |
+| `OrbitParityTest` | `turn-audit.mjs`: the orbit audit's report on a small scene, clean and with three planted faults | 103 lines |
 
 The line check is proven against the original’s on the dial indicator: both report 0 loose ends of
 367 on 23 lines. To capture a golden again, follow the note at the top of its script.
 
 ### Not ported yet
 
-The beta 3D mode (`turn*.mjs`), with `gl.mjs`'s shaders on turning groups, and the original's other
-examples. The skill says so.
+The original's undocumented experiments (`turn-fixed.mjs`, `canvas-painter.mjs` and
+`gl-shared.mjs`) and its other examples. Everything else in its kit is here.
 
 ## Credit and license
 

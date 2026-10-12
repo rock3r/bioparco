@@ -81,6 +81,43 @@ half4 finish(float4 c,float2 vb){
 """
 
 /**
+ * The original's `GLSL_TURN`, for a fragment that follows a turning figure: `uGroupX/Y/Z/T` with
+ * `toGroup(p)` (a world point in the group's rest-world coordinates), `toWorld`, `dirToGroup` and
+ * `dirToWorld`, set from `TurnController.poseUniforms`; and the cover masks `uCoverEdge[60]` and
+ * `uCoverCount[6]` with `coverOf(vb, soft)` (1 where a part painted over the target covers the
+ * point), set from `TurnController.cover`. Prepend it to the fragment. It defines `toWorld`: don't
+ * prepend it to a fragment that declares its own.
+ */
+const val SKSL_TURN: String =
+    """
+uniform float3 uGroupX;
+uniform float3 uGroupY;
+uniform float3 uGroupZ;
+uniform float3 uGroupT;
+uniform float3 uCoverEdge[60];
+uniform float uCoverCount[6];
+float3 toGroup(float3 p){float3 q=p-uGroupT;return float3(dot(q,uGroupX),dot(q,uGroupY),dot(q,uGroupZ));}
+float3 toWorld(float3 g){return uGroupT+g.x*uGroupX+g.y*uGroupY+g.z*uGroupZ;}
+float3 dirToGroup(float3 d){return float3(dot(d,uGroupX),dot(d,uGroupY),dot(d,uGroupZ));}
+float3 dirToWorld(float3 d){return d.x*uGroupX+d.y*uGroupY+d.z*uGroupZ;}
+float coverOf(float2 vb,float soft){float c=0.;for(int p=0;p<6;p++){float n=uCoverCount[p];float inside=-1e4;for(int e=0;e<10;e++){if(float(e)>=n)break;float3 h=uCoverEdge[p*10+e];inside=max(inside,h.x*vb.x+h.y*vb.y+h.z);}if(n>0.)c=max(c,1.-smoothstep(-soft,soft,inside));}return c;}
+"""
+
+/**
+ * The original's `glslPose(Name, prefix)`: `to<Name>`, `from<Name>`, `dirTo<Name>` and
+ * `dirFrom<Name>` for one group, from the uniforms `<prefix>X/Y/Z/T`, so one fragment can follow
+ * several groups.
+ */
+fun skslPose(name: String, prefix: String = "u$name"): String =
+    """
+uniform float3 ${prefix}X;uniform float3 ${prefix}Y;uniform float3 ${prefix}Z;uniform float3 ${prefix}T;
+float3 to$name(float3 p){float3 q=p-${prefix}T;return float3(dot(q,${prefix}X),dot(q,${prefix}Y),dot(q,${prefix}Z));}
+float3 from$name(float3 g){return ${prefix}T+g.x*${prefix}X+g.y*${prefix}Y+g.z*${prefix}Z;}
+float3 dirTo$name(float3 d){return float3(dot(d,${prefix}X),dot(d,${prefix}Y),dot(d,${prefix}Z));}
+float3 dirFrom$name(float3 d){return d.x*${prefix}X+d.y*${prefix}Y+d.z*${prefix}Z;}
+"""
+
+/**
  * A compiled shader layer: the original's `glLayer`. Make one with [shaderLayer], keep it for the
  * figure's lifetime, and draw it each frame with [drawShader] between the back and front art.
  */
@@ -114,6 +151,9 @@ internal constructor(
             else -> builder.uniform(name, v.toFloatArray())
         }
     }
+
+    /** Sets a uniform array of any type from its floats: `float3 uCoverEdge[60]` takes 180. */
+    fun set(name: String, values: FloatArray) = builder.uniform(name, values)
 
     /** This frame's shader at [unit] canvas px per viewBox unit, in the light or dark theme. */
     internal fun shaderAt(unit: Double, dark: Boolean, time: Double): Shader {

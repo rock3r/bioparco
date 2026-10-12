@@ -74,7 +74,7 @@ interface MarkRecorder {
 /** What a figure draws with: the canvas in viewBox units, the theme, and the clock. */
 class IsoScope(
     val draw: DrawScope,
-    val palette: Palette,
+    palette: Palette,
     /** Canvas px per viewBox unit. */
     val unit: Float,
     val textMeasurer: TextMeasurer,
@@ -83,6 +83,25 @@ class IsoScope(
     /** Told about every mark painted, when not null. */
     private val recorder: MarkRecorder? = null,
 ) {
+    /** The theme's tokens; a material part paints with its own for a moment (`withPalette`). */
+    var palette: Palette = palette
+        private set
+
+    /** True while marks are recorded: build stand-in marks for the recorder only then. */
+    internal val recording: Boolean
+        get() = recorder != null
+
+    /** Paints [block] with [tokens] in place of the theme's: a material's ramp. */
+    fun withPalette(tokens: Palette, block: IsoScope.() -> Unit) {
+        val saved = palette
+        palette = tokens
+        try {
+            block()
+        } finally {
+            palette = saved
+        }
+    }
+
     // The device matrix when the frame starts, so a mark's offset is the translation added since.
     private val home: FloatArray? = recorder?.let { sink ->
         draw.drawContext.canvas.nativeCanvas.localToDeviceAsMatrix33.mat.also {
@@ -246,9 +265,6 @@ class IsoScope(
         )
     }
 
-    private fun dashes(on: Float, off: Float, phase: Float = 0f) =
-        PathEffect.dashPathEffect(floatArrayOf(px(on), px(off)), px(phase))
-
     private fun drawDots(mark: DotsMark) {
         record(mark)
         val alpha = palette.dotAlpha(mark.tone)
@@ -411,3 +427,7 @@ fun IsoCanvas(
         }
     }
 }
+
+/** A dash pattern in viewBox units: [on], [off] and [phase] scaled to the canvas like hairlines. */
+private fun IsoScope.dashes(on: Float, off: Float, phase: Float = 0f) =
+    PathEffect.dashPathEffect(floatArrayOf(px(on), px(off)), px(phase))
