@@ -4,6 +4,7 @@ package dev.sebastiano.anatomy.kit.turn
 
 import dev.sebastiano.anatomy.kit.Point3
 import dev.sebastiano.anatomy.kit.audit.AuditShape
+import dev.sebastiano.anatomy.kit.audit.Bounds
 import dev.sebastiano.anatomy.kit.audit.TubeShape
 import dev.sebastiano.anatomy.kit.audit.clearances
 import dev.sebastiano.anatomy.kit.audit.mountsOf
@@ -23,17 +24,25 @@ import kotlin.math.min
  */
 
 /** A shape and where it is drawn from: a live part and its group, or a static item. */
-internal class Entry(val shape: AuditShape, val name: String, val group: TurnGroup?, val live: Boolean, val bubble: Bubble)
+internal class Entry(
+    val shape: AuditShape,
+    val name: String,
+    val group: TurnGroup?,
+    val live: Boolean,
+    val bubble: Bubble,
+)
 
 internal class OrbitChecks(private val o: OrbitRun) {
     private val result = o.result
     private val points = HashMap<AuditShape, List<Point3>>()
-    private val liveShapes = o.t.parts.flatMap { part -> part.shapes.map { Triple(it, part.name, part.group) } }
+    private val liveShapes =
+        o.t.parts.flatMap { part -> part.shapes.map { Triple(it, part.name, part.group) } }
     private val staticShapes: List<Pair<AuditShape, String>>
 
     init {
         val live = liveShapes.map { it.first }.toHashSet()
-        staticShapes = o.statics.flatMap { item -> item.shapes.filter { it !in live }.map { it to item.name } }
+        staticShapes =
+            o.statics.flatMap { item -> item.shapes.filter { it !in live }.map { it to item.name } }
     }
 
     fun pointsOf(shape: AuditShape): List<Point3> = points.getOrPut(shape) { surfacePoints(shape) }
@@ -42,7 +51,8 @@ internal class OrbitChecks(private val o: OrbitRun) {
         o.say("rigid")
         if (o.wants("rigid")) rigid()
         o.say("swept")
-        if (o.wants("swept")) for (g in o.t.groups) if (g.kind == GroupKind.Turn && g.parent == null) swept(g)
+        if (o.wants("swept"))
+            for (g in o.t.groups) if (g.kind == GroupKind.Turn && g.parent == null) swept(g)
         o.say("posed")
         posed()
     }
@@ -51,15 +61,24 @@ internal class OrbitChecks(private val o: OrbitRun) {
         val r = o.r
         val mounts = mountsOf(r.tubes, r.solids)
         fun add(kind: String, text: String) = result["rigid"].add(Finding("$kind  $text"))
-        for (c in clearances(r.tubes, r.solids, mounts = mounts)) add("clearance", "${c.kind} ${c.tube} × ${c.other} clearance ${f2(c.clearance)} < ${f2(c.need)}")
+        for (c in clearances(r.tubes, r.solids, mounts = mounts)) add(
+            "clearance",
+            "${c.kind} ${c.tube} × ${c.other} clearance ${f2(c.clearance)} < ${f2(c.need)}",
+        )
         for (e in terminals(r.tubes, r.solids, mounts = mounts)) {
-            add("terminal", "${e.tube} ${e.end} ${if (e.d.isFinite()) f2(e.d) else "∞"} from ${e.nearest}")
+            add(
+                "terminal",
+                "${e.tube} ${e.end} ${if (e.d.isFinite()) f2(e.d) else "∞"} from ${e.nearest}",
+            )
         }
         val held = supports(r.solids, r.tubes)
         for (name in held.loose) add("support", "loose $name")
         for (name in held.hanging) add("support", "hanging $name")
         for (d in held.sunk) add("support", "sunk ${d.a} × ${d.b} ${f2(d.depth)} deep")
-        for (c in solidClearances(r.solids)) add("solid", "${c.tube} × ${c.other} sunk ${f2(-c.clearance)}")
+        for (c in solidClearances(r.solids)) add(
+            "solid",
+            "${c.tube} × ${c.other} sunk ${f2(-c.clearance)}",
+        )
     }
 
     /** Static shapes that the turn group [g] sweeps through. */
@@ -69,14 +88,20 @@ internal class OrbitChecks(private val o: OrbitRun) {
         for (shape in mine) {
             for (p in pointsOf(shape)) {
                 val band = floor(p.z * 2).toInt()
-                slices[band] = maxOf(slices[band] ?: 0.0, jsHypot(p.x - g.origin.x, p.y - g.origin.y))
+                slices[band] =
+                    maxOf(slices[band] ?: 0.0, jsHypot(p.x - g.origin.x, p.y - g.origin.y))
             }
         }
         for ((shape, name) in staticShapes) {
             var worst = Double.POSITIVE_INFINITY
             for (p in pointsOf(shape)) {
                 val r = jsHypot(p.x - g.origin.x, p.y - g.origin.y)
-                for (band in intArrayOf(floor(p.z * 2).toInt(), floor(p.z * 2 - 0.2).toInt(), floor(p.z * 2 + 0.2).toInt())) {
+                for (band in
+                    intArrayOf(
+                        floor(p.z * 2).toInt(),
+                        floor(p.z * 2 - 0.2).toInt(),
+                        floor(p.z * 2 + 0.2).toInt(),
+                    )) {
                     slices[band]?.let { worst = min(worst, r - it) }
                 }
             }
@@ -84,7 +109,12 @@ internal class OrbitChecks(private val o: OrbitRun) {
         }
     }
 
-    private fun sweptThrough(g: TurnGroup, shape: AuditShape, name: String, mine: List<AuditShape>) {
+    private fun sweptThrough(
+        g: TurnGroup,
+        shape: AuditShape,
+        name: String,
+        mine: List<AuditShape>,
+    ) {
         var deepest = 0.0
         var where = 0.0
         val count = if (o.quick) 90 else 720
@@ -95,7 +125,7 @@ internal class OrbitChecks(private val o: OrbitRun) {
             for (other in mine) {
                 for (p in pointsOf(other)) {
                     val q = place(pose, p)
-                    if (q.x < b.min.x - 0.5 || q.x > b.max.x + 0.5 || q.y < b.min.y - 0.5 || q.y > b.max.y + 0.5 || q.z < b.min.z - 0.5 || q.z > b.max.z + 0.5) continue
+                    if (outside(b, q)) continue
                     val d = sdf(shape, q)
                     if (d < deepest) {
                         deepest = d
@@ -104,14 +134,27 @@ internal class OrbitChecks(private val o: OrbitRun) {
                 }
             }
         }
-        if (deepest < -0.1) result["swept"].add(Finding("$name × ${g.name} sweep: ${f2(-deepest)} deep at ${f2(where)}°"))
+        if (deepest < -0.1)
+            result["swept"].add(
+                Finding("$name × ${g.name} sweep: ${f2(-deepest)} deep at ${f2(where)}°")
+            )
+    }
+
+    /** Whether [q] is more than 0.5 outside the box [b]. */
+    private fun outside(b: Bounds, q: Point3): Boolean {
+        val x = q.x < b.min.x - 0.5 || q.x > b.max.x + 0.5
+        val y = q.y < b.min.y - 0.5 || q.y > b.max.y + 0.5
+        return x || y || q.z < b.min.z - 0.5 || q.z > b.max.z + 0.5
     }
 
     /** The states the posed and route checks sample: every family, and the extra poses. */
     fun posedStates(): List<Pair<TurnValues, String>> {
         val out = ArrayList<Pair<TurnValues, String>>()
         for (family in o.families) {
-            val frame = o.options.posedStep ?: if (family.periodic) (if (o.quick) 4.0 else 0.5) else family.frame * (if (o.quick) 4 else 1)
+            val frame =
+                o.options.posedStep
+                    ?: if (family.periodic) (if (o.quick) 4.0 else 0.5)
+                    else family.frame * (if (o.quick) 4 else 1)
             for (x in samplesOf(family, frame)) out.add(family.at(x) to o.label(family, x))
         }
         for (values in o.extra.take(if (o.quick) 40 else o.extra.size)) out.add(values to "pose")
@@ -123,37 +166,70 @@ internal class OrbitChecks(private val o: OrbitRun) {
         result.stats["posedStates"] = states.size.toDouble()
         if (!o.wants("posed")) return
         val entries =
-            liveShapes.map { (shape, name, group) -> Entry(shape, name, group, true, bubbleOf(pointsOf(shape))) } +
-                staticShapes.map { (shape, name) -> Entry(shape, name, null, false, bubbleOf(pointsOf(shape))) }
+            liveShapes.map { (shape, name, group) ->
+                Entry(shape, name, group, true, bubbleOf(pointsOf(shape)))
+            } +
+                staticShapes.map { (shape, name) ->
+                    Entry(shape, name, null, false, bubbleOf(pointsOf(shape)))
+                }
         val needsStatic = o.t.groups.any { !(it.kind == GroupKind.Turn && it.parent == null) }
         val seen = HashSet<String>()
-        for ((values, tag) in states) {
-            val cams = o.scene.cams(values)
-            val placed =
-                entries.map { e ->
-                    if (!e.live || e.group == null) Triple(e, e.bubble.c, null as ShapePose?)
-                    else poseFor(cams, e.group).let { Triple(e, place(it, e.bubble.c), it) }
-                }.sortedWith { a, b -> (a.second.x - a.first.bubble.r - (b.second.x - b.first.bubble.r)).let { if (it < 0) -1 else if (it > 0) 1 else 0 } }
-            for (i in placed.indices) {
-                val (a, ca, pa) = placed[i]
-                val reach = ca.x + a.bubble.r + 0.5
-                for (j in i + 1 until placed.size) {
-                    val (b, cb, pb) = placed[j]
-                    if (cb.x - b.bubble.r > reach) break
-                    if (!pair(a, b, needsStatic)) continue
-                    if (jsHypot(ca.x - cb.x, ca.y - cb.y, ca.z - cb.z) > a.bubble.r + b.bubble.r + 0.5) continue
-                    val key = "${a.name}|${b.name}"
-                    if (key in seen) continue
+        for ((values, tag) in states) posedState(
+            entries,
+            o.scene.cams(values),
+            tag,
+            needsStatic,
+            seen,
+        )
+    }
+
+    /** One state of the posed check: every near pair of shapes on different groups. */
+    private fun posedState(
+        entries: List<Entry>,
+        cams: TurnCams,
+        tag: String,
+        needsStatic: Boolean,
+        seen: MutableSet<String>,
+    ) {
+        val placed = placedOf(entries, cams)
+        for (i in placed.indices) {
+            val (a, ca, pa) = placed[i]
+            val reach = ca.x + a.bubble.r + 0.5
+            for (j in i + 1 until placed.size) {
+                val (b, cb, pb) = placed[j]
+                if (cb.x - b.bubble.r > reach) break
+                val far =
+                    jsHypot(ca.x - cb.x, ca.y - cb.y, ca.z - cb.z) > a.bubble.r + b.bubble.r + 0.5
+                val key = "${a.name}|${b.name}"
+                if (pair(a, b, needsStatic) && !far && key !in seen) {
                     val deepest = through(a, pa ?: IDENTITY, b, pb ?: IDENTITY)
-                    val limit = if (a.shape is TubeShape || b.shape is TubeShape) -0.1 else -0.5
-                    if (deepest < limit) {
+                    if (deepest < limitOf(a, b)) {
                         seen.add(key)
-                        result["posed"].add(Finding("${a.name} × ${b.name} through ${f2(-deepest)} at $tag"))
+                        result["posed"].add(
+                            Finding("${a.name} × ${b.name} through ${f2(-deepest)} at $tag")
+                        )
                     }
                 }
             }
         }
     }
+
+    /** Each entry with its bubble's centre and its pose in this state, sorted along x. */
+    private fun placedOf(entries: List<Entry>, cams: TurnCams) =
+        entries
+            .map { e ->
+                if (!e.live || e.group == null) Triple(e, e.bubble.c, null as ShapePose?)
+                else poseFor(cams, e.group).let { Triple(e, place(it, e.bubble.c), it) }
+            }
+            .sortedWith { a, b ->
+                (a.second.x - a.first.bubble.r - (b.second.x - b.first.bubble.r)).let {
+                    if (it < 0) -1 else if (it > 0) 1 else 0
+                }
+            }
+
+    /** How deep two shapes may pass through each other: a tube is held tighter. */
+    private fun limitOf(a: Entry, b: Entry) =
+        if (a.shape is TubeShape || b.shape is TubeShape) -0.1 else -0.5
 
     /** Whether two shapes are a pair the posed check measures. */
     private fun pair(a: Entry, b: Entry, needsStatic: Boolean): Boolean {

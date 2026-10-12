@@ -18,12 +18,17 @@ import dev.sebastiano.anatomy.kit.frameAlong
 import dev.sebastiano.anatomy.kit.mul3
 import dev.sebastiano.anatomy.kit.sub3
 import dev.sebastiano.anatomy.kit.turn.FreePose
+import dev.sebastiano.anatomy.kit.turn.OrbitFamily
+import dev.sebastiano.anatomy.kit.turn.OrbitOptions
+import dev.sebastiano.anatomy.kit.turn.OrbitResult
 import dev.sebastiano.anatomy.kit.turn.StaticItem
 import dev.sebastiano.anatomy.kit.turn.TurnBuild
 import dev.sebastiano.anatomy.kit.turn.TurnValues
 import dev.sebastiano.anatomy.kit.turn.Turning
+import dev.sebastiano.anatomy.kit.turn.TurningFigure
 import dev.sebastiano.anatomy.kit.turn.jsCos
 import dev.sebastiano.anatomy.kit.turn.jsSin
+import dev.sebastiano.anatomy.kit.turn.orbit
 import dev.sebastiano.anatomy.kit.unit3
 import kotlin.math.PI
 import kotlin.math.exp
@@ -37,7 +42,7 @@ import kotlin.math.min
  * three hinges lifts and taps, and a hex pod breaks off as a free body. The live parts are in
  * TurningDialParts.kt, the static plate and stand in TurningDialStatic.kt.
  */
-object TurningDial {
+object TurningDial : TurningFigure {
     const val WIDTH = 640.0
     const val HEIGHT = 470.0
     const val AZIMUTH = 40.0
@@ -201,15 +206,93 @@ object TurningDial {
         val painted = r.painted()
         val layers = statics.items.associate { it.name to it.layer }
         val art =
-            listOf("back", "mid", "front").associateWith { layer ->
-                painted.filter { layers[it.name] == layer }.map { it.name to (it.art ?: Art.Empty) }
-            }.toMutableMap()
-        art["back"] = listOf("stand.halo" to art { halo(statics.baseHalo()) }) + art.getValue("back")
+            listOf("back", "mid", "front")
+                .associateWith { layer ->
+                    painted
+                        .filter { layers[it.name] == layer }
+                        .map { it.name to (it.art ?: Art.Empty) }
+                }
+                .toMutableMap()
+        art["back"] =
+            listOf("stand.halo" to art { halo(statics.baseHalo()) }) + art.getValue("back")
         return Scene(t, r, built, statics.items, art, live.led!!, live.podAt)
     }
 
     /** The built figure, made on first use. */
     val scene: Scene by lazy { build() }
+
+    override fun record(): Recorder = scene.recorder
+
+    /**
+     * The orbit audit as the original's `--audit` runs it: four turns of the dial at 0.3°, the tap
+     * and the break-apart at 60 fps, and the cable/finger crossings looked at and excused.
+     */
+    override fun orbitAudit(quick: Boolean, log: ((String) -> Unit)?): OrbitResult {
+        val s = scene
+        val options =
+            OrbitOptions(
+                sweep =
+                    OrbitFamily(
+                        "sweep",
+                        { x -> follow(TurnValues(mapOf("dial" to x))) },
+                        0.0,
+                        1440.0,
+                        0.3,
+                        periodic = true,
+                    ),
+                clips = listOf(tapClip(), breakClip()),
+                crowd = CROWD,
+                quick = quick,
+                log = log,
+            )
+        return orbit(s.turning, s.recorder, P, s.statics, options)
+    }
+
+    private fun tapClip() =
+        OrbitFamily(
+            "tap",
+            { t -> follow(TurnValues(mapOf("dial" to 40 + 12 * t, "lift" to tapAt(t)))) },
+            0.0,
+            4.0,
+            1 / 60.0,
+        )
+
+    private fun breakClip() =
+        OrbitFamily(
+            "break",
+            { t ->
+                follow(
+                    TurnValues(
+                        mapOf("dial" to 100 + 12 * t, "lift" to 0.3),
+                        mapOf("pod" to breakAt(t)),
+                    )
+                )
+            },
+            0.0,
+            BREAK_END,
+            1 / 60.0,
+        )
+
+    /**
+     * Cable × rod crossings excused from `crowding`: the six the original lists, then four more its
+     * own full audit fails on at commit 240a9bf (each port prints the same four). Each is a cable
+     * end running into its gland beside a parallel finger link or the piston rod, which crosses the
+     * rod's outline at some angle whatever its offset; shot at 8× at the angle the audit names
+     * (165°, 200°, 210°, 285°), each reads as two separate parts.
+     */
+    private val CROWD =
+        listOf(
+            "cable.red" to "hand.f1.p2",
+            "cable.red" to "hand.f2.p1",
+            "cable.red" to "hand.f2.p2",
+            "cable.red" to "hand.thumb.link",
+            "cable.blue" to "hand.f2.p1",
+            "cable.blue" to "hand.f3.p2",
+            "cable.green" to "hand.f3.p1",
+            "cable.blue" to "hand.f3.p1",
+            "cable.red" to "hand.f1.p1",
+            "cable.green" to "hand.piston.rod",
+        )
 
     internal fun add(a: Point3, b: Point3) = add3(a, b)
 }

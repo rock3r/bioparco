@@ -20,7 +20,8 @@ import kotlin.math.min
  */
 
 /** A coordinate as the runtime's path string writes it, read back as a number. */
-private fun written(v: Double): Double = if (TurnState.exact) jsRound(v * 1e6) / 1e6 else jsRound(v * 100) / 100
+private fun written(v: Double): Double =
+    if (TurnState.exact) jsRound(v * 1e6) / 1e6 else jsRound(v * 100) / 100
 
 /** The polygons of a path as the original parses its string (`pathPolys`). */
 internal fun polysOf(path: IsoPath): List<List<Flat>> =
@@ -44,22 +45,23 @@ internal fun clipArea(subject: List<Flat>, clip: List<Flat>): Double {
 
 /** The audit's own hull: collinear points dropped (`<= 0`). */
 internal fun auditHull(points: List<Flat>): List<Flat> {
-    val sorted =
-        points.sortedWith { a, b ->
-            val d = if (a.x - b.x != 0.0) a.x - b.x else a.y - b.y
-            if (d < 0) -1 else if (d > 0) 1 else 0
-        }
+    val sorted = points.sortedWith { a, b ->
+        val d = if (a.x - b.x != 0.0) a.x - b.x else a.y - b.y
+        if (d < 0) -1 else if (d > 0) 1 else 0
+    }
     if (sorted.size < 3) return sorted
     fun cross(o: Flat, a: Flat, b: Flat) = (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
     val lower = ArrayList<Flat>()
     for (p in sorted) {
-        while (lower.size >= 2 && cross(lower[lower.size - 2], lower[lower.size - 1], p) <= 0) lower.removeAt(lower.size - 1)
+        while (lower.size >= 2 && cross(lower[lower.size - 2], lower[lower.size - 1], p) <= 0) lower
+            .removeAt(lower.size - 1)
         lower.add(p)
     }
     val upper = ArrayList<Flat>()
     for (i in sorted.indices.reversed()) {
         val p = sorted[i]
-        while (upper.size >= 2 && cross(upper[upper.size - 2], upper[upper.size - 1], p) <= 0) upper.removeAt(upper.size - 1)
+        while (upper.size >= 2 && cross(upper[upper.size - 2], upper[upper.size - 1], p) <= 0) upper
+            .removeAt(upper.size - 1)
         upper.add(p)
     }
     return lower.subList(0, lower.size - 1) + upper.subList(0, upper.size - 1)
@@ -67,7 +69,8 @@ internal fun auditHull(points: List<Flat>): List<Flat> {
 
 /** A part's footprint: each tube quad's hull, a fixed picture's hull, else its fill's hull. */
 internal fun footprints(run: TurnRun, f: OrbitFrame): List<List<Flat>> {
-    if (run is TubeRun) return f.quads.map { q -> auditHull(List(q.size / 2) { Flat(q[2 * it], q[2 * it + 1]) }) }
+    if (run is TubeRun)
+        return f.quads.map { q -> auditHull(List(q.size / 2) { Flat(q[2 * it], q[2 * it + 1]) }) }
     if (run is FixedRun) return listOf(List(f.hullN) { Flat(f.hull[2 * it], f.hull[2 * it + 1]) })
     val polys = polysOf(f.d[run.role.getValue("fill")])
     return if (polys.isNotEmpty()) listOf(auditHull(polys.flatten())) else emptyList()
@@ -75,18 +78,39 @@ internal fun footprints(run: TurnRun, f: OrbitFrame): List<List<Flat>> {
 
 /** How much two parts' footprints overlap on screen, in px². */
 internal fun overlapArea(runA: TurnRun, fa: OrbitFrame, runB: TurnRun, fb: OrbitFrame): Double {
-    if (fa.box[2] < fb.box[0] || fb.box[2] < fa.box[0] || fa.box[3] < fb.box[1] || fb.box[3] < fa.box[1]) return 0.0
+    if (
+        fa.box[2] < fb.box[0] ||
+            fb.box[2] < fa.box[0] ||
+            fa.box[3] < fb.box[1] ||
+            fb.box[3] < fa.box[1]
+    )
+        return 0.0
     var best = 0.0
     for (a in footprints(runA, fa)) for (b in footprints(runB, fb)) best = max(best, clipArea(a, b))
     return best
 }
 
 /** A frame as the audit keeps it: paths, box, hull and tube quads. */
-internal class OrbitFrame(val d: Array<IsoPath>, val box: DoubleArray, val hull: DoubleArray, val hullN: Int, val quads: List<DoubleArray>) {
+internal class OrbitFrame(
+    val d: Array<IsoPath>,
+    val box: DoubleArray,
+    val hull: DoubleArray,
+    val hullN: Int,
+    val quads: List<DoubleArray>,
+) {
     companion object {
-        /** A snapshot of [f]: its paths, box and hull copied, its tube quads as the original shares them. */
+        /**
+         * A snapshot of [f]: its paths, box and hull copied, its tube quads as the original shares
+         * them.
+         */
         fun of(f: TurnFrame): OrbitFrame =
-            OrbitFrame(f.d.copyOf(), f.box.copyOf(), f.hull.copyOf(), f.hullN, f.quadList?.map { it.buf.copyOfRange(0, 2 * it.n) } ?: emptyList())
+            OrbitFrame(
+                f.d.copyOf(),
+                f.box.copyOf(),
+                f.hull.copyOf(),
+                f.hullN,
+                f.quadList?.map { it.buf.copyOfRange(0, 2 * it.n) } ?: emptyList(),
+            )
     }
 }
 
@@ -112,7 +136,8 @@ internal fun hausdorffish(a: List<Flat>, b: List<Flat>): Double {
                 val j = (((centre + w) % m) + m) % m
                 best = min(best, segDistance(p[i], q[j], q[(j + 1) % m]))
             }
-            if (best > 0.02) for (j in 0 until m) best = min(best, segDistance(p[i], q[j], q[(j + 1) % m]))
+            if (best > 0.02)
+                for (j in 0 until m) best = min(best, segDistance(p[i], q[j], q[(j + 1) % m]))
             worst = max(worst, best)
         }
         return worst
@@ -137,12 +162,20 @@ internal fun toneLayers(run: TurnRun, f: TurnFrame): List<ToneLayer> {
     run.roles.forEachIndexed { r, role ->
         val d = f.d[r]
         if (d.isEmpty) return@forEachIndexed
-        val polys = polysOf(d).filter { it.size >= 3 }.map { poly -> DoubleArray(2 * poly.size) { if (it % 2 == 0) poly[it / 2].x else poly[it / 2].y } }
+        val polys =
+            polysOf(d)
+                .filter { it.size >= 3 }
+                .map { poly ->
+                    DoubleArray(2 * poly.size) {
+                        if (it % 2 == 0) poly[it / 2].x else poly[it / 2].y
+                    }
+                }
         val v =
             when {
                 role.kind == RoleKind.Face -> f.q[r].toDouble() / TURN_Q
                 role.name == "fill" && role.isPath -> 2.0
-                (role.kind == RoleKind.Shade || role.kind == RoleKind.Top) && role.name.length == 2 -> role.name.drop(1).toDouble()
+                (role.kind == RoleKind.Shade || role.kind == RoleKind.Top) &&
+                    role.name.length == 2 -> role.name.drop(1).toDouble()
                 role.name == "body" -> 2.0
                 role.name == "shine" -> 4.0
                 role.name == "shade" -> 0.0
@@ -154,7 +187,11 @@ internal fun toneLayers(run: TurnRun, f: TurnFrame): List<ToneLayer> {
 }
 
 /** The tones and owners of [layers] rasterised over [box] at [scale] samples per unit. */
-private fun toneRaster(layers: List<ToneLayer>, box: DoubleArray, scale: Int): Pair<FloatArray, IntArray> {
+private fun toneRaster(
+    layers: List<ToneLayer>,
+    box: DoubleArray,
+    scale: Int,
+): Pair<FloatArray, IntArray> {
     val x0 = box[0]
     val y0 = box[1]
     val w = max(1, ceil((box[2] - x0) * scale).toInt())
@@ -173,50 +210,88 @@ private fun toneRaster(layers: List<ToneLayer>, box: DoubleArray, scale: Int): P
         }
         val r0 = max(0, floor((ymin - y0) * scale).toInt())
         val r1 = min(h - 1, ceil((ymax - y0) * scale).toInt())
-        for (row in r0..r1) for (sub in 0 until 8) scanRow(layer, row, sub, x0, y0, w, scale, out, owner)
+        for (row in r0..r1) for (sub in 0 until 8) scanRow(
+            layer,
+            row,
+            sub,
+            x0,
+            y0,
+            w,
+            scale,
+            out,
+            owner,
+        )
     }
     return out to owner
 }
 
-private fun scanRow(layer: ToneLayer, row: Int, sub: Int, x0: Double, y0: Double, w: Int, scale: Int, out: FloatArray, owner: IntArray) {
+private fun scanRow(
+    layer: ToneLayer,
+    row: Int,
+    sub: Int,
+    x0: Double,
+    y0: Double,
+    w: Int,
+    scale: Int,
+    out: FloatArray,
+    owner: IntArray,
+) {
     val y = y0 + (row + (sub + 0.5) / 8) / scale
-    val hits = ArrayList<Pair<Double, Int>>()
-    for (p in layer.polys) {
-        val n = p.size
-        for (i in 0 until n step 2) {
-            val ax = p[i]
-            val ay = p[i + 1]
-            val bx = p[(i + 2) % n]
-            val by = p[(i + 3) % n]
-            if ((ay <= y) == (by <= y)) continue
-            hits.add((ax + ((y - ay) * (bx - ax)) / (by - ay)) to if (by > ay) 1 else -1)
-        }
-    }
+    val hits = crossings(layer, y)
     if (hits.size < 2) return
     hits.sortWith { a, b -> (a.first - b.first).let { if (it < 0) -1 else if (it > 0) 1 else 0 } }
     var winding = 0
     for (k in 0 until hits.size - 1) {
         winding += hits[k].second
-        if (winding == 0) continue
-        val xa = hits[k].first
-        val xb = hits[k + 1].first
-        val c0 = max(0, floor((xa - x0) * scale).toInt())
-        val c1 = min(w - 1, floor((xb - x0) * scale).toInt())
-        for (c in c0..c1) {
-            if (floor(jitter(c.toDouble(), row.toDouble()) * 8).toInt() != sub) continue
-            if (c == c0 || c == c1) {
-                val x = x0 + (c + jitter(row.toDouble(), c.toDouble())) / scale
-                if (x < xa || x >= xb) continue
+        if (winding != 0) {
+            val xa = hits[k].first
+            val xb = hits[k + 1].first
+            val c0 = max(0, floor((xa - x0) * scale).toInt())
+            val c1 = min(w - 1, floor((xb - x0) * scale).toInt())
+            for (c in c0..c1) {
+                val sampled = floor(jitter(c.toDouble(), row.toDouble()) * 8).toInt() == sub
+                if (sampled && (c != c0 && c != c1 || inSpan(x0, c, row, scale, xa, xb))) {
+                    out[row * w + c] = layer.v.toFloat()
+                    owner[row * w + c] = layer.id
+                }
             }
-            out[row * w + c] = layer.v.toFloat()
-            owner[row * w + c] = layer.id
         }
     }
 }
 
+/** Where the scanline at [y] crosses [layer]'s polygons, with each edge's winding. */
+private fun crossings(layer: ToneLayer, y: Double): MutableList<Pair<Double, Int>> {
+    val hits = ArrayList<Pair<Double, Int>>()
+    for (p in layer.polys) {
+        val n = p.size
+        for (i in 0 until n step 2) {
+            val ay = p[i + 1]
+            val by = p[(i + 3) % n]
+            if ((ay <= y) != (by <= y)) {
+                val ax = p[i]
+                val bx = p[(i + 2) % n]
+                hits.add((ax + ((y - ay) * (bx - ax)) / (by - ay)) to if (by > ay) 1 else -1)
+            }
+        }
+    }
+    return hits
+}
+
+/** Whether column [c]'s jittered sample lies in the span `[xa, xb)`. */
+private fun inSpan(x0: Double, c: Int, row: Int, scale: Int, xa: Double, xb: Double): Boolean {
+    val x = x0 + (c + jitter(row.toDouble(), c.toDouble())) / scale
+    return !(x < xa || x >= xb)
+}
+
 /** How much of [run]'s picture changes owner from each frame to the next, in tone·px². */
 internal fun visibleChange(run: TurnRun, frames: List<TurnFrame>, scale: Int = 4): List<Double> {
-    val box = doubleArrayOf(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY)
+    val box =
+        doubleArrayOf(
+            Double.POSITIVE_INFINITY,
+            Double.POSITIVE_INFINITY,
+            Double.NEGATIVE_INFINITY,
+            Double.NEGATIVE_INFINITY,
+        )
     for (f in frames) {
         box[0] = min(box[0], f.box[0] - 1)
         box[1] = min(box[1], f.box[1] - 1)
@@ -233,7 +308,8 @@ internal fun visibleChange(run: TurnRun, frames: List<TurnFrame>, scale: Int = 4
             if (ao[j] == bo[j]) continue
             val va = av[j].toDouble()
             val vb = bv[j].toDouble()
-            if (va < 0 || vb < 0) sum += 2 else {
+            if (va < 0 || vb < 0) sum += 2
+            else {
                 val d = abs(va - vb)
                 if (d > 1.0 / 16 + 1e-6) sum += d
             }

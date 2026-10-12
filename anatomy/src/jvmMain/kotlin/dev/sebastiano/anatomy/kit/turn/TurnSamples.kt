@@ -224,37 +224,38 @@ internal fun marginOf(n: Point3, a: List<Point3>, b: List<Point3>): Margin {
 /** The direction of the closest approach of two clouds' hulls, by Gilbert's iteration. */
 internal fun closest(a: List<Point3>, b: List<Point3>, rounds: Int = 200): Point3 {
     var w = sub3(b[0], a[0])
-    for (it in 0 until rounds) {
-        val l = len3(w)
-        if (l < 1e-12) break
-        var hi = Double.NEGATIVE_INFINITY
-        var pa = a[0]
-        for (p in a) {
-            val v = dot3(p, w)
-            if (v > hi) {
-                hi = v
-                pa = p
-            }
-        }
-        var lo = Double.POSITIVE_INFINITY
-        var pb = b[0]
-        for (p in b) {
-            val v = dot3(p, w)
-            if (v < lo) {
-                lo = v
-                pb = p
-            }
-        }
-        val s = sub3(pb, pa)
-        val ds = sub3(w, s)
-        val dd = dot3(ds, ds)
-        if (dd < 1e-14) break
-        val t = max(0.0, min(1.0, dot3(w, ds) / dd))
-        val next = sub3(w, mul3(ds, t))
-        if (len3(sub3(next, w)) < 1e-10) break
-        w = next
-    }
+    for (it in 0 until rounds) w = gilbertStep(a, b, w) ?: break
     return w
+}
+
+/** One step of Gilbert's iteration from [w], or null once it has converged. */
+private fun gilbertStep(a: List<Point3>, b: List<Point3>, w: Point3): Point3? {
+    if (len3(w) < 1e-12) return null
+    var hi = Double.NEGATIVE_INFINITY
+    var pa = a[0]
+    for (p in a) {
+        val v = dot3(p, w)
+        if (v > hi) {
+            hi = v
+            pa = p
+        }
+    }
+    var lo = Double.POSITIVE_INFINITY
+    var pb = b[0]
+    for (p in b) {
+        val v = dot3(p, w)
+        if (v < lo) {
+            lo = v
+            pb = p
+        }
+    }
+    val s = sub3(pb, pa)
+    val ds = sub3(w, s)
+    val dd = dot3(ds, ds)
+    if (dd < 1e-14) return null
+    val t = max(0.0, min(1.0, dot3(w, ds) / dd))
+    val next = sub3(w, mul3(ds, t))
+    return if (len3(sub3(next, w)) < 1e-10) null else next
 }
 
 private fun centre(list: List<Point3>): Point3 {

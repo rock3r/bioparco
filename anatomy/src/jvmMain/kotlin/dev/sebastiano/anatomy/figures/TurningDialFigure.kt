@@ -98,7 +98,9 @@ private class DialState(val scene: TurningDial.Scene, reduced: Boolean) {
     var podHook: Double? = null
 
     fun podAt(): FreePose? {
-        podHook?.let { return TurningDial.breakAt(it) }
+        podHook?.let {
+            return TurningDial.breakAt(it)
+        }
         val b = breaking ?: return if (broken) TurningDial.breakAt(BREAK_END) else null
         val t = min(BREAK_END, b.time)
         return TurningDial.breakAt(if (b.reverse) BREAK_END - t else t)
@@ -111,29 +113,9 @@ private class DialState(val scene: TurningDial.Scene, reduced: Boolean) {
 
     /** One frame of the tour, the follow, the light, the sparks and the break; true to go on. */
     fun tick(dt: Double, calm: Boolean): Boolean {
-        TurnHook.values?.let { hold ->
-            touring = false
-            hold["dial"]?.let {
-                angle = it
-                target = it
-            }
-            hold["lift"]?.let { lift = it }
-            podHook = hold["pod"]
-        }
-        if (calm) touring = false
-        if (touring) {
-            target += SPEED * dt
-            clock += dt
-        }
-        angle = if (calm) target else angle + (target - angle) * (1 - exp(-dt / 0.12))
-        if (abs(target - angle) < 1e-3) angle = target
-        val nextLift =
-            when {
-                calm -> 0.0
-                TurnHook.values?.get("lift") != null -> lift
-                touring -> lift + (TurningDial.tapAt(clock) - lift) * (1 - exp(-dt / 0.15))
-                else -> lift
-            }
+        takeHook()
+        turn(dt, calm)
+        val nextLift = liftAt(dt, calm)
         var moved = abs(nextLift - lift) > 1e-5
         lift = nextLift
         glClock += dt
@@ -142,23 +124,76 @@ private class DialState(val scene: TurningDial.Scene, reduced: Boolean) {
         if (on.x != before) moved = true
         val sparking = light.available && light.step(if (calm) 1.0 else dt)
         if (lighting || sparking) moved = true
-        breaking?.let { b ->
-            if (!b.reverse && b.time == 0.0 && !calm) light.ignite(controller)
-            b.time += if (calm) BREAK_END else dt
-            moved = true
-            if (b.time >= BREAK_END) {
-                broken = !b.reverse
-                breaking = null
-            }
-        }
+        if (stepBreak(dt, calm)) moved = true
         val last = drawn
         if (moved || last == null || abs(angle - last) > 1e-4) draw()
         return touring || angle != target || breaking != null || lighting || sparking
     }
 
+    /** The tour's target moves on and the dial eases toward it (at once when calm). */
+    private fun turn(dt: Double, calm: Boolean) {
+        if (calm) touring = false
+        if (touring) {
+            target += SPEED * dt
+            clock += dt
+        }
+        angle = if (calm) target else angle + (target - angle) * (1 - exp(-dt / 0.12))
+        if (abs(target - angle) < 1e-3) angle = target
+    }
+
+    /** A review tool's hold (`TurnHook`): stop the tour and take its values. */
+    private fun takeHook() {
+        val values = TurnHook.values ?: return
+        touring = false
+        values["dial"]?.let {
+            angle = it
+            target = it
+        }
+        values["lift"]?.let { lift = it }
+        podHook = values["pod"]
+    }
+
+    /** The finger's lift this frame: down when calm, held, following the tap while touring. */
+    private fun liftAt(dt: Double, calm: Boolean): Double =
+        when {
+            calm -> 0.0
+            TurnHook.values?.get("lift") != null -> lift
+            touring -> lift + (TurningDial.tapAt(clock) - lift) * (1 - exp(-dt / 0.15))
+            else -> lift
+        }
+
+    /** Advances a break in flight, lighting the sparks as it starts; true while one runs. */
+    private fun stepBreak(dt: Double, calm: Boolean): Boolean {
+        val b = breaking ?: return false
+        if (!b.reverse && b.time == 0.0 && !calm) light.ignite(controller)
+        b.time += if (calm) BREAK_END else dt
+        if (b.time >= BREAK_END) {
+            broken = !b.reverse
+            breaking = null
+        }
+        return true
+    }
+
+    /** A press on the dial at viewBox [x], [y]: where a drag starts. */
+    fun press(x: Double, y: Double) {
+        dragFrom = controller.angleAt(x, y, DRAG_Z, "dial")
+        dragBase = target
+        dragging = false
+    }
+
+    /** The pointer moved to [x], [y]: turns the dial once it has moved 1.5°; true while it does. */
+    fun drag(x: Double, y: Double): Boolean {
+        val from = dragFrom ?: return false
+        val delta = controller.angleAt(x, y, DRAG_Z, "dial") - from
+        if (!dragging && abs(delta) > 1.5) dragging = true
+        if (dragging) target = dragBase + delta
+        return dragging
+    }
+
     fun toggleBreak() {
         val b = breaking
-        breaking = if (b != null) Breaking(BREAK_END - b.time, !b.reverse) else Breaking(0.0, broken)
+        breaking =
+            if (b != null) Breaking(BREAK_END - b.time, !b.reverse) else Breaking(0.0, broken)
     }
 
     fun readout(): String {
@@ -180,12 +215,15 @@ private fun IsoScope.drawDial(state: DialState) {
     for ((_, art) in scene.art.getValue("back")) drawArt(art)
     drawTurnLayer(c, "lock")
     for ((name, art) in scene.art.getValue("mid")) {
-        if (name == "stand.index") withPalette(materialPalette(palette, Material.Brass)) { drawArt(art) } else drawArt(art)
+        if (name == "stand.index")
+            withPalette(materialPalette(palette, Material.Brass)) { drawArt(art) }
+        else drawArt(art)
     }
     drawTurnLayer(c, "dial")
     val on = state.on.x
     with(state.light) { drawPool(c, on, state.glClock) }
-    val fallback = if (state.light.available) max(0.0, (1 - on) / (1 - on * 0.92 + 1e-6)).toFloat() else 1f
+    val fallback =
+        if (state.light.available) max(0.0, (1 - on) / (1 - on * 0.92 + 1e-6)).toFloat() else 1f
     drawTurnLayer(c, "hand", fallback)
     with(state.light) { drawLed(c, on, state.glClock) }
     for ((_, art) in scene.art.getValue("front")) drawArt(art)
@@ -256,19 +294,9 @@ fun TurningDialFigure(palette: Palette, reducedMotion: Boolean, modifier: Modifi
                             when (event.type) {
                                 PointerEventType.Press -> {
                                     hold()
-                                    state.dragFrom = state.controller.angleAt(x, y, DRAG_Z, "dial")
-                                    state.dragBase = state.target
-                                    state.dragging = false
+                                    state.press(x, y)
                                 }
-                                PointerEventType.Move -> {
-                                    val from = state.dragFrom ?: continue
-                                    val delta = state.controller.angleAt(x, y, DRAG_Z, "dial") - from
-                                    if (!state.dragging && abs(delta) > 1.5) state.dragging = true
-                                    if (state.dragging) {
-                                        hold()
-                                        state.target = state.dragBase + delta
-                                    }
-                                }
+                                PointerEventType.Move -> if (state.drag(x, y)) hold()
                                 PointerEventType.Release -> state.dragFrom = null
                             }
                         }
@@ -285,9 +313,13 @@ fun TurningDialFigure(palette: Palette, reducedMotion: Boolean, modifier: Modifi
                                 kick()
                                 return@onKeyEvent true
                             }
-                            Key.DirectionRight, Key.DirectionUp -> snapped - step
-                            Key.DirectionLeft, Key.DirectionDown -> snapped + step
-                            Key.MoveHome -> INDEX + 90 - 360 * Math.round((INDEX + 90 - state.target) / 360).toDouble()
+                            Key.DirectionRight,
+                            Key.DirectionUp -> snapped - step
+                            Key.DirectionLeft,
+                            Key.DirectionDown -> snapped + step
+                            Key.MoveHome ->
+                                INDEX + 90 -
+                                    360 * Math.round((INDEX + 90 - state.target) / 360).toDouble()
                             else -> return@onKeyEvent false
                         }
                     hold()

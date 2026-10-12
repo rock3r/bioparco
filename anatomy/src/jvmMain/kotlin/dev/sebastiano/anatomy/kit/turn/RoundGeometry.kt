@@ -87,6 +87,30 @@ internal class Arc(val tone: Int, var from: Double, var to: Double, val full: Bo
  * turns away and at each light band, labelled with their band.
  */
 internal fun t3Arcs(nr: Double, na: Double, view: Seen, light: Seen): List<Arc> {
+    val sorted = arcCuts(nr, na, view, light)
+    if (sorted.isEmpty()) {
+        val tone = arcLabel(nr, na, view, light, 0.0)
+        return if (tone < 0) emptyList() else listOf(Arc(tone, 0.0, T3_TAU, full = true))
+    }
+    val merged = ArrayList<Arc>()
+    for (index in sorted.indices) {
+        val from = sorted[index]
+        val to = if (index + 1 < sorted.size) sorted[index + 1] else sorted[0] + T3_TAU
+        val tone = arcLabel(nr, na, view, light, (from + to) / 2)
+        val last = merged.lastOrNull()
+        if (last != null && last.tone == tone && abs(last.to - from) < 1e-9) last.to = to
+        else merged.add(Arc(tone, from, to))
+    }
+    val wraps = merged.size > 1 && merged[0].tone == merged.last().tone
+    if (wraps && abs(merged.last().to - T3_TAU - merged[0].from) < 1e-9) {
+        val last = merged.removeAt(merged.size - 1)
+        merged[0].from = last.from - T3_TAU
+    }
+    return merged.filter { it.tone >= 0 }
+}
+
+/** Where a ring turns away and crosses each light band: angles in `0…2π`, sorted, distinct. */
+private fun arcCuts(nr: Double, na: Double, view: Seen, light: Seen): List<Double> {
     val cuts = ArrayList<Double>()
     if (abs(nr) > 1e-9) {
         val visibleCut = -(na * view.a) / (nr * view.flat)
@@ -111,36 +135,17 @@ internal fun t3Arcs(nr: Double, na: Double, view: Seen, light: Seen): List<Arc> 
     cuts.sort()
     val sorted = ArrayList<Double>()
     for (c in cuts) if (sorted.isEmpty() || c != sorted.last()) sorted.add(c)
-    fun label(angle: Double): Int {
-        val facing = nr * view.flat * jsCos(angle - view.phi) + na * view.a
-        if (facing <= 1e-9) return -1
-        val score = nr * light.flat * jsCos(angle - light.phi) + na * light.a
-        var tone = 0
-        while (tone < T3_LB.size && score >= T3_LB[tone]) tone++
-        return tone
-    }
-    if (sorted.isEmpty()) {
-        val tone = label(0.0)
-        return if (tone < 0) emptyList() else listOf(Arc(tone, 0.0, T3_TAU, full = true))
-    }
-    val merged = ArrayList<Arc>()
-    for (index in sorted.indices) {
-        val from = sorted[index]
-        val to = if (index + 1 < sorted.size) sorted[index + 1] else sorted[0] + T3_TAU
-        val tone = label((from + to) / 2)
-        val last = merged.lastOrNull()
-        if (last != null && last.tone == tone && abs(last.to - from) < 1e-9) last.to = to
-        else merged.add(Arc(tone, from, to))
-    }
-    if (
-        merged.size > 1 &&
-            merged[0].tone == merged.last().tone &&
-            abs(merged.last().to - T3_TAU - merged[0].from) < 1e-9
-    ) {
-        val last = merged.removeAt(merged.size - 1)
-        merged[0].from = last.from - T3_TAU
-    }
-    return merged.filter { it.tone >= 0 }
+    return sorted
+}
+
+/** The light band of the ring at [angle], or -1 where it faces away. */
+private fun arcLabel(nr: Double, na: Double, view: Seen, light: Seen, angle: Double): Int {
+    val facing = nr * view.flat * jsCos(angle - view.phi) + na * view.a
+    if (facing <= 1e-9) return -1
+    val score = nr * light.flat * jsCos(angle - light.phi) + na * light.a
+    var tone = 0
+    while (tone < T3_LB.size && score >= T3_LB[tone]) tone++
+    return tone
 }
 
 /** The strip between two rings from angle [from] to [to], wound like every fill. */
@@ -201,19 +206,30 @@ internal fun t3Dome(
     r: Double,
     count: Int,
     sheets: Array<IsoPath>,
+) = DomeSheets(cam, c, e, r, count).into(sheets)
+
+private class DomeSheets(
+    val cam: TurnCam,
+    c: Point3,
+    val e: Point3,
+    val r: Double,
+    val count: Int,
 ) {
     val m = cam.m
     val v = cam.v
     val l = cam.l
     val sx = cam.ox + m[0] * c.x + m[1] * c.y + m[2] * c.z
     val sy = cam.oy + m[3] * c.x + m[4] * c.y + m[5] * c.z
+    val table = t3Table(count)
+
     fun flat(n: Point3) =
         Flat(
             sx + r * (m[0] * n.x + m[1] * n.y + m[2] * n.z),
             sy + r * (m[3] * n.x + m[4] * n.y + m[5] * n.z),
         )
+
     fun dot(a: Point3, b: Point3) = a.x * b.x + a.y * b.y + a.z * b.z
-    val table = t3Table(count)
+
     fun circle(w: Point3, value: Double, keep: (Point3) -> Boolean): List<Point3> {
         val (u, q) = t3Basis(w)
         val rad = sqrt(max(0.0, 1 - value * value))
@@ -231,25 +247,31 @@ internal fun t3Dome(
         }
         return out
     }
-    val rim = circle(v, 0.0) { dot(it, e) >= -1e-9 }.map { Lit(flat(it), dot(it, l)) }
-    val base = circle(e, 0.0) { dot(it, v) >= -1e-9 }.map { Lit(flat(it), dot(it, l)) }
-    val corners = t3Meet(v, 0.0, e, 0.0).map { Lit(flat(it), dot(it, l)) }
-    for (tone in 0 until 5) {
-        val tau = if (tone == 0) Double.NEGATIVE_INFINITY else T3_LB[tone - 1]
-        val candidates = ArrayList<Flat>()
-        for (list in listOf(rim, base, corners)) {
-            for (point in list) if (point.lit >= tau - 1e-9) candidates.add(point.p)
-        }
-        if (tone > 0) {
-            for (n in circle(l, tau) { dot(it, v) >= -1e-9 && dot(it, e) >= -1e-9 }) {
-                candidates.add(flat(n))
+
+    fun into(sheets: Array<IsoPath>) {
+        val rim = circle(v, 0.0) { dot(it, e) >= -1e-9 }.map { Lit(flat(it), dot(it, l)) }
+        val base = circle(e, 0.0) { dot(it, v) >= -1e-9 }.map { Lit(flat(it), dot(it, l)) }
+        val corners = t3Meet(v, 0.0, e, 0.0).map { Lit(flat(it), dot(it, l)) }
+        for (tone in 0 until 5) {
+            val tau = if (tone == 0) Double.NEGATIVE_INFINITY else T3_LB[tone - 1]
+            val candidates = ArrayList<Flat>()
+            for (list in listOf(rim, base, corners)) {
+                for (point in list) if (point.lit >= tau - 1e-9) candidates.add(point.p)
             }
-            for (n in t3Meet(l, tau, v, 0.0)) if (dot(n, e) >= -1e-9) candidates.add(flat(n))
-            for (n in t3Meet(l, tau, e, 0.0)) if (dot(n, v) >= -1e-9) candidates.add(flat(n))
+            if (tone > 0) bandEdge(tau, candidates)
+            if (candidates.size < 3) continue
+            val region = t3Hull(candidates)
+            if (region.size >= 3) sheets[tone] = sheets[tone] + t3PathOf(region, true)
         }
-        if (candidates.size < 3) continue
-        val region = t3Hull(candidates)
-        if (region.size >= 3) sheets[tone] = sheets[tone] + t3PathOf(region, true)
+    }
+
+    /** The light band's circle on the visible dome, and where it meets the rim and the base. */
+    fun bandEdge(tau: Double, candidates: MutableList<Flat>) {
+        for (n in circle(l, tau) { dot(it, v) >= -1e-9 && dot(it, e) >= -1e-9 }) {
+            candidates.add(flat(n))
+        }
+        for (n in t3Meet(l, tau, v, 0.0)) if (dot(n, e) >= -1e-9) candidates.add(flat(n))
+        for (n in t3Meet(l, tau, e, 0.0)) if (dot(n, v) >= -1e-9) candidates.add(flat(n))
     }
 }
 

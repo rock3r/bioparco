@@ -108,7 +108,8 @@ private fun ParityLines.spec(at: String, p: PartData) {
             put(
                 "$at.spec",
                 "${s.route} ${num(s.from)} ${num(s.to)} ${s.open0} ${s.open1} ${s.gap0} ${s.gap1} " +
-                    "${s.caps.first},${s.caps.second} ${s.wide} ${s.ringTone?.let { tone(it) } ?: "-"} ${slots(s.slots)}",
+                    "${s.caps.first},${s.caps.second} ${s.wide} " +
+                    "${s.ringTone?.let { tone(it) } ?: "-"} ${slots(s.slots)}",
             )
         is FixedSpec ->
             put(
@@ -130,55 +131,63 @@ internal fun ParityLines.data(name: String, d: TurnData) {
         put(
             "$name.group.${g.name}",
             "${g.parent} ${g.kind.name.lowercase()} ${vec(g.origin)} $pivot ${vec(g.direction)} " +
-                "${g.travel?.let { jsString(it) } ?: "-"} ${vec(g.point)} ${vec(g.axis)} ${pair(g.range)} ${g.upright} ${g.loose}",
+                "${g.travel?.let { jsString(it) } ?: "-"} ${vec(g.point)} ${vec(g.axis)} " +
+                "${pair(g.range)} ${g.upright} ${g.loose}",
         )
     }
     for (l in d.layers) put(
         "$name.layer.${l.name}",
         "${l.parts.joinToString(",")} rest ${l.rest.joinToString(",")}",
     )
-    d.parts.forEachIndexed { index, p0 ->
-        val at = "$name.part.$index"
-        put(
-            at,
-            "${p0.name} ${p0.kind.name.lowercase()} ${p0.group} ${p0.layer} ${tone(p0.tone)} ${tone(p0.crease)} ${p0.lit} ${p0.material?.id ?: "-"}",
-        )
-        spec(at, p0)
-        p0.seams?.let { put("$at.seams", list(it.toDoubleArray())) }
-        p0.ribs?.let { r ->
-            val seams =
-                when (r.seams) {
-                    RibSeams.None -> "false"
-                    RibSeams.Both -> "true"
-                    RibSeams.First -> "first"
-                    RibSeams.Last -> "last"
-                }
-            put(
-                "$at.ribs",
-                "${num(r.s0)} ${num(r.s1)} ${r.count} ${num(r.phase)} ${num(r.twist)} ${pair(r.fade)} $seams ${tone(r.tone)} " +
-                    "${r.r0?.let { num(it) } ?: "-"} ${r.r1?.let { num(it) } ?: "-"}",
-            )
-        }
-        p0.planes.forEachIndexed { j, pl ->
-            put(
-                "$at.plane$j",
-                "${vec(pl.o)} ${vec(pl.u)} ${vec(pl.v)} ${vec(pl.n)} ${pair(pl.fade)} ${pl.billboard}",
-            )
-        }
-        p0.dots.forEachIndexed { j, dot ->
-            put(
-                "$at.dot$j",
-                "${vec(dot.p)} ${vec(dot.n)} ${num(dot.size)} ${tone(dot.tone)} ${pair(dot.fade)}",
-            )
-        }
-        p0.cloud?.let { put("$at.cloud", list(it)) }
-    }
+    d.parts.forEachIndexed { index, p0 -> part("$name.part.$index", p0) }
     d.routes.forEachIndexed { index, r ->
         put(
             "$name.route.$index",
             "${list(r.points)} ${num(r.r)} ${num(r.spacing)} ${r.wide} ${r.hue?.let { tone(it) } ?: "-"}",
         )
     }
+    sceneData(name, d)
+}
+
+private fun ParityLines.part(at: String, p0: PartData) {
+    put(
+        at,
+        "${p0.name} ${p0.kind.name.lowercase()} ${p0.group} ${p0.layer} ${tone(p0.tone)} " +
+            "${tone(p0.crease)} ${p0.lit} ${p0.material?.id ?: "-"}",
+    )
+    spec(at, p0)
+    p0.seams?.let { put("$at.seams", list(it.toDoubleArray())) }
+    p0.ribs?.let { r ->
+        val seams =
+            when (r.seams) {
+                RibSeams.None -> "false"
+                RibSeams.Both -> "true"
+                RibSeams.First -> "first"
+                RibSeams.Last -> "last"
+            }
+        put(
+            "$at.ribs",
+            "${num(r.s0)} ${num(r.s1)} ${r.count} ${num(r.phase)} ${num(r.twist)} " +
+                "${pair(r.fade)} $seams ${tone(r.tone)} " +
+                "${r.r0?.let { num(it) } ?: "-"} ${r.r1?.let { num(it) } ?: "-"}",
+        )
+    }
+    p0.planes.forEachIndexed { j, pl ->
+        put(
+            "$at.plane$j",
+            "${vec(pl.o)} ${vec(pl.u)} ${vec(pl.v)} ${vec(pl.n)} ${pair(pl.fade)} ${pl.billboard}",
+        )
+    }
+    p0.dots.forEachIndexed { j, dot ->
+        put(
+            "$at.dot$j",
+            "${vec(dot.p)} ${vec(dot.n)} ${num(dot.size)} ${tone(dot.tone)} ${pair(dot.fade)}",
+        )
+    }
+    p0.cloud?.let { put("$at.cloud", list(it)) }
+}
+
+private fun ParityLines.sceneData(name: String, d: TurnData) {
     val scene = prepareTurn(d, 1.0)
     for (l in scene.layers) {
         put("$name.planar.${l.name}", list(l.planar))

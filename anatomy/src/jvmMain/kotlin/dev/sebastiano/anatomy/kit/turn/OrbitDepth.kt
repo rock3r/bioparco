@@ -5,6 +5,7 @@ package dev.sebastiano.anatomy.kit.turn
 import dev.sebastiano.anatomy.kit.Point3
 import dev.sebastiano.anatomy.kit.art
 import dev.sebastiano.anatomy.kit.audit.AuditItem
+import dev.sebastiano.anatomy.kit.audit.Overlaps
 import dev.sebastiano.anatomy.kit.audit.coverage
 import dev.sebastiano.anatomy.kit.audit.overlapsOf
 import dev.sebastiano.anatomy.kit.audit.sameRun
@@ -26,7 +27,8 @@ internal class OrbitDepth(private val o: OrbitRun) {
     fun coverage() {
         o.say("coverage")
         if (!o.wants("coverage")) return
-        val rest = TurnValues(o.t.groups.filter { it.kind != GroupKind.Free }.associate { it.name to 0.0 })
+        val rest =
+            TurnValues(o.t.groups.filter { it.kind != GroupKind.Free }.associate { it.name to 0.0 })
         val (_, frames) = o.emitAll(rest)
         val items =
             o.t.parts.map { part ->
@@ -41,7 +43,11 @@ internal class OrbitDepth(private val o: OrbitRun) {
                 AuditItem(part.name, 0.0, "", "", ZERO, part.shapes, drawing)
             }
         for (c in coverage(items, o.p, allow = o.options.cover)) {
-            result["coverage"].add(Finding("${c.name} its shapes cover ${jsRound(c.share * 100).toLong()}% of its drawing"))
+            result["coverage"].add(
+                Finding(
+                    "${c.name} its shapes cover ${jsRound(c.share * 100).toLong()}% of its drawing"
+                )
+            )
         }
     }
 
@@ -78,67 +84,110 @@ internal class OrbitDepth(private val o: OrbitRun) {
         if (o.wants("depth")) {
             for ((values, tag) in states) {
                 val state = order.check(values, "depth $tag", null)
-                o.scene.layers.forEachIndexed { index, layer -> checked += layer(layer, state, state.orders[index], tag) }
+                o.scene.layers.forEachIndexed { index, layer ->
+                    checked += layer(layer, state, state.orders[index], tag)
+                }
             }
         }
         result.stats["depthStates"] = states.size.toDouble()
         result.stats["depthPairs"] = checked.toDouble()
     }
 
+    /** A layer's live parts posed in a state, and the static items under or over it. */
+    private class Scene(
+        val items: List<AuditItem>,
+        val globals: List<Int>,
+        val sides: List<String?>,
+        val overlaps: Overlaps,
+    )
+
     private fun layer(layer: TurnLayer, state: OrderState, order: IntArray, tag: String): Int {
+        val scene = sceneOf(layer, state)
+        staticSides(layer, scene, tag)
+        return engineOrder(layer, scene, order, tag)
+    }
+
+    private fun sceneOf(layer: TurnLayer, state: OrderState): Scene {
         val items = ArrayList<AuditItem>()
         val globals = ArrayList<Int>()
         val sides = ArrayList<String?>()
         for (global in layer.parts) {
             val part = o.t.parts[global]
             val pose = poseFor(state.cams, part.group)
-            items.add(AuditItem(part.name, 0.0, "", "", ZERO, part.shapes.map { posed(it, pose) }, null, part.route, part.chunk))
+            val shapes = part.shapes.map { posed(it, pose) }
+            items.add(AuditItem(part.name, 0.0, "", "", ZERO, shapes, null, part.route, part.chunk))
             globals.add(global)
             sides.add(null)
         }
         val stack = o.t.order.ifEmpty { o.t.layers.map { it.name } }
         val ranks = stack.withIndex().associate { (i, name) -> name to i }
         for (item in o.statics) {
-            val rank = ranks[item.layer] ?: continue
-            if (item.shapes.isEmpty()) continue
+            val rank = ranks[item.layer]
+            if (rank == null || item.shapes.isEmpty()) continue
             items.add(AuditItem(item.name, 0.0, "", "", ZERO, item.shapes))
             globals.add(-1)
             sides.add(if (rank < ranks.getValue(layer.name)) "below" else "above")
         }
         val sideOf = items.withIndex().associate { (i, item) -> item to sides[i] }
         val overlaps =
-            overlapsOf(items, o.p, step = if (o.quick) 0.5 else 0.25, skip = { a, b -> sameRun(a, b) || (sideOf[a] != null && sideOf[b] != null) })
-        for (pair in overlaps.pairs) {
+            overlapsOf(
+                items,
+                o.p,
+                step = if (o.quick) 0.5 else 0.25,
+                skip = { a, b -> sameRun(a, b) || (sideOf[a] != null && sideOf[b] != null) },
+            )
+        return Scene(items, globals, sides, overlaps)
+    }
+
+    /** `layers`: a static item under the layer drawn over a live part, or over it drawn under. */
+    private fun staticSides(layer: TurnLayer, scene: Scene, tag: String) {
+        val items = scene.items
+        val sides = scene.sides
+        for (pair in scene.overlaps.pairs) {
             val sa = sides[pair.a]
             val sb = sides[pair.b]
             if ((sa == null) == (sb == null)) continue
             val sideIndex = if (sa != null) 0 else 1
-            val fixed = if (sa != null) pair.a else pair.b
-            val moving = if (sa != null) pair.b else pair.a
-            val staticFront = pair.front[sideIndex].area >= overlaps.least
-            val liveFront = pair.front[1 - sideIndex].area >= overlaps.least
-            val side = sides[fixed]
-            if (side == "below" && staticFront) {
-                result["layers"].add(Finding("${items[fixed].name} (under ${layer.name}) is in front of ${items[moving].name} at $tag: ${f2(pair.front[sideIndex].area)} px²"))
+            val fixed = items[if (sa != null) pair.a else pair.b].name
+            val moving = items[if (sa != null) pair.b else pair.a].name
+            val staticArea = pair.front[sideIndex].area
+            val liveArea = pair.front[1 - sideIndex].area
+            val least = scene.overlaps.least
+            val side = sa ?: sb
+            if (side == "below" && staticArea >= least) {
+                val text =
+                    "$fixed (under ${layer.name}) is in front of $moving at $tag: ${f2(staticArea)} px²"
+                result["layers"].add(Finding(text))
             }
-            if (side == "above" && liveFront) {
-                result["layers"].add(Finding("${items[fixed].name} (over ${layer.name}) is behind ${items[moving].name} at $tag: ${f2(pair.front[1 - sideIndex].area)} px²"))
+            if (side == "above" && liveArea >= least) {
+                val text =
+                    "$fixed (over ${layer.name}) is behind $moving at $tag: ${f2(liveArea)} px²"
+                result["layers"].add(Finding(text))
             }
         }
+    }
+
+    /** `depth`: two overlapping live parts whose true depth disagrees with the engine's order. */
+    private fun engineOrder(layer: TurnLayer, scene: Scene, order: IntArray, tag: String): Int {
         val rank = HashMap<Int, Int>()
         order.forEachIndexed { at, global -> rank[global] = at }
         var checked = 0
-        for (pair in overlaps.pairs) {
-            if (sides[pair.a] != null || sides[pair.b] != null) continue
+        for (pair in scene.overlaps.pairs) {
+            if (scene.sides[pair.a] != null || scene.sides[pair.b] != null) continue
             checked++
-            val aFront = pair.front[0].area >= overlaps.least
-            val bFront = pair.front[1].area >= overlaps.least
-            if (aFront == bFront) continue
+            val least = scene.overlaps.least
+            val aFront = pair.front[0].area >= least
+            val bFront = pair.front[1].area >= least
             val front = if (aFront) pair.a else pair.b
             val back = if (aFront) pair.b else pair.a
-            if (rank.getValue(globals[front]) < rank.getValue(globals[back])) {
+            fun drawnFirst() =
+                rank.getValue(scene.globals[front]) < rank.getValue(scene.globals[back])
+            if (aFront != bFront && drawnFirst()) {
                 val area = pair.front[if (aFront) 0 else 1].area
-                result["depth"].add(Finding("${layer.name} at $tag: ${items[front].name} is in front of ${items[back].name} but drawn first (${f2(area)} px²)"))
+                val names = "${scene.items[front].name} is in front of ${scene.items[back].name}"
+                result["depth"].add(
+                    Finding("${layer.name} at $tag: $names but drawn first (${f2(area)} px²)")
+                )
             }
         }
         return checked

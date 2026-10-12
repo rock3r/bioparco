@@ -50,12 +50,20 @@ class OrbitOptions(
     val log: ((String) -> Unit)? = null,
     val routeStates: Int = 240,
     val posedStep: Double? = null,
-    /** Run only these checks: `order`, `rigid`, `swept`, `posed`, `routes`, `coverage`, `continuity`, `depth`. */
+    /**
+     * Run only these checks: `order`, `rigid`, `swept`, `posed`, `routes`, `coverage`,
+     * `continuity`, `depth`.
+     */
     val only: List<String>? = null,
 )
 
 /** One finding: its line, the text after it, and the state it was found in (for grouping). */
-class Finding(val text: String, val state: String = "", val layer: String = "", val parts: List<String> = emptyList())
+class Finding(
+    val text: String,
+    val state: String = "",
+    val layer: String = "",
+    val parts: List<String> = emptyList(),
+)
 
 /** A reorder between two neighbouring states: where, how many pairs, which. */
 class OrderChange(val family: OrbitFamily, val x: Double, val count: Int, val pairs: List<String>)
@@ -97,7 +105,8 @@ internal val ORBIT_LINES =
         "continuity" to "continuity",
     )
 
-internal val ORBIT_CHECKS = listOf("order", "rigid", "swept", "posed", "routes", "coverage", "continuity", "depth")
+internal val ORBIT_CHECKS =
+    listOf("order", "rigid", "swept", "posed", "routes", "coverage", "continuity", "depth")
 
 /** `f2`: a number to two decimals, as the report prints it. */
 internal fun f2(v: Double) = jsFixed(jsRound(v * 100) / 100, 2)
@@ -123,7 +132,11 @@ internal class OrbitRun(
     val scene: TurnScene = prepareTurn(built.data, 1.0)
     val runs: List<TurnRun> = scene.runs
     val quick = options.quick
-    val result = OrbitResult(quick, ORBIT_LINES.filter { (_, check) -> check != null && !wants(check) }.keys.toList())
+    val result =
+        OrbitResult(
+            quick,
+            ORBIT_LINES.filter { (_, check) -> check != null && !wants(check) }.keys.toList(),
+        )
     val families: List<OrbitFamily> = familiesOf()
     val extra = options.poses
 
@@ -132,7 +145,8 @@ internal class OrbitRun(
     fun say(text: String) = options.log?.invoke(text)
 
     fun frameOf(family: OrbitFamily) =
-        if (quick) family.frame * (if (family.periodic) max(1.0, 1 / family.frame) else 3.0) else family.frame
+        if (quick) family.frame * (if (family.periodic) max(1.0, 1 / family.frame) else 3.0)
+        else family.frame
 
     fun label(family: OrbitFamily, x: Double) = "${family.name} ${jsFixed(x, 3)}${family.unit}"
 
@@ -150,7 +164,16 @@ internal class OrbitRun(
         val sweep = options.sweep
         if (sweep != null) out.add(sweep)
         else if (roots.isNotEmpty()) {
-            out.add(OrbitFamily("sweep", { x -> TurnValues(roots.associate { it.name to x }) }, 0.0, 360.0, 0.3, periodic = true))
+            out.add(
+                OrbitFamily(
+                    "sweep",
+                    { x -> TurnValues(roots.associate { it.name to x }) },
+                    0.0,
+                    360.0,
+                    0.3,
+                    periodic = true,
+                )
+            )
         }
         out.addAll(options.clips)
         return out
@@ -161,7 +184,13 @@ internal class OrbitRun(
  * Runs the orbit audit on [t] (built) with its recorder [r], camera [p] and [statics]: every line
  * of `references/3d.md`'s table, as the original's `orbit`.
  */
-fun orbit(t: Turning, r: Recorder, p: Projection, statics: List<StaticItem>, options: OrbitOptions = OrbitOptions()): OrbitResult {
+fun orbit(
+    t: Turning,
+    r: Recorder,
+    p: Projection,
+    statics: List<StaticItem>,
+    options: OrbitOptions = OrbitOptions(),
+): OrbitResult {
     val unknown = options.only.orEmpty().filter { it !in ORBIT_CHECKS }
     require(unknown.isEmpty()) {
         "orbit: unknown check ${unknown.joinToString(", ")} in only (the checks are ${ORBIT_CHECKS.joinToString(", ")})"
@@ -170,7 +199,10 @@ fun orbit(t: Turning, r: Recorder, p: Projection, statics: List<StaticItem>, opt
     val run = OrbitRun(t, r, p, statics, options)
     run.say("separation")
     val margins = run.built.report.margins
-    for (m in margins) if (m.margin < -0.08) run.result["separation"].add(Finding("interlock ${m.a} × ${m.b} ${f2(m.margin)}: split, flats or a flush contact"))
+    for (m in margins) if (m.margin < -0.08)
+        run.result["separation"].add(
+            Finding("interlock ${m.a} × ${m.b} ${f2(m.margin)}: split, flats or a flush contact")
+        )
     run.result.stats["planes"] = margins.size.toDouble()
     run.result.stats["tightest"] = if (margins.isEmpty()) 0.0 else margins.minOf { it.margin }
     OrbitOrder(run).scan()

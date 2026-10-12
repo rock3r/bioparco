@@ -382,8 +382,18 @@ stack, the inks for light and dark, and the craft rules.
 | `IsoScope.drawShader(layer, time, area) { set(name, value) }` | Draws it now over `area` (viewBox units): screen-blended in dark, ink on paper in light. |
 | `shaderArea(points, P, pad)` | The screen box around world points, for `area`. |
 
+## 13. Turning groups
+
+The original's beta 3D mode, in `dev.sebastiano.anatomy.kit.turn`: parts that turn, slide, hinge
+or break off as rigid bodies, re-projected and re-shaded every frame by the kit's rules and painted
+in an order solved from separating planes. `Turning(P, recorder)` builds them (`turnGroup`,
+`hingeGroup`, `slideGroup`, `freeGroup`, `prism`, `round`, `ball`, `lathe`, `tube`, `fixed`,
+`plane`, `split`, `build`), a `TurnController` drives them, `drawTurnLayer` paints a live layer,
+and `orbit` (the orbit audit) proves them at every angle and in every clip. `SKSL_TURN` and
+`skslPose` let a shader follow them. Read `3d.md` before you use them; the turning dial
+(`figures/TurningDial*.kt`) is the worked example.
+
 ## Not in the Compose kit yet
 
-`audit.mjs` (`recorder`, `settle`, `auditOrExit`) and the 3D runtime (and
-so `gl.mjs`'s `GLSL_TURN` and `glslPose` for shaders on turning groups). When one of them is the only
-honest way to draw a part, say so to the user instead of faking it.
+Everything in the original kit is ported except its undocumented experiments: `turn-fixed.mjs`,
+`canvas-painter.mjs` and `gl-shared.mjs`.

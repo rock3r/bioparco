@@ -279,6 +279,11 @@ internal class TurningDialHand(private val parts: TurningDialParts) {
             ),
             0.7 to 0.6,
         )
+        hose()
+    }
+
+    /** The air hose from the palm's port to the valve on the cover, with a ferrule at each end. */
+    private fun hose() {
         val hoseZ = COVER_TOP + 3.3
         val valve = Plan(3.4, HOSE_Y - 1.8, 3.4, 3.6, 0.6)
         val screws =

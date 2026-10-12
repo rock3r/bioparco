@@ -58,77 +58,112 @@ fun Turning.round(
     require(endList.none { it == RoundEnd.Dome } || abs(r0 - r1) <= 1e-9) {
         "turning: round $name can only have a dome where the end radius equals the side's (a capsule)"
     }
-    val profile = roundProfile(s0, s1, r0, r1, endList)
+    val body = RoundBody(f, s0, s1, r0, r1, endList)
     val vertical = abs(f.a.z) > 0.9999
     val groupOk = group == null || group.upright
-    val span = (s1 - s0).let { if (it == 0.0) 1.0 else it }
-    val radiusAt = { s: Double -> r0 + ((r1 - r0) * (maxOf(s0, minOf(s1, s)) - s0)) / span }
-    if (vertical && groupOk && fixed != false) {
-        val meridian =
-            listOf(Knot(profile[0].s, 0.0)) +
-                profile.filter { it.r > 1e-9 } +
-                Knot(profile.last().s, 0.0)
-        val seams =
-            IsoPath.join(
-                details.seams.map {
-                    arcOf(f, it, radiusAt(it), projection, slope = (r1 - r0) / span, least = 0.0)
-                }
-            )
-        val smooth = if (RoundEnd.Dome in endList) Smooth() else Smooth.auto(meridian)
-        val paths = lathe(meridian, f, projection, smooth = smooth)
-        val picture = art {
-            solid(
-                paths,
-                style.tone,
-                style.crease,
-                lit = style.lit,
-                inner = if (seams.isEmpty) null else art { line(seams, Tone.Faint) },
-            )
-        }
-        val ribs =
-            details.ribs?.let {
-                it.copy(r0 = it.r0 ?: radiusAt(it.s0), r1 = it.r1 ?: radiusAt(it.s1))
-            }
-        val part =
-            fixed(
-                name,
-                group,
-                layer,
-                picture,
-                pointOf(f, s0, 0.0, 0.0),
-                listOf(solidShape(f, profile, meta = metaOf(name, style))),
-                frame = f,
-                style = style,
-                details = details.copy(ribs = ribs, seams = emptyList()),
-                skipDetails = true,
-            )
-        part.round = RoundWorld(f, s0, s1, r0, r1, endList)
-        detailParts(part, f, radiusAt, s0 to s1)
-        return part
-    }
+    if (vertical && groupOk && fixed != false)
+        return fixedRound(name, group, layer, body, style, details)
     val part = common(name, PartKind.Round, group, layer, style, details)
-    record(part, solidShape(f, profile, meta = meta(part)))
-    part.world = RoundWorld(f, s0, s1, r0, r1, endList)
+    record(part, solidShape(f, body.profile, meta = meta(part)))
+    part.world = body.world()
     part.spec = RoundSpec(Frame(local(group, f.o), f.a, f.u, f.v), s0, s1, r0, r1, endList)
     part.seams = details.seams.toList()
-    detailParts(part, f, radiusAt, s0 to s1)
-    fun ring(s: Double, r: Double, count: Int = 48) =
-        (0 until count).map { pointOf(f, s, r, (it.toDouble() / count) * TAU) }
-    val pts = ArrayList(ring(s0, r0) + ring(s1, r1))
-    for (end in 0 until 2) {
-        if (endList[end] != RoundEnd.Dome) continue
-        val sAt = if (end == 1) s1 else s0
-        val r = if (end == 1) r1 else r0
-        val sign = if (end == 1) 1.0 else -1.0
-        for (j in 1..6) {
-            val b = (j.toDouble() / 6) * (PI / 2)
-            if (j == 6) pts.add(add3(f.o, mul3(f.a, sAt + sign * r)))
-            else pts.addAll(ring(sAt + sign * r * jsSin(b), r * jsCos(b), 32))
-        }
-    }
-    part.samples.addAll(pts.map { local(group, it) })
+    detailParts(part, f, body::radiusAt, s0 to s1)
+    part.samples.addAll(body.samples().map { local(group, it) })
     part.hints.add(f.a)
     parts.add(part)
+    return part
+}
+
+/** A round's axis span, radii and ends, its recorded profile and its radius along the axis. */
+private class RoundBody(
+    val f: Frame,
+    val s0: Double,
+    val s1: Double,
+    val r0: Double,
+    val r1: Double,
+    val ends: List<RoundEnd>,
+) {
+    val profile = roundProfile(s0, s1, r0, r1, ends)
+    val span = (s1 - s0).let { if (it == 0.0) 1.0 else it }
+
+    fun radiusAt(s: Double) = r0 + ((r1 - r0) * (maxOf(s0, minOf(s1, s)) - s0)) / span
+
+    fun world() = RoundWorld(f, s0, s1, r0, r1, ends)
+
+    fun ring(s: Double, r: Double, count: Int = 48) =
+        (0 until count).map { pointOf(f, s, r, (it.toDouble() / count) * TAU) }
+
+    /** Points on the surface: both end rims, and rings up each dome to its pole. */
+    fun samples(): List<Point3> {
+        val pts = ArrayList(ring(s0, r0) + ring(s1, r1))
+        for (end in 0 until 2) {
+            if (ends[end] != RoundEnd.Dome) continue
+            val sAt = if (end == 1) s1 else s0
+            val r = if (end == 1) r1 else r0
+            val sign = if (end == 1) 1.0 else -1.0
+            for (j in 1..6) {
+                val b = (j.toDouble() / 6) * (PI / 2)
+                if (j == 6) pts.add(add3(f.o, mul3(f.a, sAt + sign * r)))
+                else pts.addAll(ring(sAt + sign * r * jsSin(b), r * jsCos(b), 32))
+            }
+        }
+        return pts
+    }
+}
+
+/** A vertical round in an upright group: the kit's own lathe picture, moved by a translation. */
+private fun Turning.fixedRound(
+    name: String,
+    group: TurnGroup?,
+    layer: LiveLayer,
+    body: RoundBody,
+    style: PartStyle,
+    details: Details,
+): TurnPart {
+    val f = body.f
+    val profile = body.profile
+    val meridian =
+        listOf(Knot(profile[0].s, 0.0)) +
+            profile.filter { it.r > 1e-9 } +
+            Knot(profile.last().s, 0.0)
+    val slope = (body.r1 - body.r0) / body.span
+    val seams =
+        IsoPath.join(
+            details.seams.map {
+                arcOf(f, it, body.radiusAt(it), projection, slope = slope, least = 0.0)
+            }
+        )
+    val smooth = if (RoundEnd.Dome in body.ends) Smooth() else Smooth.auto(meridian)
+    val paths = lathe(meridian, f, projection, smooth = smooth)
+    val picture = art {
+        solid(
+            paths,
+            style.tone,
+            style.crease,
+            lit = style.lit,
+            inner = if (seams.isEmpty) null else art { line(seams, Tone.Faint) },
+        )
+    }
+    val ribs =
+        details.ribs?.let {
+            it.copy(r0 = it.r0 ?: body.radiusAt(it.s0), r1 = it.r1 ?: body.radiusAt(it.s1))
+        }
+    val part =
+        fixed(
+            name,
+            group,
+            layer,
+            picture,
+            pointOf(f, body.s0, 0.0, 0.0),
+            listOf(solidShape(f, profile, meta = metaOf(name, style))),
+            frame = f,
+            style = style,
+            details = details.copy(ribs = ribs, seams = emptyList()),
+            skipDetails = true,
+        )
+    part.round = body.world()
+    detailParts(part, f, body::radiusAt, body.s0 to body.s1)
     return part
 }
 

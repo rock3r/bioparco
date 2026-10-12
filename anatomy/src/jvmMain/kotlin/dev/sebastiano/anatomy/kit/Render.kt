@@ -265,9 +265,6 @@ class IsoScope(
         )
     }
 
-    private fun dashes(on: Float, off: Float, phase: Float = 0f) =
-        PathEffect.dashPathEffect(floatArrayOf(px(on), px(off)), px(phase))
-
     private fun drawDots(mark: DotsMark) {
         record(mark)
         val alpha = palette.dotAlpha(mark.tone)
@@ -430,3 +427,7 @@ fun IsoCanvas(
         }
     }
 }
+
+/** A dash pattern in viewBox units: [on], [off] and [phase] scaled to the canvas like hairlines. */
+private fun IsoScope.dashes(on: Float, off: Float, phase: Float = 0f) =
+    PathEffect.dashPathEffect(floatArrayOf(px(on), px(off)), px(phase))

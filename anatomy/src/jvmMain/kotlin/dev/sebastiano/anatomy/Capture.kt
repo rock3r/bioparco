@@ -59,7 +59,11 @@ import org.jetbrains.skia.Surface
  *                                 `__isoTurn.set`): its groups, and figure values such as a pod's time
  *   … --audit                     run the geometry audit (`kit/audit`) on a figure that records
  *                                 itself (`AUDITED_FIGURES`): print the report, write it to
- *                                 <name>-audit.txt beside the PNG, and exit 1 on any failure
+ *                                 <name>-audit.txt beside the PNG, and exit 1 on any failure;
+ *                                 a turning figure (`TurningFigure`) then runs the orbit audit
+ *                                 (`kit/turn/Orbit.kt`) and ends `turn audit passed` or failed
+ *   … --audit --quick             the orbit audit at about a tenth of the states, for iteration
+ *   … --audit --verbose           the orbit audit's progress, check by check
  */
 
 private const val FRAME_NS = 16_666_667L
@@ -81,6 +85,8 @@ private class Options(
     val lines: Boolean,
     val audit: Boolean,
     val turn: Map<String, Double>?,
+    val quick: Boolean,
+    val verbose: Boolean,
 )
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -150,14 +156,17 @@ fun main(args: Array<String>) {
     } finally {
         scene.close()
     }
-    val failing = auditBeside(audited, options.out)
+    val failing = auditBeside(audited, options)
     exitProcess(if (floating + failing > 0) 1 else 0)
 }
 
-/** Audits [figure], if any, writing the report beside [png]; returns how many problems fail. */
-private fun auditBeside(figure: AuditedFigure?, png: File): Int =
-    if (figure == null) 0
-    else auditFigure(figure, png.resolveSibling("${png.nameWithoutExtension}-audit.txt"))
+/** Audits [figure], if any, writing the report beside the PNG; returns how many problems fail. */
+private fun auditBeside(figure: AuditedFigure?, options: Options): Int {
+    if (figure == null) return 0
+    val png = options.out
+    val log = png.resolveSibling("${png.nameWithoutExtension}-audit.txt")
+    return auditFigure(figure, log, options.quick, options.verbose)
+}
 
 /** The figure's recorder, with `--audit`; exits if the figure doesn't record itself. */
 private fun auditedFigure(options: Options): AuditedFigure? {
@@ -306,6 +315,8 @@ private fun parse(args: Array<String>): Options? {
         reduced = "--reduced" in flags,
         lines = "--lines" in flags,
         audit = "--audit" in flags,
+        quick = "--quick" in flags,
+        verbose = "--verbose" in flags,
         turn =
             value("--turn")?.split(',')?.associate { pair ->
                 val (name, number) = pair.split('=')

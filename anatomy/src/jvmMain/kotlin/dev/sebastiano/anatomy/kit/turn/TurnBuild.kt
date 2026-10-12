@@ -2,6 +2,7 @@
 // See anatomy/LICENSE.
 package dev.sebastiano.anatomy.kit.turn
 
+import dev.sebastiano.anatomy.kit.Point3
 import dev.sebastiano.anatomy.kit.dot3
 import dev.sebastiano.anatomy.kit.viewOf
 
@@ -110,17 +111,7 @@ internal fun buildTurning(
     val p = t.projection
     val states = statesOf(t, poses)
     val groups = groupData(t)
-    val routes =
-        t.routes.map { route ->
-            RouteData(
-                route.points.flatMap { listOf(it.x, it.y, it.z) }.map(::r4).toDoubleArray(),
-                route.r,
-                route.spacing,
-                route.wide,
-                route.hue,
-                route.rings,
-            )
-        }
+    val routes = routeData(t)
     val emptyLayers = t.layers.map { LayerData(it.name, IntArray(0), IntArray(0)) }
     var parts = t.parts.map(::partData)
     var scratch = TurnData(p, groups, emptyLayers, parts, routes)
@@ -135,19 +126,10 @@ internal fun buildTurning(
     solver.spheresOf()
     for (layer in t.layers) solver.layer(layer)
     val found = solver.out
-    if (found.problems.isNotEmpty() && strict) {
-        val count = found.problems.size
-        error(
-            "turning: $count pair${if (count == 1) "" else "s"} with no separating plane\n  ${found.problems.joinToString("\n  ")}"
-        )
-    }
+    if (found.problems.isNotEmpty() && strict)
+        fail("pair", "with no separating plane", found.problems)
     val (layerProblems, proofs) = t.proveLayers(statics, states, scene)
-    if (layerProblems.isNotEmpty()) {
-        val count = layerProblems.size
-        error(
-            "turning: $count layer problem${if (count == 1) "" else "s"}\n  ${layerProblems.joinToString("\n  ")}"
-        )
-    }
+    if (layerProblems.isNotEmpty()) fail("layer problem", "", layerProblems)
     val packed = packData(t, groups, parts, routes, found)
     val packedScene = prepareTurn(packed, t.scale)
     val rest = TurnValues(groups.filter { it.kind != GroupKind.Free }.associate { it.name to 0.0 })
@@ -156,21 +138,7 @@ internal fun buildTurning(
         packedScene.runs.map { run ->
             TurnFrame(run.roles.size).also { run.emit(cams.of(run.group), it) }
         }
-    val v = viewOf(p)
-    val restLayers =
-        packedScene.layers.map { layer ->
-            val provisional =
-                layer.parts
-                    .sortedWith { i, j ->
-                        (dot3(solver.spheres[i].c, v) - dot3(solver.spheres[j].c, v)).let {
-                            if (it < 0) -1 else if (it > 0) 1 else 0
-                        }
-                    }
-                    .toIntArray()
-            val order = turnOrder(layer, frames, cams, provisional, OrderStats(), packedScene)
-            layer.rest = order
-            LayerData(layer.name, layer.parts, order)
-        }
+    val restLayers = restLayersOf(packedScene, frames, cams, solver, viewOf(p))
     val data =
         TurnData(
             packed.projection,
@@ -194,32 +162,76 @@ internal fun buildTurning(
             packedScene.runs,
             packedScene.layers,
         )
-    val report =
-        TurnReport(
-            t.parts.size,
-            t.groups.size,
-            t.layers.map { layer ->
-                LayerReport(
-                    layer.name,
-                    found.layers[layer.index].parts.size,
-                    found.planes.getValue(layer.name).size / 5,
-                    found.framed.getValue(layer.name).size / 6,
-                    found.groupPairs.getValue(layer.name).size / 6,
-                    found.dynamic.getValue(layer.name).size / 2,
-                    found.skip.getValue(layer.name).size / 2,
-                )
-            },
-            found.margins
-                .filter { it.margin < 0 }
-                .sortedWith { a, b ->
-                    (a.margin - b.margin).let { if (it < 0) -1 else if (it > 0) 1 else 0 }
-                },
-            found.margins.toList(),
-            proofs,
-            (System.nanoTime() - started) / 1e9,
-        )
+    val report = reportOf(t, found, proofs, started)
     return TurnBuild(data, report, finalScene, frames, found.planesByName)
 }
+
+private fun routeData(t: Turning) =
+    t.routes.map { route ->
+        RouteData(
+            route.points.flatMap { listOf(it.x, it.y, it.z) }.map(::r4).toDoubleArray(),
+            route.r,
+            route.spacing,
+            route.wide,
+            route.hue,
+            route.rings,
+        )
+    }
+
+/** Throws the build's error: [count] problems of [what] [after], one a line. */
+private fun fail(what: String, after: String, problems: List<String>): Nothing {
+    val count = problems.size
+    val head =
+        "turning: $count $what${if (count == 1) "" else "s"}${if (after.isEmpty()) "" else " $after"}"
+    error("$head\n  ${problems.joinToString("\n  ")}")
+}
+
+/** Each layer's rest order: by sphere depth along [v], then the runtime's sort. */
+private fun restLayersOf(
+    scene: TurnScene,
+    frames: List<TurnFrame>,
+    cams: TurnCams,
+    solver: PairSolver,
+    v: Point3,
+) =
+    scene.layers.map { layer ->
+        val provisional =
+            layer.parts
+                .sortedWith { i, j ->
+                    (dot3(solver.spheres[i].c, v) - dot3(solver.spheres[j].c, v)).let {
+                        if (it < 0) -1 else if (it > 0) 1 else 0
+                    }
+                }
+                .toIntArray()
+        val order = turnOrder(layer, frames, cams, provisional, OrderStats(), scene)
+        layer.rest = order
+        LayerData(layer.name, layer.parts, order)
+    }
+
+private fun reportOf(t: Turning, found: PairResults, proofs: List<LayerProof>, started: Long) =
+    TurnReport(
+        t.parts.size,
+        t.groups.size,
+        t.layers.map { layer ->
+            LayerReport(
+                layer.name,
+                found.layers[layer.index].parts.size,
+                found.planes.getValue(layer.name).size / 5,
+                found.framed.getValue(layer.name).size / 6,
+                found.groupPairs.getValue(layer.name).size / 6,
+                found.dynamic.getValue(layer.name).size / 2,
+                found.skip.getValue(layer.name).size / 2,
+            )
+        },
+        found.margins
+            .filter { it.margin < 0 }
+            .sortedWith { a, b ->
+                (a.margin - b.margin).let { if (it < 0) -1 else if (it > 0) 1 else 0 }
+            },
+        found.margins.toList(),
+        proofs,
+        (System.nanoTime() - started) / 1e9,
+    )
 
 private fun withSpec(d: PartData, spec: PartSpec) =
     PartData(

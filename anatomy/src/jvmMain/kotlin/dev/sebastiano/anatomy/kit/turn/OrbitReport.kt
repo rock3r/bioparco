@@ -40,39 +40,54 @@ fun orbitReport(result: OrbitResult): String {
     list("coverage")
     list("depth")
     list("continuity")
-    val s = result.stats
-    val w = result.worst
-    if (!skipped("continuity")) {
-        lines.add(
-            "worst tone step ${jsString(w["q"] ?: 0.0)} · worst birth ${f2(w["birth"] ?: 0.0)} px² · worst dot α step ${f3(w["dot"] ?: 0.0)} · " +
-                "worst faded α step ${f3(w["fade"] ?: 0.0)} · merges ${jsString(w["merge"] ?: 0.0)} · outline motion over bound " +
-                "${f3(w["motion"] ?: 0.0)} px · halving ${result.halvingFails} of ${result.halvingChecked}"
-        )
-    }
-    fun count(key: String) = jsString(s[key] ?: 0.0)
-    lines.add(
-        "order changes: ${count("changes")} states with swaps · ${count("orderStates")} order states · ${count("posedStates")} posed states · " +
-            "${count("planes")} planes (tightest margin ${f3(s["tightest"] ?: 0.0)}) · depth oracle ${count("depthStates")} states, " +
-            "${count("depthPairs")} overlapping pairs"
-    )
+    if (!skipped("continuity")) lines.add(worstLine(result))
+    lines.add(countsLine(result.stats))
     for (change in result.changes) {
-        lines.add("  ${change.family.name} at ${f3(change.x)}: ${change.count} pair${if (change.count == 1) "" else "s"} reorder (${change.pairs.joinToString("; ")})")
+        val pairs = "pair${plural(change.count)} reorder (${change.pairs.joinToString("; ")})"
+        lines.add("  ${change.family.name} at ${f3(change.x)}: ${change.count} $pairs")
     }
+    val s = result.stats
     lines.add("turn audit · ${f2(s["seconds"] ?: 0.0)} s")
     return lines.joinToString("\n")
+}
+
+/** `s` unless [count] is one. */
+private fun plural(count: Int) = if (count == 1) "" else "s"
+
+/** The worst continuity measures and the halving tally. */
+private fun worstLine(result: OrbitResult): String {
+    val w = result.worst
+    fun of(key: String) = w[key] ?: 0.0
+    return "worst tone step ${jsString(of("q"))} · worst birth ${f2(of("birth"))} px² · " +
+        "worst dot α step ${f3(of("dot"))} · worst faded α step ${f3(of("fade"))} · " +
+        "merges ${jsString(of("merge"))} · outline motion over bound ${f3(of("motion"))} px · " +
+        "halving ${result.halvingFails} of ${result.halvingChecked}"
+}
+
+/** How many states each check sampled, and the planes the build solved. */
+private fun countsLine(s: Map<String, Double>): String {
+    fun count(key: String) = jsString(s[key] ?: 0.0)
+    return "order changes: ${count("changes")} states with swaps · " +
+        "${count("orderStates")} order states · ${count("posedStates")} posed states · " +
+        "${count("planes")} planes (tightest margin ${f3(s["tightest"] ?: 0.0)}) · " +
+        "depth oracle ${count("depthStates")} states, ${count("depthPairs")} overlapping pairs"
 }
 
 private fun cycles(result: OrbitResult, lines: MutableList<String>, skipped: Boolean) {
     val groups = LinkedHashMap<String, CycleGroup>()
     for (c in result["cycles"]) {
-        val group = groups.getOrPut("${c.layer}|${c.parts.joinToString(", ")}") { CycleGroup(c, c.state, 0) }
+        val group =
+            groups.getOrPut("${c.layer}|${c.parts.joinToString(", ")}") {
+                CycleGroup(c, c.state, 0)
+            }
         group.last = c.state
         group.count++
     }
     lines.add(if (skipped) "cycles: skipped" else "cycles: ${result["cycles"].size}")
     for (g in groups.values.take(20)) {
         val c = g.first
-        lines.add("  ${c.layer}: ${c.parts.joinToString(", ")} in ${g.count} state${if (g.count == 1) "" else "s"} from ${c.state} to ${g.last}: ${c.text}")
+        val states = "${g.count} state${plural(g.count)} from ${c.state} to ${g.last}"
+        lines.add("  ${c.layer}: ${c.parts.joinToString(", ")} in $states: ${c.text}")
     }
 }
 
@@ -80,12 +95,17 @@ private fun cycles(result: OrbitResult, lines: MutableList<String>, skipped: Boo
 fun orbitVerdict(result: OrbitResult): String {
     val count = result.failures
     val skipped = result.skipped.size
-    val partial = if (skipped > 0) "$skipped line${if (skipped == 1) "" else "s"} skipped by only" else ""
-    val undersampled = if (result.quick) "quick run, undersampled: the full run is the proof" else ""
+    val partial =
+        if (skipped > 0) "$skipped line${if (skipped == 1) "" else "s"} skipped by only" else ""
+    val undersampled =
+        if (result.quick) "quick run, undersampled: the full run is the proof" else ""
     val notes = listOf(partial, undersampled).filter { it.isNotEmpty() }.joinToString("; ")
     return when {
-        count > 0 -> "turn audit failed: $count problem${if (count == 1) "" else "s"}${if (notes.isNotEmpty()) " ($notes)" else ""}"
-        notes.isNotEmpty() -> "turn audit ${if (skipped > 0) "partial" else "quick"}: no problems in what ran ($notes)"
+        count > 0 ->
+            "turn audit failed: $count problem${plural(count)}" +
+                if (notes.isNotEmpty()) " ($notes)" else ""
+        notes.isNotEmpty() ->
+            "turn audit ${if (skipped > 0) "partial" else "quick"}: no problems in what ran ($notes)"
         else -> "turn audit passed"
     }
 }

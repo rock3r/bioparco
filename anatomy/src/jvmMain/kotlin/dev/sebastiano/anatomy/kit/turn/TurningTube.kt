@@ -133,20 +133,7 @@ fun Turning.tube(
     val o = options
     val dense = resample(route, o.spacing)
     val total = pathLength(dense)
-    val turnBreaks = ArrayList<Double>()
-    var walked = 0.0
-    var bent = 0.0
-    for (i in 1 until dense.size - 1) {
-        walked += len3(sub3(dense[i], dense[i - 1]))
-        val a = unit3(sub3(dense[i], dense[i - 1]))
-        val b = unit3(sub3(dense[i + 1], dense[i]))
-        bent += (jsAcos(max(-1.0, min(1.0, dot3(a, b)))) * 180) / Math.PI
-        if (bent > o.turn) {
-            turnBreaks.add(walked)
-            bent = 0.0
-        }
-    }
-    val allBreaks = (o.breaks + turnBreaks).sorted()
+    val allBreaks = (o.breaks + turnBreaksOf(dense, o.turn)).sorted()
     val pieces = spansOf(total, o.gaps, allBreaks, o.chunk)
     val wide = r * cameraOf(projection).k > 1.3
     val routeIndex = routes.size
@@ -183,36 +170,72 @@ fun Turning.tube(
         ),
     )
     val chunks = pieces.mapIndexed { index, piece ->
-        val part = common("$name:$index", PartKind.Tube, group, layer, style, Details())
-        part.route = name
-        part.chunk = index
-        part.hue = o.hue
-        part.spec =
-            TubeSpec(
-                routeIndex,
-                piece.from,
-                piece.to,
-                piece.open0,
-                piece.open1,
-                piece.gap0,
-                piece.gap1,
-                o.caps,
-                wide,
-                o.rings?.tone,
-            )
-        val core = cut(dense, piece.from, piece.to)
-        part.shapes.add(tubeShape(core, r, ShapeMeta(name = part.name, owner = owner)))
-        for (i in core.indices) {
-            val t = unit3(sub3(core[min(core.size - 1, i + 1)], core[max(0, i - 1)]))
-            val f = frameAlong(core[i], t)
-            for (j in 0 until 10) part.samples.add(
-                local(group, pointOf(f, 0.0, r, (j.toDouble() / 10) * TAU))
-            )
-        }
-        part.hints.add(unit3(sub3(core[1], core[0])))
-        part.hints.add(unit3(sub3(core[core.size - 1], core[core.size - 2])))
-        parts.add(part)
-        part
+        tubeChunk(name, index, piece, routeIndex, group, layer, style, dense, r, wide, owner)
     }
     return TurnTube(name, chunks, total, dense)
+}
+
+/** Where a route has turned more than [turn] degrees since the last break. */
+private fun turnBreaksOf(dense: List<Point3>, turn: Double): List<Double> {
+    val turnBreaks = ArrayList<Double>()
+    var walked = 0.0
+    var bent = 0.0
+    for (i in 1 until dense.size - 1) {
+        walked += len3(sub3(dense[i], dense[i - 1]))
+        val a = unit3(sub3(dense[i], dense[i - 1]))
+        val b = unit3(sub3(dense[i + 1], dense[i]))
+        bent += (jsAcos(max(-1.0, min(1.0, dot3(a, b)))) * 180) / Math.PI
+        if (bent > turn) {
+            turnBreaks.add(walked)
+            bent = 0.0
+        }
+    }
+    return turnBreaks
+}
+
+/** One convex chunk of a tube: its spec, recorded shape, surface samples and axis hints. */
+private fun Turning.tubeChunk(
+    name: String,
+    index: Int,
+    piece: TubeSpanOf,
+    routeIndex: Int,
+    group: TurnGroup?,
+    layer: LiveLayer,
+    style: PartStyle,
+    dense: List<Point3>,
+    r: Double,
+    wide: Boolean,
+    owner: String,
+): TurnPart {
+    val o = routes[routeIndex]
+    val part = common("$name:$index", PartKind.Tube, group, layer, style, Details())
+    part.route = name
+    part.chunk = index
+    part.hue = o.hue
+    part.spec =
+        TubeSpec(
+            routeIndex,
+            piece.from,
+            piece.to,
+            piece.open0,
+            piece.open1,
+            piece.gap0,
+            piece.gap1,
+            o.caps,
+            wide,
+            o.rings?.tone,
+        )
+    val core = cut(dense, piece.from, piece.to)
+    part.shapes.add(tubeShape(core, r, ShapeMeta(name = part.name, owner = owner)))
+    for (i in core.indices) {
+        val t = unit3(sub3(core[min(core.size - 1, i + 1)], core[max(0, i - 1)]))
+        val f = frameAlong(core[i], t)
+        for (j in 0 until 10) part.samples.add(
+            local(group, pointOf(f, 0.0, r, (j.toDouble() / 10) * TAU))
+        )
+    }
+    part.hints.add(unit3(sub3(core[1], core[0])))
+    part.hints.add(unit3(sub3(core[core.size - 1], core[core.size - 2])))
+    parts.add(part)
+    return part
 }

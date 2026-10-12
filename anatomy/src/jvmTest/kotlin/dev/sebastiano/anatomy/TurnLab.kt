@@ -28,6 +28,7 @@ import dev.sebastiano.anatomy.kit.turn.DetailRing
 import dev.sebastiano.anatomy.kit.turn.DetailRule
 import dev.sebastiano.anatomy.kit.turn.Details
 import dev.sebastiano.anatomy.kit.turn.FreePose
+import dev.sebastiano.anatomy.kit.turn.LiveLayer
 import dev.sebastiano.anatomy.kit.turn.Material
 import dev.sebastiano.anatomy.kit.turn.PartStyle
 import dev.sebastiano.anatomy.kit.turn.PlaneArt
@@ -38,6 +39,7 @@ import dev.sebastiano.anatomy.kit.turn.RoundEnd
 import dev.sebastiano.anatomy.kit.turn.StaticItem
 import dev.sebastiano.anatomy.kit.turn.TubeOptions
 import dev.sebastiano.anatomy.kit.turn.TurnBuild
+import dev.sebastiano.anatomy.kit.turn.TurnGroup
 import dev.sebastiano.anatomy.kit.turn.TurnValues
 import dev.sebastiano.anatomy.kit.turn.Turning
 import dev.sebastiano.anatomy.kit.turn.ball
@@ -100,6 +102,33 @@ internal object TurnLab {
         val low = t.layer("low")
         val top = t.layer("top")
         t.stack(listOf("back", "low", "top", "front"))
+        tableParts(t, table, low, top)
+        armParts(t, arm, top)
+        fittings(t, table, top)
+        movers(t, slider, bob, spinner, top)
+        rod(t, table, top)
+        val floor =
+            r.solid(
+                slab(
+                    Plan(-44.0, -44.0, 88.0, 88.0, 4.0),
+                    -6.0,
+                    5.0,
+                    ShapeMeta(name = "stand.floor"),
+                )
+            )
+        r.put(null, listOf(floor), name = "stand.floor")
+        val mast = r.solid(cylinder(-80.0, -80.0, 3.0, -1.0, 12.0, ShapeMeta(name = "stand.mast")))
+        r.put(null, listOf(mast), name = "stand.mast")
+        val statics =
+            listOf(
+                StaticItem("stand.floor", "back", listOf(floor)),
+                StaticItem("stand.mast", "back", listOf(mast)),
+            )
+        val built = t.build(statics, poses(), strict = false)
+        return Lab(t, r, built)
+    }
+
+    private fun tableParts(t: Turning, table: TurnGroup, low: LiveLayer, top: LiveLayer) {
         val base =
             t.round(
                 "table.base",
@@ -160,7 +189,9 @@ internal object TurnLab {
                 style = PartStyle(material = Material.Gunmetal),
             )
         t.split(bar, p(1.0, 0.0, 0.0), 18.0)
-        armParts(t, arm, top)
+    }
+
+    private fun fittings(t: Turning, table: TurnGroup, top: LiveLayer) {
         t.ball(
             "table.knob",
             table,
@@ -228,6 +259,15 @@ internal object TurnLab {
             TubeOptions(rings = Rings(1.5, 1.6, true, 0.1 to 0.55, tone = Tone.Lo)),
             PartStyle(material = Material.Steel),
         )
+    }
+
+    private fun movers(
+        t: Turning,
+        slider: TurnGroup,
+        bob: TurnGroup,
+        spinner: TurnGroup,
+        top: LiveLayer,
+    ) {
         t.prism(
             "slider.carriage",
             slider,
@@ -283,6 +323,9 @@ internal object TurnLab {
             1.0,
             style = PartStyle(material = Material.Chrome),
         )
+    }
+
+    private fun rod(t: Turning, table: TurnGroup, top: LiveLayer) {
         val rod =
             t.round(
                 "table.rod",
@@ -297,25 +340,6 @@ internal object TurnLab {
             )
         t.split(rod, p(0.0, 1.0, 0.0), 2.0)
         t.billboard(rod, p(22.0, -2.0, 10.0), p(0.0, -1.0, 0.0), PlaneArt.Empty)
-        val floor =
-            r.solid(
-                slab(
-                    Plan(-44.0, -44.0, 88.0, 88.0, 4.0),
-                    -6.0,
-                    5.0,
-                    ShapeMeta(name = "stand.floor"),
-                )
-            )
-        r.put(null, listOf(floor), name = "stand.floor")
-        val mast = r.solid(cylinder(-80.0, -80.0, 3.0, -1.0, 12.0, ShapeMeta(name = "stand.mast")))
-        r.put(null, listOf(mast), name = "stand.mast")
-        val statics =
-            listOf(
-                StaticItem("stand.floor", "back", listOf(floor)),
-                StaticItem("stand.mast", "back", listOf(mast)),
-            )
-        val built = t.build(statics, poses(), strict = false)
-        return Lab(t, r, built)
     }
 
     private fun armParts(

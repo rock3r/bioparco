@@ -99,16 +99,24 @@ internal fun jsAtan2(y: Double, x: Double): Double {
     if (x.isInfinite() || y.isInfinite()) return StrictMath.atan2(y, x)
     val hx = high(x)
     val hy = high(y)
-    var m = ((hy ushr 31) and 1) or ((hx ushr 30) and 2)
-    if (y == 0.0) {
-        return when (m) {
-            0,
-            1 -> y
-            2 -> PI
-            else -> -PI
-        }
-    }
+    val m = ((hy ushr 31) and 1) or ((hx ushr 30) and 2)
+    if (y == 0.0) return atan2OnAxis(m, y)
     if (x == 0.0) return if (hy < 0) -PI_O_2 else PI_O_2
+    return atan2Quadrant(y, x, hx, hy, m)
+}
+
+/** `atan2(±0, x)`: ±0 for x > 0 and ±π for x < 0, by the sign bits in [m]. */
+private fun atan2OnAxis(m: Int, y: Double) =
+    when (m) {
+        0,
+        1 -> y
+        2 -> PI
+        else -> -PI
+    }
+
+/** `atan2` off the axes, with the high words [hx], [hy] and the sign bits [m0]. */
+private fun atan2Quadrant(y: Double, x: Double, hx: Int, hy: Int, m0: Int): Double {
+    var m = m0
     val k = ((hy and 0x7fffffff) - (hx and 0x7fffffff)) shr 20
     val z: Double
     if (k > 60) {
@@ -347,4 +355,32 @@ internal fun jsCos(x: Double): Double {
         2 -> -kernelCos(y[0], y[1])
         else -> kernelSin(y[0], y[1], 1)
     }
+}
+
+/** V8's four-argument `Math.hypot`: normalised by the largest and summed with compensation. */
+internal fun jsHypot4(a: Double, b: Double, c: Double, d: Double): Double {
+    val values =
+        doubleArrayOf(
+            kotlin.math.abs(a),
+            kotlin.math.abs(b),
+            kotlin.math.abs(c),
+            kotlin.math.abs(d),
+        )
+    var most = 0.0
+    for (v in values) {
+        if (v == Double.POSITIVE_INFINITY) return v
+        if (v > most) most = v
+    }
+    if (values.any { it.isNaN() }) return Double.NaN
+    if (most == 0.0) return 0.0
+    var sum = 0.0
+    var compensation = 0.0
+    for (v in values) {
+        val n = v / most
+        val summand = n * n - compensation
+        val preliminary = sum + summand
+        compensation = (preliminary - sum) - summand
+        sum = preliminary
+    }
+    return sqrt(sum) * most
 }

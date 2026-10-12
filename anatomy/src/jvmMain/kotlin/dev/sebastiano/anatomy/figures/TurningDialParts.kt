@@ -332,6 +332,11 @@ internal class TurningDialParts(val t: Turning) {
             PartStyle(tone = Tone.Mid, material = Material.Gold),
             Details(dots = coverScrews),
         )
+        connector()
+    }
+
+    /** The connector block on the cover: its cable ports, clamps and the terminal block. */
+    private fun connector() {
         plan(
             "hand.connector",
             CONN,
@@ -510,6 +515,11 @@ internal class TurningDialParts(val t: Turning) {
             style = PartStyle(tone = Tone.Hi, crease = Tone.Lo, material = Material.Gold),
             details = Details(seams = listOf(1.2, 5.3)),
         )
+        pod()
+    }
+
+    /** The hex pod on its socket: a free group that breaks off the cover. */
+    private fun pod() {
         val pod = Floor(-7.0, 11.4)
         val podZ = COVER_TOP + 0.3
         t.round(

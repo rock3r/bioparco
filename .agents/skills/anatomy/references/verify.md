@@ -22,6 +22,7 @@ review shots somewhere ignored (`.amp/in/artifacts/` or `build/`), never into th
 ./gradlew :anatomy:capture --args="dial-indicator --reduced --times 2"                  # reduced motion
 ./gradlew :anatomy:capture --args="dial-indicator --lines --out shots/lines.png"        # line ends, ringed
 ./gradlew :anatomy:capture --args="<figure> --audit --out shots/figure.png"             # geometry audit
+./gradlew :anatomy:capture --args="turning-dial --turn dial=37,lift=1 --out shots/t.png" # hold a turning figure
 ```
 
 | Option | Default | What it does |
@@ -39,7 +40,9 @@ review shots somewhere ignored (`.amp/in/artifacts/` or `build/`), never into th
 | `--zoom-scale` | 4 | |
 | `--reduced` | | Reduced motion. |
 | `--lines` | | Check line ends on each shot (see "Line ends"): print the report, ring loose ends in red on the PNG, write the report to a `.txt` beside it, and exit 1 if any end floats. |
-| `--audit` | | Run the geometry audit on a figure that records itself (see "Audit"): print the report, write it to `<name>-audit.txt` beside the PNG, and exit 1 on any failure. |
+| `--audit` | | Run the geometry audit on a figure that records itself (see "Audit"): print the report, write it to `<name>-audit.txt` beside the PNG, and exit 1 on any failure. A turning figure runs the orbit audit after it. |
+| `--quick`, `--verbose` | | With `--audit` on a turning figure: the orbit audit at about a tenth of the states (for iteration; it never ends `passed`), and its progress check by check. |
+| `--turn name=value,…` | | Hold a turning figure (`references/3d.md`) at these values: its groups, and figure values such as the dial's `lift` or the pod's time `pod`. The figure stops its tour and shows them (`TurnHook`, the original's `__isoTurn.set`). Combine with `--zoom`, `--lines` and both themes. |
 
 Read every PNG you make: open it with `view_media` and look. Then run the figure for real with
 `./gradlew :anatomy:run` when you can, since the pointer feel only shows live.
@@ -116,6 +119,24 @@ assembled, apart and in every replayed frame of an explode; `in passing` and `fr
 lists to read, not failures. `references/audit.md` has what each line means and how to fix it. A
 zero audit is necessary, not sufficient: it only checks what was recorded, so run `--lines` and look
 too.
+
+### The orbit audit
+
+A turning figure (`references/3d.md`) implements `TurningFigure` as well: after the kit audit,
+`--audit` runs the orbit audit (`orbit` in `kit/turn`), which samples every turn angle, clip frame
+and pose for order, clearances, routes, coverage, depth and continuity. It appends its report to
+the same `-audit.txt` and ends `turn audit passed` or `turn audit failed: n problems`; any failure
+exits 1. Only a full run ends `passed`. It is slow (the turning dial takes about 40 s with
+`--quick` and about five minutes in full), so iterate with `--quick --verbose` and run the final full
+audit in the background, then read the `.txt`:
+
+```sh
+./gradlew :anatomy:capture --args="turning-dial --audit --quick --verbose --out shots/dial.png"
+./gradlew :anatomy:capture --args="turning-dial --audit --out shots/dial.png" > audit.log 2>&1 &
+```
+
+`references/3d.md`, section 13, has what each line means and how to fix it. Then shoot the figure
+with `--turn` at the angles a line names, at the extremes of every clip, and with `--lines`.
 
 ## Close-ups
 

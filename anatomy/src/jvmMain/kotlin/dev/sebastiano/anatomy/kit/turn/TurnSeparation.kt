@@ -132,22 +132,26 @@ private class Gjk(
     }
 
     fun step(limit: Int) {
-        for (it in 0 until limit) {
-            val l = jsHypot(w.x, w.y, w.z)
-            if (l < 1e-12) break
-            val n = Point3(w.x / l, w.y / l, w.z / l)
-            val value = gap(n)
-            if (value > margin) {
-                margin = value
-                best = n
-            }
-            val s = Point3(b[0] - a[0], b[1] - a[1], b[2] - a[2])
-            val ds = Point3(w.x - s.x, w.y - s.y, w.z - s.z)
-            val dd = ds.x * ds.x + ds.y * ds.y + ds.z * ds.z
-            if (dd < 1e-14) break
-            val tt = max(0.0, min(1.0, (w.x * ds.x + w.y * ds.y + w.z * ds.z) / dd))
-            w = Point3(w.x - ds.x * tt, w.y - ds.y * tt, w.z - ds.z * tt)
+        for (it in 0 until limit) if (!advance()) break
+    }
+
+    /** One GJK step: keeps the best plane so far and moves [w]; false once it has converged. */
+    private fun advance(): Boolean {
+        val l = jsHypot(w.x, w.y, w.z)
+        if (l < 1e-12) return false
+        val n = Point3(w.x / l, w.y / l, w.z / l)
+        val value = gap(n)
+        if (value > margin) {
+            margin = value
+            best = n
         }
+        val s = Point3(b[0] - a[0], b[1] - a[1], b[2] - a[2])
+        val ds = Point3(w.x - s.x, w.y - s.y, w.z - s.z)
+        val dd = ds.x * ds.x + ds.y * ds.y + ds.z * ds.z
+        if (dd < 1e-14) return false
+        val tt = max(0.0, min(1.0, (w.x * ds.x + w.y * ds.y + w.z * ds.z) / dd))
+        w = Point3(w.x - ds.x * tt, w.y - ds.y * tt, w.z - ds.z * tt)
+        return true
     }
 
     fun solve(warm: Point3?, rounds: Int, hints: GjkHints?): Separation {

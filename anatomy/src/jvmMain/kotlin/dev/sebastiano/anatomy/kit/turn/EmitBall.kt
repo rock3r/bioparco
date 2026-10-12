@@ -168,6 +168,15 @@ private class BallEmit(val run: BallRun, val cam: TurnCam, val f: TurnFrame) {
     /** The part of the visible ball lit at least [threshold], clipped to the outline. */
     fun capOf(threshold: Double): IsoPath {
         val points = ArrayList<Flat>()
+        capRim(threshold, points)
+        flats.forEachIndexed { ci, cut -> capOnFlat(threshold, ci, cut, points) }
+        if (points.size < 3) return IsoPath.Empty
+        val region = t3ClipConvex(t3Hull(points), hull)
+        return if (region.size >= 3) t3PathOf(region, true) else IsoPath.Empty
+    }
+
+    /** The cap's points on the limb, its own visible circle and where the two meet. */
+    private fun capRim(threshold: Double, points: MutableList<Flat>) {
         for (w in limb) if (dot(w, l) >= threshold && inside(w)) points.add(flat(w))
         val radius = sqrt(max(0.0, 1 - threshold * threshold))
         val (lu, lw) = t3Basis(l)
@@ -184,21 +193,20 @@ private class BallEmit(val run: BallRun, val cam: TurnCam, val f: TurnFrame) {
         }
         if (dot(l, v) > threshold) points.add(flat(v))
         for (w in t3Meet(l, threshold, v, 0.0)) if (inside(w)) points.add(flat(w))
-        flats.forEachIndexed { ci, cut ->
-            for (w in t3Meet(v, 0.0, cut.n, cut.d / r)) {
-                if (inside(w, ci) && dot(w, l) >= threshold) points.add(flat(w))
-            }
-            for (w in t3Meet(l, threshold, cut.n, cut.d / r)) {
-                if (inside(w, ci) && dot(w, v) >= -1e-9) points.add(flat(w))
-            }
-            for (point in rims[ci]) {
-                if (point.keep && dot(point.w, l) >= threshold && dot(point.w, v) >= -1e-9)
-                    points.add(point.p)
-            }
+    }
+
+    /** The cap's points on flat [ci]: where its rim meets the limb, the cap circle, and its rim. */
+    private fun capOnFlat(threshold: Double, ci: Int, cut: BallCut, points: MutableList<Flat>) {
+        for (w in t3Meet(v, 0.0, cut.n, cut.d / r)) {
+            if (inside(w, ci) && dot(w, l) >= threshold) points.add(flat(w))
         }
-        if (points.size < 3) return IsoPath.Empty
-        val region = t3ClipConvex(t3Hull(points), hull)
-        return if (region.size >= 3) t3PathOf(region, true) else IsoPath.Empty
+        for (w in t3Meet(l, threshold, cut.n, cut.d / r)) {
+            if (inside(w, ci) && dot(w, v) >= -1e-9) points.add(flat(w))
+        }
+        for (point in rims[ci]) {
+            if (point.keep && dot(point.w, l) >= threshold && dot(point.w, v) >= -1e-9)
+                points.add(point.p)
+        }
     }
 
     /** A flat's face, tone and width, and its rim's visible stretches as crease. */

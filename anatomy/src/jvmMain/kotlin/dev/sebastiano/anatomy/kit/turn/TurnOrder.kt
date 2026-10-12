@@ -165,18 +165,19 @@ private class EdgeCollector(
         for (gp in layer.groupPairs) {
             union(gp.a, gp.boxA)
             union(gp.b, gp.boxB)
-            if (!t3Overlap(gp.boxA, gp.boxB, -0.05)) continue
-            val v = cams.of(gp.frame).v
-            val s = gp.n.x * v.x + gp.n.y * v.y + gp.n.z * v.z
-            if (s < 1e-7 && s > -1e-7) continue
-            for (i in gp.a) {
-                val bi = frames[i].box
-                if (!t3Overlap(bi, gp.boxB, -0.05)) continue
-                for (j in gp.b) {
-                    if (!t3Overlap(bi, frames[j].box, -0.05)) continue
-                    add(i, j, s)
-                }
-            }
+            if (t3Overlap(gp.boxA, gp.boxB, -0.05)) groupPair(gp)
+        }
+    }
+
+    /** One framed group pair: its plane orders every overlapping part of one side to the other. */
+    private fun groupPair(gp: GroupPair) {
+        val v = cams.of(gp.frame).v
+        val s = gp.n.x * v.x + gp.n.y * v.y + gp.n.z * v.z
+        if (s < 1e-7 && s > -1e-7) return
+        for (i in gp.a) {
+            val bi = frames[i].box
+            if (!t3Overlap(bi, gp.boxB, -0.05)) continue
+            for (j in gp.b) if (t3Overlap(bi, frames[j].box, -0.05)) add(i, j, s)
         }
     }
 
@@ -197,15 +198,18 @@ private class EdgeCollector(
             val bi = frames[i].box
             for (b in parts.indices) {
                 val j = parts[b]
-                if (j == i || runs[j].group == gi) continue
-                if (layer.looseAt[b] && j < i) continue
-                if (!t3Overlap(bi, frames[j].box, -0.05)) continue
-                val s = cross(i, j)
-                if (s < 1e-7 && s > -1e-7) continue
-                val li = local.getValue(i)
-                if (s > 0) work.addEdge(li, b) else work.addEdge(b, li)
+                val other = j != i && runs[j].group != gi && !(layer.looseAt[b] && j < i)
+                if (other && t3Overlap(bi, frames[j].box, -0.05)) looseEdge(i, j, b)
             }
         }
+    }
+
+    /** The edge between a free part [i] and the part [j] at local index [b], unless edge-on. */
+    private fun looseEdge(i: Int, j: Int, b: Int) {
+        val s = cross(i, j)
+        if (s < 1e-7 && s > -1e-7) return
+        val li = local.getValue(i)
+        if (s > 0) work.addEdge(li, b) else work.addEdge(b, li)
     }
 
     /** The plane between two parts of different groups, cached while their relative pose holds. */
@@ -328,8 +332,7 @@ private class KahnSort(val layer: TurnLayer, val frames: List<TurnFrame>, val w:
                     if (breakCycle() <= 0) break
                     tries++
                 }
-                if (size != 0) continue
-                forcePick()
+                if (size == 0) forcePick()
             }
             val v = pop()
             if (w.done[v]) continue
@@ -412,10 +415,11 @@ private class KahnSort(val layer: TurnLayer, val frames: List<TurnFrame>, val w:
                     if (w.indeg[b] == 0) push(b)
                 }
             }
-            if (x == target) break
-            edge = w.via[x]
             var from = -1
-            for (s in 0 until top) if (w.stack[s] == x) from = if (s > 0) w.stack[s - 1] else -1
+            if (x != target) {
+                edge = w.via[x]
+                for (s in 0 until top) if (w.stack[s] == x) from = if (s > 0) w.stack[s - 1] else -1
+            }
             if (from < 0) break
             x = from
         }

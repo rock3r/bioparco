@@ -254,8 +254,8 @@ internal fun t3Keep(values: IntArray): BooleanArray {
 }
 
 /**
- * Review tools' hold on a turning figure, the original's `window.__isoTurn.set`: while [values]
- * is set, a figure that honours it stops its tour and shows those values (`capture --turn`).
+ * Review tools' hold on a turning figure, the original's `window.__isoTurn.set`: while [values] is
+ * set, a figure that honours it stops its tour and shows those values (`capture --turn`).
  */
 object TurnHook {
     @Volatile var values: Map<String, Double>? = null

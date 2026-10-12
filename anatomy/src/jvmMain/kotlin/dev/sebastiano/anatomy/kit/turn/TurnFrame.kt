@@ -114,17 +114,38 @@ internal fun t3Faded(f: TurnFrame, run: TurnRun, prefix: String, lines: FadedLin
     f.fade[prefix] =
         FadeSet(IntArray(count) { lines.key[it] }, DoubleArray(count) { lines.alpha[it] })
     val slots = (if (prefix == "v") run.slots?.bevel else run.slots?.ribs) ?: 6
+    val present = levelsOf(lines, count)
+    mergeLevels(present, slots)
+    for (j in 0 until slots) {
+        val role = run.role["$prefix$j"] ?: continue
+        if (j < present.size) {
+            f.d[role] = present[j].second
+            f.o[role] = present[j].first / TURN_LEVELS
+        } else {
+            f.d[role] = IsoPath.Empty
+            f.o[role] = 0.0
+        }
+    }
+    return present.size
+}
+
+/** The first [count] faded lines grouped by opacity level, most opaque first. */
+private fun levelsOf(lines: FadedLines, count: Int): MutableList<Pair<Double, IsoPath>> {
     val levels = arrayOfNulls<IsoPath>(TURN_LEVELS + 1)
     for (i in 0 until count) {
         val level = min(TURN_LEVELS, jsRound(lines.alpha[i] * TURN_LEVELS).toInt())
-        if (level <= 0) continue
-        levels[level] = (levels[level] ?: IsoPath.Empty) + lines.d[i]
+        if (level > 0) levels[level] = (levels[level] ?: IsoPath.Empty) + lines.d[i]
     }
     val present = ArrayList<Pair<Double, IsoPath>>()
     for (l in TURN_LEVELS downTo 1) {
         val path = levels[l]
         if (path != null && !path.isEmpty) present.add(l.toDouble() to path)
     }
+    return present
+}
+
+/** Merges the two closest levels of [present] until they fit in [slots]. */
+private fun mergeLevels(present: MutableList<Pair<Double, IsoPath>>, slots: Int) {
     while (present.size > slots) {
         var best = 1
         var gap = Double.POSITIVE_INFINITY
@@ -140,15 +161,4 @@ internal fun t3Faded(f: TurnFrame, run: TurnRun, prefix: String, lines: FadedLin
         present.removeAt(best)
         present[best - 1] = (a + b) / 2 to (da + db)
     }
-    for (j in 0 until slots) {
-        val role = run.role["$prefix$j"] ?: continue
-        if (j < present.size) {
-            f.d[role] = present[j].second
-            f.o[role] = present[j].first / TURN_LEVELS
-        } else {
-            f.d[role] = IsoPath.Empty
-            f.o[role] = 0.0
-        }
-    }
-    return present.size
 }

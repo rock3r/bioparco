@@ -237,26 +237,38 @@ private fun ringSegmentsOf(
                     Pair(station + hand * twist * r * (k.toDouble() / steps - 0.5), theta)
                 }
             for (k in 0 until steps) {
-                var a = samples[k]
-                var b = samples[k + 1]
-                if ((a.first < from && b.first < from) || (a.first > to && b.first > to)) continue
-                fun clipTo(
-                    x: Pair<Double, Double>,
-                    y: Pair<Double, Double>,
-                    edge: Double,
-                ): Pair<Double, Double> {
-                    val span = (y.first - x.first).let { if (it == 0.0) 1e-9 else it }
-                    return Pair(edge, x.second + ((y.second - x.second) * (edge - x.first)) / span)
-                }
-                if (a.first < from) a = clipTo(a, b, from)
-                if (b.first < from) b = clipTo(b, a, from)
-                if (a.first > to) a = clipTo(a, b, to)
-                if (b.first > to) b = clipTo(b, a, to)
+                val (a, b) = clipSpan(samples[k], samples[k + 1], from, to) ?: continue
                 segments.add(surface(a.first, a.second) to surface(b.first, b.second))
             }
         }
     }
     return segments
+}
+
+/** A ring segment `(t, θ)` from [a0] to [b0] clipped to `from…to` along the route, or null. */
+private fun clipSpan(
+    a0: Pair<Double, Double>,
+    b0: Pair<Double, Double>,
+    from: Double,
+    to: Double,
+): Pair<Pair<Double, Double>, Pair<Double, Double>>? {
+    var a = a0
+    var b = b0
+    if ((a.first < from && b.first < from) || (a.first > to && b.first > to)) return null
+    if (a.first < from) a = clipTo(a, b, from)
+    if (b.first < from) b = clipTo(b, a, from)
+    if (a.first > to) a = clipTo(a, b, to)
+    if (b.first > to) b = clipTo(b, a, to)
+    return a to b
+}
+
+private fun clipTo(
+    x: Pair<Double, Double>,
+    y: Pair<Double, Double>,
+    edge: Double,
+): Pair<Double, Double> {
+    val span = (y.first - x.first).let { if (it == 0.0) 1e-9 else it }
+    return Pair(edge, x.second + ((y.second - x.second) * (edge - x.first)) / span)
 }
 
 private val T3_SHINE: Flat = jsHypot(-0.55, -0.835).let { l -> Flat(-0.55 / l, -0.835 / l) }
@@ -434,31 +446,9 @@ private class TubeEmit(val run: TubeRun, val cam: TurnCam, val f: TurnFrame) {
         for (i in 0 until last) quads.add(listOf(left[i], left[i + 1], right[i + 1], right[i]))
         for (side in 0 until 2) {
             if (!run.capped[side]) continue
-            val at = if (side == 1) last else 0
-            val other = if (side == 1) last - 1 else 1
-            val tangent = run.tips[side]
-            val outward = if (side == 1) tangent else Point3(-tangent.x, -tangent.y, -tangent.z)
-            val inward =
-                Flat(
-                    sides.flat[2 * other] - sides.flat[2 * at],
-                    sides.flat[2 * other + 1] - sides.flat[2 * at + 1],
-                )
-            val p3 = run.body.p3
-            val centre = Point3(p3[3 * at], p3[3 * at + 1], p3[3 * at + 2])
-            val cap = tubeCap(cam, centre, tangent, run.r, inward)
-            var ringArea = 0.0
-            for (i in cap.ring.indices) {
-                val a = cap.ring[i]
-                val b = cap.ring[(i + 1) % cap.ring.size]
-                ringArea += a.x * b.y - b.x * a.y
-            }
-            body += t3PathOf(if (sign(ringArea) == sign) cap.ring else cap.ring.reversed(), true)
-            edges += t3PathOf(cap.arc, false)
-            val v = cam.v
-            val open = outward.x * v.x + outward.y * v.y + outward.z * v.z > 0
-            if (open) edges += t3PathOf(cap.inner, false)
-            tips[side] = Tip(if (open) cap.inner else cap.arc, sides.frames[at])
-            quads.add(cap.ring)
+            val (capBody, capEdges) = cap(side, last, sign)
+            body += capBody
+            edges += capEdges
         }
         f.d[run.role.getValue("body")] = body
         f.d[run.role.getValue("edges")] = edges
@@ -473,6 +463,41 @@ private class TubeEmit(val run: TubeRun, val cam: TurnCam, val f: TurnFrame) {
                 if (p.y > f.box[3]) f.box[3] = p.y
             }
         }
+        keepQuads()
+    }
+
+    /** One end's cap: its ring for the body (wound as the body is), its arc and lip as edges. */
+    private fun cap(side: Int, last: Int, sign: Double): Pair<IsoPath, IsoPath> {
+        val at = if (side == 1) last else 0
+        val other = if (side == 1) last - 1 else 1
+        val tangent = run.tips[side]
+        val outward = if (side == 1) tangent else Point3(-tangent.x, -tangent.y, -tangent.z)
+        val inward =
+            Flat(
+                sides.flat[2 * other] - sides.flat[2 * at],
+                sides.flat[2 * other + 1] - sides.flat[2 * at + 1],
+            )
+        val p3 = run.body.p3
+        val centre = Point3(p3[3 * at], p3[3 * at + 1], p3[3 * at + 2])
+        val cap = tubeCap(cam, centre, tangent, run.r, inward)
+        var ringArea = 0.0
+        for (i in cap.ring.indices) {
+            val a = cap.ring[i]
+            val b = cap.ring[(i + 1) % cap.ring.size]
+            ringArea += a.x * b.y - b.x * a.y
+        }
+        val body = t3PathOf(if (sign(ringArea) == sign) cap.ring else cap.ring.reversed(), true)
+        var edges = t3PathOf(cap.arc, false)
+        val v = cam.v
+        val open = outward.x * v.x + outward.y * v.y + outward.z * v.z > 0
+        if (open) edges += t3PathOf(cap.inner, false)
+        tips[side] = Tip(if (open) cap.inner else cap.arc, sides.frames[at])
+        quads.add(cap.ring)
+        return body to edges
+    }
+
+    /** Copies the quads into the frame's reused buffers, for separation and covers. */
+    private fun keepQuads() {
         val list =
             f.quadList?.takeIf { it.size == quads.size }
                 ?: MutableList(quads.size) { QuadBuf(DoubleArray(0), 0) }

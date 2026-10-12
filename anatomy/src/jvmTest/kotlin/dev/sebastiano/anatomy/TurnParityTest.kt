@@ -69,10 +69,8 @@ class TurnParityTest {
             ),
             listOf("table", "arm", "bob"),
         )
-        put(
-            "lab.floor",
-            "${num(turnFloorOf(driven.scene, "bob"))} ${num(turnFloorOf(driven.scene, "bob", turnRotation(Point3(1.0, 0.0, 0.0), 90.0)))}",
-        )
+        val tipped = turnFloorOf(driven.scene, "bob", turnRotation(Point3(1.0, 0.0, 0.0), 90.0))
+        put("lab.floor", "${num(turnFloorOf(driven.scene, "bob"))} ${num(tipped)}")
     }
 
     private fun ParityLines.broken() {
@@ -83,7 +81,8 @@ class TurnParityTest {
         t.prism("b", g, live, Plan(5.0, 5.0, 10.0, 10.0, 1.0), 2.0, 4.0)
         val message = runCatching {
             t.build(poses = listOf(TurnValues(mapOf("g" to 0.0)), TurnValues(mapOf("g" to 90.0))))
-        }.fold({ "built" }, { it.message!!.replace("\n", " / ") })
+        }
+            .fold({ "built" }, { it.message!!.replace("\n", " / ") })
         put("broken.build", message)
     }
 

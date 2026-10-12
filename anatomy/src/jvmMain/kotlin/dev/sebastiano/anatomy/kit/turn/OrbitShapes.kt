@@ -45,20 +45,30 @@ internal fun unplace(pose: ShapePose, p: Point3): Point3 {
 
 /** The pose of [group] in [cams], or the identity for none. */
 internal fun poseFor(cams: TurnCams, group: TurnGroup?): ShapePose =
-    if (group == null) IDENTITY else ShapePose(cams[group.index].r, cams[group.index].t, group.origin)
+    if (group == null) IDENTITY
+    else ShapePose(cams[group.index].r, cams[group.index].t, group.origin)
 
 /** [shape] moved from rest by [pose]: the original's `posed`. */
 fun posed(shape: AuditShape, pose: ShapePose?): AuditShape {
     if (pose == null) return shape
-    val meta = if (shape.meta.cut.isEmpty()) shape.meta else shape.meta.copy(cut = shape.meta.cut.map { posed(it, pose) })
+    val meta =
+        if (shape.meta.cut.isEmpty()) shape.meta
+        else shape.meta.copy(cut = shape.meta.cut.map { posed(it, pose) })
     val r = pose.r
     fun frame(f: Frame) = Frame(place(pose, f.o), t3Apply(r, f.a), t3Apply(r, f.u), t3Apply(r, f.v))
     val out =
         when (shape) {
             is BodyShape -> BodyShape(frame(shape.frame), shape.poly, meta, shape.slide)
             is PrismShape -> PrismShape(frame(shape.frame), shape.poly, shape.s0, shape.s1, meta)
-            is BallShape -> BallShape(place(pose, shape.o), shape.r, meta, shape.flats.map { BallFlat(t3Apply(r, it.n), it.d) })
-            is BoxShape -> BoxShape(place(pose, shape.o), shape.axes.map { t3Apply(r, it) }, shape.half, meta)
+            is BallShape ->
+                BallShape(
+                    place(pose, shape.o),
+                    shape.r,
+                    meta,
+                    shape.flats.map { BallFlat(t3Apply(r, it.n), it.d) },
+                )
+            is BoxShape ->
+                BoxShape(place(pose, shape.o), shape.axes.map { t3Apply(r, it) }, shape.half, meta)
             is TubeShape ->
                 TubeShape(
                     shape.points.map { place(pose, it) },
@@ -99,4 +109,3 @@ internal fun bubbleOf(points: List<Point3>): Bubble {
     for (p in points) r = max(r, jsHypot(p.x - c[0], p.y - c[1], p.z - c[2]))
     return Bubble(Point3(c[0], c[1], c[2]), r)
 }
-

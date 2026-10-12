@@ -64,33 +64,53 @@ private fun IsoScope.drawSolidPart(run: TurnRun, f: TurnFrame, billboards: Float
     val lit = part.lit
     val seamless = run is RoundRun || run is BallRun || run is LatheRun
     val ramp = palette.ramp(lit)
+    val top = if (lit) palette.litTop else palette.top
     for ((r, role) in run.roles.withIndex()) {
         when (role.kind) {
             RoleKind.Fill -> fill(f.d[r], if (lit) palette.face else palette.paper)
-            RoleKind.Shade -> sheet(f.d[r], if (lit) palette.litShade else palette.shades[role.shade], seamless)
-            RoleKind.Top -> sheet(f.d[r], if (lit) palette.litTop else palette.top, seamless)
+            RoleKind.Shade ->
+                sheet(f.d[r], if (lit) palette.litShade else palette.shades[role.shade], seamless)
+            RoleKind.Top -> sheet(f.d[r], top, seamless)
             RoleKind.Face -> face(f.d[r], faceColour(ramp, f.q[r]), f.w[r])
-            RoleKind.TopXform -> fill(topOf(run as PrismRun, f.t[r]), if (lit) palette.litTop else palette.top)
-            RoleKind.Crease, RoleKind.Inner -> stroke(f.d[r], palette.ink(role.tone!!), 1f)
-            RoleKind.Bevel, RoleKind.RibSlot -> stroke(f.d[r], palette.ink(role.tone!!), f.o[r].toFloat())
-            RoleKind.Plane -> drawPlane(part.planes[role.name.drop(5).toInt()], f.t[r], f.o[r], billboards)
-            RoleKind.Edge -> stroke(f.d[r], if (lit) palette.lit else palette.ink(part.tone), 1f)
-            else -> Unit
+            RoleKind.TopXform -> fill(topOf(run as PrismRun, f.t[r]), top)
+            else -> drawLineRole(run, role, f, r, billboards)
         }
     }
     drawDots(run, f)
     if (recording) recordSolid(run, f)
 }
 
+/** A part's line roles: creases, inner lines, faded slots, planes and its edge. */
+private fun IsoScope.drawLineRole(
+    run: TurnRun,
+    role: Role,
+    f: TurnFrame,
+    r: Int,
+    billboards: Float,
+) {
+    val part = run.part
+    when (role.kind) {
+        RoleKind.Crease,
+        RoleKind.Inner -> stroke(f.d[r], palette.ink(role.tone!!), 1f)
+        RoleKind.Bevel,
+        RoleKind.RibSlot -> stroke(f.d[r], palette.ink(role.tone!!), f.o[r].toFloat())
+        RoleKind.Plane ->
+            drawPlane(part.planes[role.name.drop(5).toInt()], f.t[r], f.o[r], billboards)
+        RoleKind.Edge -> stroke(f.d[r], if (part.lit) palette.lit else palette.ink(part.tone), 1f)
+        else -> Unit
+    }
+}
+
 /** The prism's plan placed by its top matrix. */
 private fun topOf(run: PrismRun, t: Affine?): IsoPath {
     t ?: return IsoPath.Empty
     val ring = run.ring
-    val points = (0 until ring.size / 2).map { i ->
-        val x = ring[2 * i]
-        val y = ring[2 * i + 1]
-        dev.sebastiano.anatomy.kit.Flat(t.x(x, y), t.y(x, y))
-    }
+    val points =
+        (0 until ring.size / 2).map { i ->
+            val x = ring[2 * i]
+            val y = ring[2 * i + 1]
+            dev.sebastiano.anatomy.kit.Flat(t.x(x, y), t.y(x, y))
+        }
     return t3PathOf(points, true)
 }
 
@@ -121,8 +141,7 @@ internal fun IsoScope.stroke(path: IsoPath, colour: Color, alpha: Float, width: 
 
 private fun IsoScope.drawDots(run: TurnRun, f: TurnFrame) {
     for ((r, role) in run.roles.withIndex()) {
-        if (role.kind != RoleKind.Dot) continue
-        val o = f.o[r].toFloat()
+        val o = if (role.kind == RoleKind.Dot) f.o[r].toFloat() else 0f
         if (o <= 0f) continue
         draw.drawCircle(
             palette.dot,
@@ -143,7 +162,13 @@ private fun IsoScope.drawFixed(run: FixedRun, f: TurnFrame, billboards: Float) {
         for ((r, role) in run.roles.withIndex()) {
             when (role.kind) {
                 RoleKind.RibSlot -> stroke(f.d[r], palette.ink(role.tone!!), f.o[r].toFloat())
-                RoleKind.Plane -> drawPlane(run.part.planes[role.name.drop(5).toInt()], f.t[r], f.o[r], billboards)
+                RoleKind.Plane ->
+                    drawPlane(
+                        run.part.planes[role.name.drop(5).toInt()],
+                        f.t[r],
+                        f.o[r],
+                        billboards,
+                    )
                 else -> Unit
             }
         }

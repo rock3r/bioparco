@@ -127,34 +127,6 @@ internal fun t3Quat(q: DoubleArray): DoubleArray {
     )
 }
 
-/** V8's four-argument `Math.hypot`: normalised by the largest and summed with compensation. */
-internal fun jsHypot4(a: Double, b: Double, c: Double, d: Double): Double {
-    val values =
-        doubleArrayOf(
-            kotlin.math.abs(a),
-            kotlin.math.abs(b),
-            kotlin.math.abs(c),
-            kotlin.math.abs(d),
-        )
-    var most = 0.0
-    for (v in values) {
-        if (v == Double.POSITIVE_INFINITY) return v
-        if (v > most) most = v
-    }
-    if (values.any { it.isNaN() }) return Double.NaN
-    if (most == 0.0) return 0.0
-    var sum = 0.0
-    var compensation = 0.0
-    for (v in values) {
-        val n = v / most
-        val summand = n * n - compensation
-        val preliminary = sum + summand
-        compensation = (preliminary - sum) - summand
-        sum = preliminary
-    }
-    return sqrt(sum) * most
-}
-
 /** A unit vector's two perpendicular directions: the original's `t3Basis`. */
 internal fun t3Basis(w: Point3): Pair<Point3, Point3> {
     val helper = if (kotlin.math.abs(w.z) > 0.9) Point3(1.0, 0.0, 0.0) else Point3(0.0, 0.0, 1.0)

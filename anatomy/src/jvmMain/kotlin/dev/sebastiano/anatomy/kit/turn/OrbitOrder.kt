@@ -3,6 +3,7 @@
 package dev.sebastiano.anatomy.kit.turn
 
 import dev.sebastiano.anatomy.kit.Point3
+import dev.sebastiano.anatomy.kit.audit.jsFixed
 import dev.sebastiano.anatomy.kit.jsRound
 import kotlin.math.abs
 import kotlin.math.max
@@ -16,7 +17,11 @@ import kotlin.math.min
  */
 
 /** One state's cameras, frames and painting orders. */
-internal class OrderState(val cams: TurnCams, val frames: List<TurnFrame>, val orders: List<IntArray>)
+internal class OrderState(
+    val cams: TurnCams,
+    val frames: List<TurnFrame>,
+    val orders: List<IntArray>,
+)
 
 /** A state kept for comparing with the next: orders, frames and where in the family. */
 internal class Snapshot(val orders: List<IntArray>, val frames: List<OrbitFrame>, val x: Double)
@@ -29,7 +34,10 @@ internal class OrbitOrder(private val o: OrbitRun) {
     private val result = o.result
     private val pairs = HashMap<Int, List<Pair<Int, Int>>>()
     private val flush =
-        o.built.report.margins.filter { abs(it.margin) < 0.05 }.map { "${it.a}|${it.b}" }.toHashSet()
+        o.built.report.margins
+            .filter { abs(it.margin) < 0.05 }
+            .map { "${it.a}|${it.b}" }
+            .toHashSet()
 
     private fun flushOf(a: String, b: String) = "$a|$b" in flush || "$b|$a" in flush
 
@@ -58,17 +66,22 @@ internal class OrbitOrder(private val o: OrbitRun) {
     private fun pairsOf(layer: TurnLayer): List<Pair<Int, Int>> =
         pairs.getOrPut(layer.index) {
             val list = ArrayList<Pair<Int, Int>>()
-            for (p in layer.planar.indices step 5) list.add(layer.planar[p].toInt() to layer.planar[p + 1].toInt())
-            for (p in layer.dynamic.indices step 2) list.add(layer.dynamic[p] to layer.dynamic[p + 1])
-            for (p in layer.framed.indices step 6) list.add(layer.framed[p].toInt() to layer.framed[p + 1].toInt())
+            for (p in layer.planar.indices step 5) list.add(
+                layer.planar[p].toInt() to layer.planar[p + 1].toInt()
+            )
+            for (p in layer.dynamic.indices step 2) list.add(
+                layer.dynamic[p] to layer.dynamic[p + 1]
+            )
+            for (p in layer.framed.indices step 6) list.add(
+                layer.framed[p].toInt() to layer.framed[p + 1].toInt()
+            )
             for (gp in layer.groupPairs) for (i in gp.a) for (j in gp.b) list.add(i to j)
             val seen = list.map { (i, j) -> i * 65536 + j }.toHashSet()
             for (i in layer.free) {
                 for (j in layer.parts) {
-                    if (i == j || runs[i].group == runs[j].group) continue
-                    val key = min(i, j) * 65536 + max(i, j)
-                    if (!seen.add(key)) continue
-                    list.add(min(i, j) to max(i, j))
+                    val apart = i != j && runs[i].group != runs[j].group
+                    if (apart && seen.add(min(i, j) * 65536 + max(i, j)))
+                        list.add(min(i, j) to max(i, j))
                 }
             }
             list
@@ -81,7 +94,14 @@ internal class OrbitOrder(private val o: OrbitRun) {
         scene.layers.forEachIndexed { index, layer ->
             val stats = OrderStats()
             orders.add(turnOrder(layer, frames, cams, previous?.get(index), stats, scene))
-            if (stats.forced > 0) result["forced"].add(Finding("${stats.forced} forced pick${if (stats.forced == 1) "" else "s"}", tag, layer.name))
+            if (stats.forced > 0)
+                result["forced"].add(
+                    Finding(
+                        "${stats.forced} forced pick${if (stats.forced == 1) "" else "s"}",
+                        tag,
+                        layer.name,
+                    )
+                )
             framedPlanes(layer, cams, frames, tag)
             groupPlanes(layer, cams, tag)
             graph(layer, cams, frames, tag, stats.unseparated > 0)
@@ -102,7 +122,8 @@ internal class OrbitOrder(private val o: OrbitRun) {
                 val y = q[k + 1]
                 val z = q[k + 2]
                 val v =
-                    n.x * (r[0] * x + r[1] * y + r[2] * z + c.t.x) + n.y * (r[3] * x + r[4] * y + r[5] * z + c.t.y) +
+                    n.x * (r[0] * x + r[1] * y + r[2] * z + c.t.x) +
+                        n.y * (r[3] * x + r[4] * y + r[5] * z + c.t.y) +
                         n.z * (r[6] * x + r[7] * y + r[8] * z + c.t.z)
                 best = if (high) max(best, v) else min(best, v)
             }
@@ -110,16 +131,28 @@ internal class OrbitOrder(private val o: OrbitRun) {
         return best
     }
 
-    private fun framedPlanes(layer: TurnLayer, cams: TurnCams, frames: List<TurnFrame>, tag: String) {
+    private fun framedPlanes(
+        layer: TurnLayer,
+        cams: TurnCams,
+        frames: List<TurnFrame>,
+        tag: String,
+    ) {
         val framed = layer.framed
         for (p in framed.indices step 6) {
             val i = framed[p].toInt()
             val j = framed[p + 1].toInt()
             if (turnDisjoint(frames[i], frames[j], 0.1)) continue
             val g = framed[p + 2].toInt()
-            val n = t3Apply(if (g >= 0) cams[g].r else EYE, Point3(framed[p + 3], framed[p + 4], framed[p + 5]))
+            val n =
+                t3Apply(
+                    if (g >= 0) cams[g].r else EYE,
+                    Point3(framed[p + 3], framed[p + 4], framed[p + 5]),
+                )
             val margin = along(intArrayOf(j), n, cams, false) - along(intArrayOf(i), n, cams, true)
-            if (margin < -0.08) result["unseparated"].add(unseparated(tag, runs[i].name, runs[j].name, margin, true))
+            if (margin < -0.08)
+                result["unseparated"].add(
+                    unseparated(tag, runs[i].name, runs[j].name, margin, true)
+                )
         }
     }
 
@@ -127,38 +160,43 @@ internal class OrbitOrder(private val o: OrbitRun) {
         for (gp in layer.groupPairs) {
             val nw = t3Apply(if (gp.frame >= 0) cams[gp.frame].r else EYE, gp.n)
             val margin = along(gp.b, nw, cams, false) - along(gp.a, nw, cams, true)
-            if (margin < -0.08) result["unseparated"].add(unseparated(tag, runs[gp.a[0]].name, runs[gp.b[0]].name, margin, true))
+            if (margin < -0.08)
+                result["unseparated"].add(
+                    unseparated(tag, runs[gp.a[0]].name, runs[gp.b[0]].name, margin, true)
+                )
         }
     }
 
     private fun unseparated(tag: String, a: String, b: String, margin: Double, framed: Boolean) =
         Finding(
             "$tag  $a × $b margin ${f2(margin)} while their hulls overlap" +
-                if (framed) " (framed plane: the build's poses() missed this motion; add it to poses())" else "",
+                if (framed)
+                    " (framed plane: the build's poses() missed this motion; add it to poses())"
+                else "",
             tag,
         )
 
     /** The order graph of the state: interpenetrating cross-group pairs, and cycles. */
-    private fun graph(layer: TurnLayer, cams: TurnCams, frames: List<TurnFrame>, tag: String, unseparated: Boolean) {
+    private fun graph(
+        layer: TurnLayer,
+        cams: TurnCams,
+        frames: List<TurnFrame>,
+        tag: String,
+        unseparated: Boolean,
+    ) {
         val n = layer.parts.size
         val adj = List(n) { ArrayList<Int>() }
         val indeg = IntArray(n)
         for ((i, j) in pairsOf(layer)) {
             if (turnDisjoint(frames[i], frames[j], 0.1)) continue
-            val ri = runs[i]
-            val rj = runs[j]
-            if (unseparated && ri.group != rj.group) {
-                val ca = cams.of(ri.group)
-                val cb = cams.of(rj.group)
-                val hit = turnGjk(ri.cloud, ca, rj.cloud, cb, null, 32, hintsOf(ri, ca, rj, cb, cams.world))
-                if (hit.margin < -0.08) result["unseparated"].add(unseparated(tag, ri.name, rj.name, hit.margin, false))
-            }
+            if (unseparated) interpenetrating(runs[i], runs[j], cams, tag)
             val s = relationOf(layer, i, j, cams)
-            if (s < 1e-7 && s > -1e-7) continue
-            val from = layer.local.getValue(if (s > 0) i else j)
-            val to = layer.local.getValue(if (s > 0) j else i)
-            adj[from].add(to)
-            indeg[to]++
+            if (!(s < 1e-7 && s > -1e-7)) {
+                val from = layer.local.getValue(if (s > 0) i else j)
+                val to = layer.local.getValue(if (s > 0) j else i)
+                adj[from].add(to)
+                indeg[to]++
+            }
         }
         val queue = ArrayList<Int>()
         for (v in 0 until n) if (indeg[v] == 0) queue.add(v)
@@ -171,17 +209,30 @@ internal class OrbitOrder(private val o: OrbitRun) {
         if (seen < n) cycle(layer, indeg, tag)
     }
 
+    /** `unseparated`: two parts of different groups that pass through each other. */
+    private fun interpenetrating(ri: TurnRun, rj: TurnRun, cams: TurnCams, tag: String) {
+        if (ri.group == rj.group) return
+        val ca = cams.of(ri.group)
+        val cb = cams.of(rj.group)
+        val hit = turnGjk(ri.cloud, ca, rj.cloud, cb, null, 32, hintsOf(ri, ca, rj, cb, cams.world))
+        if (hit.margin < -0.08)
+            result["unseparated"].add(unseparated(tag, ri.name, rj.name, hit.margin, false))
+    }
+
     private fun cycle(layer: TurnLayer, indeg: IntArray, tag: String) {
         val stuck = layer.parts.indices.filter { indeg[it] > 0 }.map { runs[layer.parts[it]].name }
         var split: PairMargin? = null
         for (m in o.built.report.margins) {
-            if (m.a in stuck && m.b in stuck && (split == null || m.margin > split.margin)) split = m
+            if (m.a in stuck && m.b in stuck && (split == null || m.margin > split.margin))
+                split = m
         }
         val plane = split?.let { o.built.planesByName["${it.a}|${it.b}"] }
         val text =
             if (split != null && plane != null) {
-                "split ${split.b} on n = (${listOf(plane.n.x, plane.n.y, plane.n.z).joinToString(", ") { dev.sebastiano.anatomy.kit.audit.jsFixed(it, 3) }}), " +
-                    "d = ${dev.sebastiano.anatomy.kit.audit.jsFixed(plane.d, 3)} (the plane of the cycle edge with the largest margin, ${split.a} × ${split.b})"
+                val n =
+                    listOf(plane.n.x, plane.n.y, plane.n.z).joinToString(", ") { jsFixed(it, 3) }
+                "split ${split.b} on n = ($n), d = ${jsFixed(plane.d, 3)} " +
+                    "(the plane of the cycle edge with the largest margin, ${split.a} × ${split.b})"
             } else {
                 "split one of them (T.split) on the plane of the cycle edge with the largest margin"
             }
@@ -203,19 +254,30 @@ internal class OrbitOrder(private val o: OrbitRun) {
             for (i in moved) {
                 for (j in layer.parts) {
                     if (i == j || (j in moved && j < i)) continue
-                    if ((rankA.getValue(i) < rankA.getValue(j)) == (rankB.getValue(i) < rankB.getValue(j))) continue
-                    val pi = o.t.parts[i]
-                    val pj = o.t.parts[j]
-                    if (pi.route != null && pi.route == pj.route && abs(pi.chunk - pj.chunk) <= 1) continue
-                    val area = min(overlapArea(runs[i], a.frames[i], runs[j], a.frames[j]), overlapArea(runs[i], b.frames[i], runs[j], b.frames[j]))
-                    list.add(Swap(layer.name, i, j, area))
+                    val flipped =
+                        (rankA.getValue(i) < rankA.getValue(j)) !=
+                            (rankB.getValue(i) < rankB.getValue(j))
+                    if (flipped && !neighbours(o.t.parts[i], o.t.parts[j])) {
+                        val area =
+                            min(
+                                overlapArea(runs[i], a.frames[i], runs[j], a.frames[j]),
+                                overlapArea(runs[i], b.frames[i], runs[j], b.frames[j]),
+                            )
+                        list.add(Swap(layer.name, i, j, area))
+                    }
                 }
             }
         }
         return list
     }
 
-    /** Bisects a swap between [previous] and [x] to where it happens, and records it if it shows. */
+    /** Neighbouring chunks of one route, which may swap freely. */
+    private fun neighbours(pi: TurnPart, pj: TurnPart) =
+        pi.route != null && pi.route == pj.route && abs(pi.chunk - pj.chunk) <= 1
+
+    /**
+     * Bisects a swap between [previous] and [x] to where it happens, and records it if it shows.
+     */
     private fun pinpoint(family: OrbitFamily, swap: Swap, previous: Snapshot, x: Double) {
         val layerIndex = scene.layers.indexOfFirst { it.name == swap.layer }
         val layer = scene.layers[layerIndex]
@@ -241,11 +303,19 @@ internal class OrbitOrder(private val o: OrbitRun) {
             }
         }
         val shown = frames ?: probe(hi).second
-        val area = overlapArea(runs[swap.i], OrbitFrame.of(shown[swap.i]), runs[swap.j], OrbitFrame.of(shown[swap.j]))
+        val area =
+            overlapArea(
+                runs[swap.i],
+                OrbitFrame.of(shown[swap.i]),
+                runs[swap.j],
+                OrbitFrame.of(shown[swap.j]),
+            )
         val built = flushOf(runs[swap.i].name, runs[swap.j].name)
         if (area > if (built) 0.5 else 0.25) {
+            val names = "${runs[swap.i].name} / ${runs[swap.j].name}"
+            val at = "${family.name} ${f3(hi)}"
             result["swaps"].add(
-                Finding("${swap.layer}: ${runs[swap.i].name} / ${runs[swap.j].name} swap at ${family.name} ${f3(hi)} while overlapping ${f2(area)} px²")
+                Finding("${swap.layer}: $names swap at $at while overlapping ${f2(area)} px²")
             )
         }
     }
@@ -267,18 +337,35 @@ internal class OrbitOrder(private val o: OrbitRun) {
             for (x in xs) {
                 val state = check(family.at(x), o.label(family, x), previous?.orders)
                 orderStates++
-                val snapshot = Snapshot(state.orders.map { it.copyOf() }, state.frames.map { OrbitFrame.of(it) }, x)
+                val snapshot =
+                    Snapshot(
+                        state.orders.map { it.copyOf() },
+                        state.frames.map { OrbitFrame.of(it) },
+                        x,
+                    )
                 if (previous != null) {
                     val swaps = swapsOf(previous, snapshot)
                     for (swap in swaps) if (swap.area > 0.25) pinpoint(family, swap, previous, x)
-                    if (swaps.isNotEmpty()) local.add(OrderChange(family, x, swaps.size, swaps.take(4).map { "${runs[it.i].name} / ${runs[it.j].name}" }))
+                    if (swaps.isNotEmpty())
+                        local.add(
+                            OrderChange(
+                                family,
+                                x,
+                                swaps.size,
+                                swaps.take(4).map { "${runs[it.i].name} / ${runs[it.j].name}" },
+                            )
+                        )
                 }
                 previous = snapshot
             }
             changes.addAll(local)
             orderStates += extraStates(family, local)
         }
-        for (values in o.extra.take(if (o.quick) 100 else o.extra.size)) check(values, "pose ${poseText(values)}", null)
+        for (values in o.extra.take(if (o.quick) 100 else o.extra.size)) check(
+            values,
+            "pose ${poseText(values)}",
+            null,
+        )
         result.stats["orderStates"] = (orderStates + o.extra.size).toDouble()
         result.stats["changes"] = changes.size.toDouble()
         result.changes = changes.sortedWith { a, b -> b.count - a.count }.take(10)
@@ -286,7 +373,12 @@ internal class OrbitOrder(private val o: OrbitRun) {
 
     /** Random states and the states just either side of every reorder. */
     private fun extraStates(family: OrbitFamily, local: List<OrderChange>): Int {
-        val share = jsRound((if (o.quick) min(200, o.options.random) else o.options.random).toDouble() / o.families.size).toInt()
+        val share =
+            jsRound(
+                    (if (o.quick) min(200, o.options.random) else o.options.random).toDouble() /
+                        o.families.size
+                )
+                .toInt()
         var seed = 12345.0 + o.families.indexOf(family)
         fun rand(): Double {
             seed = (seed * 1103515245 + 12345) % 2147483648.0
@@ -305,5 +397,6 @@ internal class OrbitOrder(private val o: OrbitRun) {
     }
 
     private fun poseText(values: TurnValues): String =
-        ("{" + values.numbers.entries.joinToString(",") { (k, v) -> "\"$k\":${jsNumber(v)}" } + "}").take(60)
+        ("{" + values.numbers.entries.joinToString(",") { (k, v) -> "\"$k\":${jsNumber(v)}" } + "}")
+            .take(60)
 }

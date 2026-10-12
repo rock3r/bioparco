@@ -203,12 +203,18 @@ internal fun latheSeam(levels: DoubleArray, s: Double): SeamRing {
 }
 
 /** `t3LatheOutline`: the hull of every level's limb points, refined where they spread. */
-private fun latheOutline(lv: DoubleArray, geo: Geo, k: Double): List<Flat> {
+private fun latheOutline(lv: DoubleArray, geo: Geo, k: Double): List<Flat> =
+    LatheOutline(geo).build(lv, k)
+
+private class LatheOutline(val geo: Geo) {
     val view = geo.view
     val pts = ArrayList<Flat>()
+
     fun cut(l: LatheLevel) =
         if (view.flat < 1e-9) Double.POSITIVE_INFINITY else -(l.na * view.a) / (l.nr * view.flat)
+
     fun inside(l: LatheLevel) = l.r <= 1e-9 || abs(cut(l)) < 1
+
     fun sides(l: LatheLevel): List<Flat> {
         if (l.r <= 1e-9) {
             val p = Flat(geo.ox + l.s * geo.sa.x, geo.oy + l.s * geo.sa.y)
@@ -217,6 +223,7 @@ private fun latheOutline(lv: DoubleArray, geo: Geo, k: Double): List<Flat> {
         val d = jsAcos(max(-1.0, min(1.0, cut(l))))
         return listOf(view.phi - d, view.phi + d).map { t3AtFlat(geo, l.s, l.r, it) }
     }
+
     fun span(a: LatheLevel, b: LatheLevel): Double {
         val pa = sides(a)
         val pb = sides(b)
@@ -225,6 +232,7 @@ private fun latheOutline(lv: DoubleArray, geo: Geo, k: Double): List<Flat> {
             jsHypot(pa[1].x - pb[1].x, pa[1].y - pb[1].y),
         )
     }
+
     fun refine(a: LatheLevel, b: LatheLevel, depth: Int) {
         if (depth >= 10 || span(a, b) < 1.2) return
         val mid = t3LatheMid(a, b)
@@ -232,34 +240,39 @@ private fun latheOutline(lv: DoubleArray, geo: Geo, k: Double): List<Flat> {
         pts.addAll(sides(mid))
         refine(mid, b, depth + 1)
     }
-    var previous: LatheLevel? = null
-    for (i in lv.indices step 4) {
-        val l = LatheLevel(lv[i], lv[i + 1], lv[i + 2], lv[i + 3])
-        if (inside(l)) pts.addAll(sides(l))
-        val prev = previous
-        if (prev != null) {
-            val pin = inside(prev)
-            val lin = inside(l)
-            if (pin && lin) {
-                refine(prev, l, 0)
-            } else if (pin != lin) {
-                var a = if (pin) prev else l
-                var b = if (pin) l else prev
-                val start = a
-                repeat(14) {
-                    val mid = t3LatheMid(if (a.s < b.s) a else b, if (a.s < b.s) b else a)
-                    if (inside(mid)) a = mid else b = mid
-                }
-                pts.addAll(sides(a))
-                refine(if (start.s < a.s) start else a, if (start.s < a.s) a else start, 0)
+
+    /** Between two neighbouring levels: refine where both show, bisect where the limb ends. */
+    fun between(prev: LatheLevel, l: LatheLevel) {
+        val pin = inside(prev)
+        val lin = inside(l)
+        if (pin && lin) {
+            refine(prev, l, 0)
+        } else if (pin != lin) {
+            var a = if (pin) prev else l
+            var b = if (pin) l else prev
+            val start = a
+            repeat(14) {
+                val mid = t3LatheMid(if (a.s < b.s) a else b, if (a.s < b.s) b else a)
+                if (inside(mid)) a = mid else b = mid
             }
+            pts.addAll(sides(a))
+            refine(if (start.s < a.s) start else a, if (start.s < a.s) a else start, 0)
         }
-        previous = l
     }
-    for (i in intArrayOf(0, lv.size - 4)) {
-        if (lv[i + 1] > 1e-9) t3ArcPoints(geo, lv[i], lv[i + 1], 0.0, T3_TAU, k, pts)
+
+    fun build(lv: DoubleArray, k: Double): List<Flat> {
+        var previous: LatheLevel? = null
+        for (i in lv.indices step 4) {
+            val l = LatheLevel(lv[i], lv[i + 1], lv[i + 2], lv[i + 3])
+            if (inside(l)) pts.addAll(sides(l))
+            previous?.let { between(it, l) }
+            previous = l
+        }
+        for (i in intArrayOf(0, lv.size - 4)) {
+            if (lv[i + 1] > 1e-9) t3ArcPoints(geo, lv[i], lv[i + 1], 0.0, T3_TAU, k, pts)
+        }
+        return t3Hull(pts)
     }
-    return t3Hull(pts)
 }
 
 /** A level's point at angle [t]. */

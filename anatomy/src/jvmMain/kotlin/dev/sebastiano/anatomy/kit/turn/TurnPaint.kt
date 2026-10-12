@@ -32,7 +32,11 @@ import kotlin.math.sin
 
 /** [path] in plane units placed by [t] on screen. */
 internal fun IsoPath.placed(t: Affine): IsoPath =
-    IsoPath(runs.map { run -> IsoPath.Run(run.points.map { Flat(t.x(it.x, it.y), t.y(it.x, it.y)) }, run.closed) })
+    IsoPath(
+        runs.map { run ->
+            IsoPath.Run(run.points.map { Flat(t.x(it.x, it.y), t.y(it.x, it.y)) }, run.closed)
+        }
+    )
 
 /** Paints [block] at opacity [alpha] (as one layer), or directly when it is opaque. */
 private fun IsoScope.withAlpha(alpha: Double, block: IsoScope.() -> Unit) {
@@ -41,7 +45,10 @@ private fun IsoScope.withAlpha(alpha: Double, block: IsoScope.() -> Unit) {
         return
     }
     draw.drawIntoCanvas { canvas ->
-        canvas.saveLayer(Rect(-1e4f, -1e4f, 1e4f, 1e4f), Paint().apply { this.alpha = alpha.toFloat() })
+        canvas.saveLayer(
+            Rect(-1e4f, -1e4f, 1e4f, 1e4f),
+            Paint().apply { this.alpha = alpha.toFloat() },
+        )
         block()
         canvas.restore()
     }
@@ -55,12 +62,22 @@ internal fun IsoScope.drawPlane(plane: PlaneData, t: Affine?, o: Double, billboa
             is PlaneLine -> {
                 val path = mark.path.placed(t)
                 stroke(path, palette.ink(mark.tone), o.toFloat())
-                if (recording) record(LineMark(Shape(path), mark.tone, Stroke.Solid, mark.free, null, o))
+                if (recording)
+                    record(LineMark(Shape(path), mark.tone, Stroke.Solid, mark.free, null, o))
             }
-            is PlaneText -> withAlpha(o) { faceText(textMatrix(t, mark), mark.text, mark.size, mark.tone, mark.anchor) }
+            is PlaneText ->
+                withAlpha(o) {
+                    faceText(textMatrix(t, mark), mark.text, mark.size, mark.tone, mark.anchor)
+                }
             is PlaneDisc -> {
                 val alpha = (mark.alpha * o).toFloat() * if (plane.billboard) billboards else 1f
-                if (alpha > 0f) draw.drawCircle(mark.fill(palette), mark.r.toFloat(), Offset(t.e.toFloat(), t.f.toFloat()), alpha = alpha)
+                if (alpha > 0f)
+                    draw.drawCircle(
+                        mark.fill(palette),
+                        mark.r.toFloat(),
+                        Offset(t.e.toFloat(), t.f.toFloat()),
+                        alpha = alpha,
+                    )
             }
         }
     }
@@ -80,7 +97,8 @@ private fun textMatrix(t: Affine, text: PlaneText): FaceMatrix {
     )
 }
 
-private fun TurnRun.path(f: TurnFrame, name: String): IsoPath = role[name]?.let { f.d[it] } ?: IsoPath.Empty
+private fun TurnRun.path(f: TurnFrame, name: String): IsoPath =
+    role[name]?.let { f.d[it] } ?: IsoPath.Empty
 
 /** A solid live part as the recorder sees kit art: a solid, then its lines and dots. */
 internal fun IsoScope.recordSolid(run: TurnRun, f: TurnFrame) {
@@ -88,14 +106,34 @@ internal fun IsoScope.recordSolid(run: TurnRun, f: TurnFrame) {
     var sheets = IsoPath.Empty
     for ((r, role) in run.roles.withIndex()) {
         when (role.kind) {
-            RoleKind.Shade, RoleKind.Top, RoleKind.Face -> sheets += f.d[r]
-            RoleKind.TopXform -> f.t[r]?.let { t -> sheets += t3PathOf((0 until (run as PrismRun).ring.size / 2).map { Flat(t.x(run.ring[2 * it], run.ring[2 * it + 1]), t.y(run.ring[2 * it], run.ring[2 * it + 1])) }, true) }
+            RoleKind.Shade,
+            RoleKind.Top,
+            RoleKind.Face -> sheets += f.d[r]
+            RoleKind.TopXform ->
+                f.t[r]?.let { t ->
+                    sheets +=
+                        t3PathOf(
+                            (0 until (run as PrismRun).ring.size / 2).map {
+                                Flat(
+                                    t.x(run.ring[2 * it], run.ring[2 * it + 1]),
+                                    t.y(run.ring[2 * it], run.ring[2 * it + 1]),
+                                )
+                            },
+                            true,
+                        )
+                }
             else -> Unit
         }
     }
     val paths =
-        SolidPaths(run.path(f, "fill"), run.path(f, "edge"), run.path(f, "crease"), IsoPath.Empty,
-            listOf(sheets, IsoPath.Empty, IsoPath.Empty, IsoPath.Empty), seamless = true)
+        SolidPaths(
+            run.path(f, "fill"),
+            run.path(f, "edge"),
+            run.path(f, "crease"),
+            IsoPath.Empty,
+            listOf(sheets, IsoPath.Empty, IsoPath.Empty, IsoPath.Empty),
+            seamless = true,
+        )
     record(SolidMark(paths, part.tone, part.crease ?: Tone.Faint, part.lit, false, null))
     recordDetails(run, f)
 }
@@ -109,7 +147,9 @@ internal fun IsoScope.recordDetails(run: TurnRun, f: TurnFrame) {
     for ((r, role) in run.roles.withIndex()) {
         when (role.kind) {
             RoleKind.Inner -> recordLine(f.d[r], role.tone!!, 1.0)
-            RoleKind.RibSlot, RoleKind.Bevel -> if (role.kind == RoleKind.RibSlot) recordLine(f.d[r], role.tone!!, f.o[r])
+            RoleKind.RibSlot,
+            RoleKind.Bevel ->
+                if (role.kind == RoleKind.RibSlot) recordLine(f.d[r], role.tone!!, f.o[r])
             RoleKind.Dot -> {
                 points.add(Flat(f.cx[r], f.cy[r]))
                 alphas.add(f.o[r])
@@ -129,9 +169,23 @@ private fun IsoScope.recordLine(path: IsoPath, tone: Tone, alpha: Double) {
 /** A tube chunk as the recorder sees the kit's tubes. */
 internal fun IsoScope.recordTube(run: TubeRun, f: TurnFrame) {
     val rings = ArrayList<Pair<IsoPath, Double>>()
-    for ((r, role) in run.roles.withIndex()) if (role.kind == RoleKind.Ring && !f.d[r].isEmpty) rings.add(f.d[r] to f.o[r])
+    for ((r, role) in run.roles.withIndex()) if (role.kind == RoleKind.Ring && !f.d[r].isEmpty)
+        rings.add(f.d[r] to f.o[r])
     val piece =
-        TubePiece(rings, run.part.spec.let { (it as TubeSpec).ringTone } ?: Tone.Lo, Point3(0.0, 0.0, 0.0), run.path(f, "body"),
-            run.path(f, "shine"), run.path(f, "shade"), run.path(f, "edges"), run.wide, emptyList(), emptyList(), true to true, 0.0, 0.0)
+        TubePiece(
+            rings,
+            run.part.spec.let { (it as TubeSpec).ringTone } ?: Tone.Lo,
+            Point3(0.0, 0.0, 0.0),
+            run.path(f, "body"),
+            run.path(f, "shine"),
+            run.path(f, "shade"),
+            run.path(f, "edges"),
+            run.wide,
+            emptyList(),
+            emptyList(),
+            true to true,
+            0.0,
+            0.0,
+        )
     record(TubeMark(piece, run.part.tone))
 }

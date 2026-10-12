@@ -193,21 +193,31 @@ private fun halfCircle(c: Flat, rk: Double, from: Double, count: Int, out: Mutab
 private fun roundOutline(run: RoundRun, geo: Geo, k: Double, cuts: MutableSet<Flat>): List<Flat> {
     val domes = run.ends.count { it == RoundEnd.Dome }
     if (domes == 2) return capsuleOutline(run, geo, k)
-    if (domes == 1) {
-        val pts = ArrayList<Flat>()
-        for (end in 0 until 2) {
-            val s = if (end == 1) run.s1 else run.s0
-            val r = if (end == 1) run.r1 else run.r0
-            t3ArcPoints(geo, s, r, 0.0, T3_TAU, k, pts)
-            if (run.ends[end] != RoundEnd.Dome) continue
-            val sign = if (end == 1) 1.0 else -1.0
-            val c = Flat(geo.ox + s * geo.sa.x, geo.oy + s * geo.sa.y)
-            val rk = r * k
-            val beta = jsAtan2(sign * geo.sa.y, sign * geo.sa.x)
-            halfCircle(c, rk, beta - PI / 2, max(24, ceil((PI * rk) / 1.5).toInt()), pts)
-        }
-        return t3Hull(pts)
+    if (domes == 1) return halfCapsuleOutline(run, geo, k)
+    return sideOutline(run, geo, k, cuts)
+}
+
+/** A round with one dome: the hull of both end rims and the dome's half circle. */
+private fun halfCapsuleOutline(run: RoundRun, geo: Geo, k: Double): List<Flat> {
+    val pts = ArrayList<Flat>()
+    for (end in 0 until 2) {
+        val s = if (end == 1) run.s1 else run.s0
+        val r = if (end == 1) run.r1 else run.r0
+        t3ArcPoints(geo, s, r, 0.0, T3_TAU, k, pts)
+        if (run.ends[end] != RoundEnd.Dome) continue
+        val sign = if (end == 1) 1.0 else -1.0
+        val c = Flat(geo.ox + s * geo.sa.x, geo.oy + s * geo.sa.y)
+        val rk = r * k
+        val beta = jsAtan2(sign * geo.sa.y, sign * geo.sa.x)
+        halfCircle(c, rk, beta - PI / 2, max(24, ceil((PI * rk) / 1.5).toInt()), pts)
     }
+    return t3Hull(pts)
+}
+
+/**
+ * A flat-ended round: one end's rim seen end-on, or both rims' visible arcs joined by the sides.
+ */
+private fun sideOutline(run: RoundRun, geo: Geo, k: Double, cuts: MutableSet<Flat>): List<Flat> {
     val view = geo.view
     val out = ArrayList<Flat>()
     val c =

@@ -48,77 +48,83 @@ internal fun Turning.detailParts(
     ends: Pair<Double, Double>?,
 ) {
     val details = part.details
-    for (bolt in details.bolts) {
-        val atEnd =
-            when {
-                ends == null -> 0
-                abs(bolt.s - ends.first) < 1e-6 -> -1
-                abs(bolt.s - ends.second) < 1e-6 -> 1
-                else -> 0
-            }
-        val onCap = atEnd != 0 && (radiusAt == null || bolt.r < radiusAt(bolt.s) - 1e-6)
-        val slope =
-            if (radiusAt != null) (radiusAt(bolt.s + 1e-3) - radiusAt(bolt.s - 1e-3)) / 2e-3
-            else 0.0
-        for (j in 0 until bolt.count) {
-            val t = bolt.phase + (j.toDouble() / bolt.count) * TAU
-            val p = pointOf(f, bolt.s, bolt.r, t)
-            val radial = radialOf(f, t)
-            val n =
-                if (onCap) mul3(f.a, atEnd.toDouble()) else unit3(sub3(radial, mul3(f.a, slope)))
-            part.dots.add(DotData(local(part.group, p), n, bolt.size, bolt.tone, bolt.fade))
-        }
-    }
+    for (bolt in details.bolts) boltCircle(part, f, bolt, radiusAt, ends)
     toLocalDots(part, f, details.dots)
-    for (ring in details.rings) {
-        val (s, x, y) = ring.at
-        val o = add3(add3(f.o, mul3(f.a, s)), add3(mul3(f.u, x), mul3(f.v, y)))
-        val n = unit3(ring.normal ?: f.a)
-        val b = frameAlong(Point3(0.0, 0.0, 0.0), n)
-        val steps = max(12, ceil((TAU * ring.r * cameraOf(projection).k) / 1.2).toInt())
-        val pts =
-            (0 until steps).map { j ->
-                Flat(
-                    fine(ring.r * jsCos((j.toDouble() / steps) * TAU)),
-                    fine(ring.r * jsSin((j.toDouble() / steps) * TAU)),
-                )
-            }
-        plane(
-            part,
-            o,
-            b.u,
-            b.v,
-            PlaneArt(listOf(PlaneLine(pathOf(pts, true), ring.tone))),
-            ring.fade,
-            n,
-        )
-    }
-    for (rule in details.rules) {
-        val pts =
-            rule.points.map { (s, x, y) ->
-                add3(add3(f.o, mul3(f.a, s)), add3(mul3(f.u, x), mul3(f.v, y)))
-            }
-        var n = rule.normal?.let { unit3(it) }
-        var i = 2
-        while (i < pts.size && n == null) {
-            val c = cross3(sub3(pts[1], pts[0]), sub3(pts[i], pts[0]))
-            if (len3(c) > 1e-9) n = unit3(c)
-            i++
+    for (ring in details.rings) ringPlane(part, f, ring)
+    for (rule in details.rules) rulePlane(part, f, rule)
+}
+
+/** A bolt circle's dots, facing out of the side or, on an end face, along the axis. */
+private fun Turning.boltCircle(
+    part: TurnPart,
+    f: Frame,
+    bolt: Bolt,
+    radiusAt: ((Double) -> Double)?,
+    ends: Pair<Double, Double>?,
+) {
+    val atEnd =
+        when {
+            ends == null -> 0
+            abs(bolt.s - ends.first) < 1e-6 -> -1
+            abs(bolt.s - ends.second) < 1e-6 -> 1
+            else -> 0
         }
-        val normal = n ?: f.a
-        val b = frameAlong(Point3(0.0, 0.0, 0.0), normal)
-        val o = pts[0]
-        val flat = pts.map { Flat(fine(dot3(sub3(it, o), b.u)), fine(dot3(sub3(it, o), b.v))) }
-        plane(
-            part,
-            o,
-            b.u,
-            b.v,
-            PlaneArt(listOf(PlaneLine(pathOf(flat), rule.tone, rule.free))),
-            rule.fade,
-            normal,
-        )
+    val onCap = atEnd != 0 && (radiusAt == null || bolt.r < radiusAt(bolt.s) - 1e-6)
+    val slope =
+        if (radiusAt != null) (radiusAt(bolt.s + 1e-3) - radiusAt(bolt.s - 1e-3)) / 2e-3 else 0.0
+    for (j in 0 until bolt.count) {
+        val t = bolt.phase + (j.toDouble() / bolt.count) * TAU
+        val p = pointOf(f, bolt.s, bolt.r, t)
+        val radial = radialOf(f, t)
+        val n = if (onCap) mul3(f.a, atEnd.toDouble()) else unit3(sub3(radial, mul3(f.a, slope)))
+        part.dots.add(DotData(local(part.group, p), n, bolt.size, bolt.tone, bolt.fade))
     }
+}
+
+/** A detail ring as a plane: a circle of points about 1.2 px apart. */
+private fun Turning.ringPlane(part: TurnPart, f: Frame, ring: DetailRing) {
+    val (s, x, y) = ring.at
+    val o = add3(add3(f.o, mul3(f.a, s)), add3(mul3(f.u, x), mul3(f.v, y)))
+    val n = unit3(ring.normal ?: f.a)
+    val b = frameAlong(Point3(0.0, 0.0, 0.0), n)
+    val steps = max(12, ceil((TAU * ring.r * cameraOf(projection).k) / 1.2).toInt())
+    val pts =
+        (0 until steps).map { j ->
+            Flat(
+                fine(ring.r * jsCos((j.toDouble() / steps) * TAU)),
+                fine(ring.r * jsSin((j.toDouble() / steps) * TAU)),
+            )
+        }
+    plane(
+        part,
+        o,
+        b.u,
+        b.v,
+        PlaneArt(listOf(PlaneLine(pathOf(pts, true), ring.tone))),
+        ring.fade,
+        n,
+    )
+}
+
+/** A detail rule as a plane through its points: its own normal, or the first one they span. */
+private fun Turning.rulePlane(part: TurnPart, f: Frame, rule: DetailRule) {
+    val pts =
+        rule.points.map { (s, x, y) ->
+            add3(add3(f.o, mul3(f.a, s)), add3(mul3(f.u, x), mul3(f.v, y)))
+        }
+    var n = rule.normal?.let { unit3(it) }
+    var i = 2
+    while (i < pts.size && n == null) {
+        val c = cross3(sub3(pts[1], pts[0]), sub3(pts[i], pts[0]))
+        if (len3(c) > 1e-9) n = unit3(c)
+        i++
+    }
+    val normal = n ?: f.a
+    val b = frameAlong(Point3(0.0, 0.0, 0.0), normal)
+    val o = pts[0]
+    val flat = pts.map { Flat(fine(dot3(sub3(it, o), b.u)), fine(dot3(sub3(it, o), b.v))) }
+    val art = PlaneArt(listOf(PlaneLine(pathOf(flat), rule.tone, rule.free)))
+    plane(part, o, b.u, b.v, art, rule.fade, normal)
 }
 
 /**

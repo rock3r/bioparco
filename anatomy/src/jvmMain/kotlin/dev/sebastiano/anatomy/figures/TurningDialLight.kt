@@ -122,9 +122,11 @@ private class Spark(val p: DoubleArray, val v: DoubleArray, var age: Double, val
 
 /** The LED, its pool and the sparks: shader layers and the sparks' state. */
 internal class TurningDialLight(private val scene: TurningDial.Scene) {
-    private val back: ShaderLayer? = shaderLayer(BACK, TurningDial.WIDTH, TurningDial.HEIGHT, glCamera(TurningDial.P))
-    private val front: ShaderLayer? =
-        back?.let { shaderLayer(FRONT, TurningDial.WIDTH, TurningDial.HEIGHT, glCamera(TurningDial.P)) }
+    private val back: ShaderLayer? =
+        shaderLayer(BACK, TurningDial.WIDTH, TurningDial.HEIGHT, glCamera(TurningDial.P))
+    private val front: ShaderLayer? = back?.let {
+        shaderLayer(FRONT, TurningDial.WIDTH, TurningDial.HEIGHT, glCamera(TurningDial.P))
+    }
 
     /** True when both layers compiled: the original's `data-gl`. */
     val available: Boolean = back != null && front != null
@@ -145,8 +147,14 @@ internal class TurningDialLight(private val scene: TurningDial.Scene) {
             val a = random() * PI * 2
             val tilt = 0.35 + random() * 0.9
             val speed = 16 + random() * 22
-            val v = doubleArrayOf(cos(a) * sin(tilt) * speed, sin(a) * sin(tilt) * speed, cos(tilt) * speed)
-            sparks[i] = Spark(doubleArrayOf(at.x, at.y, at.z), v, -random() * 0.08, 0.3 + random() * 0.45)
+            val v =
+                doubleArrayOf(
+                    cos(a) * sin(tilt) * speed,
+                    sin(a) * sin(tilt) * speed,
+                    cos(tilt) * speed,
+                )
+            sparks[i] =
+                Spark(doubleArrayOf(at.x, at.y, at.z), v, -random() * 0.08, 0.3 + random() * 0.45)
         }
     }
 
@@ -156,13 +164,11 @@ internal class TurningDialLight(private val scene: TurningDial.Scene) {
         for (i in 0 until SPARKS) {
             val s = sparks[i] ?: continue
             s.age += dt
-            if (s.age < 0) {
-                live = true
-                continue
+            if (s.age >= 0) {
+                s.v[2] -= 98 * dt
+                for (c in 0 until 3) s.p[c] += s.v[c] * dt
             }
-            s.v[2] -= 98 * dt
-            for (c in 0 until 3) s.p[c] += s.v[c] * dt
-            if (s.age > s.life || s.p[2] < FACE_Z) sparks[i] = null else live = true
+            if (s.age >= 0 && (s.age > s.life || s.p[2] < FACE_Z)) sparks[i] = null else live = true
         }
         return live
     }
@@ -208,7 +214,11 @@ internal class TurningDialLight(private val scene: TurningDial.Scene) {
             }
         }
         val area = Rect(box[0], box[1], box[2], box[3])
-        val cover = controller.cover(if (live) listOf(listOf(led.part), listOf("hand.pod.socket")) else listOf(listOf(led.part)))
+        val cover =
+            controller.cover(
+                if (live) listOf(listOf(led.part), listOf("hand.pod.socket"))
+                else listOf(listOf(led.part))
+            )
         drawShader(layer, time, area) {
             set("uLedVb", listOf(anchor.screen.x, anchor.screen.y))
             set("uLedR", 0.52 * world.k)

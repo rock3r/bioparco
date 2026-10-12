@@ -77,8 +77,8 @@ shading, lines and ticks on faces, knurls, coils, seams, dots, wires, face text,
 that move; turned parts on any axis with smooth shading (`lathe`, `solidOf`, `disc`, `bandsOf`,
 `sphereOf`, `rodOut`, …); pipes, hoses and cables (`tubePieces`); a shader layer for fire, water and
 light (`drawShader`); the geometry audit (`Recorder`, `settle`, `audit`); and the line-end check.
-Each is held to the original's own output by a parity test. Only the original's beta 3D mode is
-missing: when a part must turn in true 3D, say so and propose a version that fits.
+Each is held to the original's own output by a parity test. The original's beta 3D mode is ported
+too: see "3D: figures that turn (beta)" below.
 
 - Round parts: `references/kit.md` section 10 and `references/craft.md`, "Round parts and pipes".
 - Pipes and cables: `references/kit.md` section 11. Route them as `craft.md` says, record them, and
@@ -86,6 +86,37 @@ missing: when a part must turn in true 3D, say so and propose a version that fit
 - Shaders: read `references/shaders.md` before writing one.
 - The audit: `references/audit.md`. Once a figure has pipes, cables or round parts, record every
   item's true shape, `settle` the painter's order from geometry, and run `--audit` to zero.
+
+## 3D: figures that turn (beta)
+
+3D is an option like the shader layer. Use it when a part moving in depth is the idea: a dial or
+turntable that turns, fingers that flex, a piece that breaks off and falls. The rest of the figure
+stays static kit art. The turning dial (`figures/TurningDial*.kt`, Fig 5) is the worked example.
+
+It is in beta: the original's engine is proved on its example and one test figure, not yet on a
+production figure. Turn one subject at a time and keep the clutter around it static.
+
+- **Live parts are the kit's own picture.** Each frame, convex kit primitives (prisms, rounds,
+  domes, balls with flats, lathes, tubes) are re-projected and re-shaded by the kit's rules. A turn
+  by θ is the kit drawing at azimuth `a − θ`.
+- **Order comes from separating planes.** Same-group pairs get a plane fixed in the group, pairs on
+  different links one fixed in their common frame, and the rest are solved each frame. The audit
+  proves there are no cycles at any angle or in any clip frame.
+- **Contacts are flush, tangent or rim-on-flat.** Joints are coaxial knuckle discs on the child
+  group that touch the parent's link, or the audit calls the whole child group loose. No live line
+  spans two moving groups.
+- **Live tubes bend in near-horizontal planes or inside fittings, and never point along the
+  view.** A bend needs R ≥ 2r / sin²(e − θmax), where θmax includes the pitch range of every hinge
+  it rides: 8r when flat, 21r on a ±12° hinge.
+- **Materials remap the ramp.** Gold, chrome, steel, gunmetal, rubber, brass and copper each have a
+  light and a dark set; tones still come from facing.
+- **Shaders follow the motion.** Anchor them with `controller.anchor` or `toGroup`, occlude them
+  with `coverOf`, and keep world effects out of group space.
+- **Verify with `capture --audit`** (`turn audit passed`), `--turn` shots at many angles and
+  `--lines`. Iterate with `--audit --quick`; only a full run proves the figure, and it takes
+  minutes, so run it in the background.
+
+Read `references/3d.md` first.
 
 ## Workflow
 
@@ -215,3 +246,5 @@ Read these as you need them:
 - `references/verify.md`: the `capture` commands, the line check and the review checklist.
 - `references/audit.md`: recording a figure's true shapes, settling painter's order, and the audit.
 - `references/shaders.md`: the shader layer: camera contract, layers, inks for light and dark.
+- `references/3d.md`: turning groups: parts that turn, hinge and break off, the runtime and the
+  orbit audit.
