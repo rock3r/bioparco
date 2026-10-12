@@ -1,9 +1,8 @@
 # Craft
 
 How to make a figure look crafted rather than diagrammed. Adapted from the original's
-`references/craft.md` (MIT), with its recipes in Kotlin. Its sections on the audit and shaders are
-left out because the Compose kit has none of them yet; read them in the original when you port
-those pieces.
+`references/craft.md` (MIT), with its recipes in Kotlin. Recording a figure for the audit is in
+`audit.md`, and shaders are in `shaders.md`.
 
 ## Contents
 1. What "crafted" means
@@ -492,7 +491,21 @@ keys order them; where a pipe passes through a collar, clamp or valve it is gapp
   clear crossing of two straights or a visible gap of at least a pixel (two for a clamp), and look at
   every crossing at 4× in both themes.
 
-The original proves all of this with its geometry audit, which the Compose kit doesn't have yet.
+Prove it rather than eyeballing it: record every item's true shape and every route into a
+`Recorder`, `settle` the painter's order from measured depth, and run `capture --audit` until every
+failing line prints zero (`audit.md`). An interlocked pair is a geometry bug, fixed with a split, a
+gap or a tangent contact, never a key bias.
+
+Lessons from the espresso machine, the first Compose figure with dense pipework:
+- **Rim-on-sphere and rim-on-cylinder joints need a shared `owner`** in their `ShapeMeta`, or the audit
+  reports them as sunk.
+- **A hose can't be recorded pushed onto a barb**: the barb inside the hose reads as a pipe through a
+  solid. End hoses on a boss or a union nut instead.
+- **Near-side-on cameras pinch bends.** Every turn between a vertical leg and a leg toward the viewer
+  folds on screen, and `fillet` quietly grows the bend to clear it, which can sweep it into a
+  neighbour. Give every such turn a sideways component.
+- **Flush overlays aren't ordered.** Faces within 0.3 of each other are never ordered by `settle` and
+  nothing is reported, so draw a window's contents behind the window on purpose and check it at 4×.
 
 ### Shading and textures on curved surfaces
 - **Smooth shading** (automatic on any profile with a smooth knot; `Smooth(slope = …)` or

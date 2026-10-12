@@ -384,6 +384,6 @@ stack, the inks for light and dark, and the craft rules.
 
 ## Not in the Compose kit yet
 
-`audit.mjs` (`recorder`, `settle`, `auditOrExit`) and the 3D runtime (and
-so `gl.mjs`'s `GLSL_TURN` and `glslPose` for shaders on turning groups). When one of them is the only
-honest way to draw a part, say so to the user instead of faking it.
+The 3D runtime (and so `gl.mjs`'s `GLSL_TURN` and `glslPose` for shaders on turning groups). When it
+is the only honest way to draw a part, say so to the user instead of faking it. The audit is in
+`kit/audit/`; see `audit.md`.
