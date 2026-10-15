@@ -25,12 +25,12 @@ Or open it from the [showcase](../README.md).
 Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. See
 [docs/RECORDING.md](../docs/RECORDING.md).
 
-## Playing with it
+## Controls
 
-- The stage follows the beat until you touch something: a state chip, the style chips, the
-  **Exploded** checkbox, or a drag on the stage to orbit the stack.
-- Then it holds what you picked, and a **Back to groovin'** link appears. Click it to hand the
-  stage back to the beat.
+- The animation follows the beat until you select a state or style, toggle **Exploded**,
+  or drag the stage to rotate the layers.
+- The view then keeps your selection and shows a **Resume animation** link. Click it to resume
+  the automatic animation.
 - **Music** is off by default. Turn it on and the beat comes from the audio itself, so the picture
   stays locked to what you hear. The checkbox is disabled on machines with no audio output.
 

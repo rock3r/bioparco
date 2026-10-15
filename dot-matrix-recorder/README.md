@@ -1,6 +1,6 @@
 # Dot-matrix recorder
 
-This floating control records video and takes screenshots. Every icon is a 5×5 grid of dots.
+This floating control simulates video recording and screenshots. Every icon is a 5×5 grid of dots.
 At rest, the control is a small vertical pill. Hover over it to open the menu. Select Record
 to count down 3, 2, 1 on the red indicator. The control then shows a timer and scrolling diagonal stripes.
 
@@ -29,8 +29,7 @@ Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. 
 | Counting down | Horizontal pill: digit and a grey `00:00` | Grey `00:00` (click to cancel), Screenshot |
 | Recording | Horizontal pill: striped lens and timer | Timer (click to stop), Restart, Delete |
 
-Stop and Delete both send the pill back to idle. Nothing is actually captured: the
-specimen is the control, not a screen recorder.
+Stop and Delete both return the control to idle. This demo does not capture video or screenshots.
 
 ## Concepts
 
