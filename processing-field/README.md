@@ -1,8 +1,7 @@
 # Processing field
 
-A grid of marks whose sizes describe one soft shape that drifts, folds and breathes. The
-centres never move; only radius and ink change, so it reads as one surface working rather
-than particles flying about.
+A grid of marks forms an animated shape. The mark centres stay fixed while their
+radius and opacity change over time.
 
 Standalone:
 

@@ -2,8 +2,8 @@
 
 A Compose Desktop take on [Adrian](https://x.com/adriankuleszo)’s
 [celebratory badge animation](https://x.com/adriankuleszo/status/2103473953868063151).
-A trophy badge spins into an empty slot, bursts with a shockwave, confetti and light rays, draws
-its own neon outline, catches a shine, and then idles with slowly turning rays and twinkles.
+The animation spins a trophy badge into an empty slot and adds a shockwave, confetti and light rays.
+It then draws a neon outline and a moving highlight. The rays keep turning while small lights flash.
 
 Standalone:
 

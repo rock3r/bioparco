@@ -1,13 +1,12 @@
 # Component anatomy
 
-A Jewel button, taken apart into the layers it really paints. The stack tilts, opens up, and
-tours the button's states to a beat: Normal, Hovered, Pressed, Focused, Disabled. Every layer has
-a label that names the style property it is painting right now, and the value. When a state
-changes, the layers that changed glow.
+This view separates a Jewel button into its drawing layers. The layers tilt and spread apart
+as the button cycles through Normal, Hovered, Pressed, Focused and Disabled states in time with music.
+Each label shows the layer's current style property and value. Changed layers glow.
 
 The exploded view is after [Jae](https://x.com/Jaenam97)’s
 [Badge Tech](https://x.com/Jaenam97/status/2104201809132990900) enamel pin. That piece is a
-raymarched shader. This one is plain Compose: no shaders, just flat layers and one matrix.
+raymarched shader. This version uses flat Compose layers and one transformation matrix.
 
 Standalone:
 
@@ -26,12 +25,12 @@ Or open it from the [showcase](../README.md).
 Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. See
 [docs/RECORDING.md](../docs/RECORDING.md).
 
-## Playing with it
+## Controls
 
-- The stage follows the beat until you touch something: a state chip, the style chips, the
-  **Exploded** checkbox, or a drag on the stage to orbit the stack.
-- Then it holds what you picked, and a **Back to groovin'** link appears. Click it to hand the
-  stage back to the beat.
+- The animation follows the beat until you select a state or style, toggle **Exploded**,
+  or drag the stage to rotate the layers.
+- The view then keeps your selection and shows a **Resume animation** link. Click it to resume
+  the automatic animation.
 - **Music** is off by default. Turn it on and the beat comes from the audio itself, so the picture
   stays locked to what you hear. The checkbox is disabled on machines with no audio output.
 

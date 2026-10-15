@@ -110,7 +110,7 @@ fun App(modifier: Modifier = Modifier) {
             Box(modifier = Modifier.fillMaxWidth().weight(1f).background(PageColors.page)) {
                 PeelStage(picture, mode, focus, Modifier.fillMaxSize())
                 Text(
-                    "Drag an edge to peel · move over it for the shine",
+                    "Drag an edge to peel. Move the pointer over the sticker to change the light effect.",
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp),
                     style = TextStyle(fontSize = 10.5.sp),
                     color = PageColors.hint,
@@ -158,7 +158,7 @@ private fun Header(mode: ShineMode) {
             }
         }
         Text(
-            "Drop a picture · P swaps",
+            "Drop a picture to use it. Press P to switch pictures.",
             style = TextStyle(fontSize = 9.5.sp, fontFamily = FontFamily.Monospace),
             color = PageColors.faint,
         )

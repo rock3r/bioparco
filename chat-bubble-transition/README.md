@@ -1,8 +1,8 @@
 # Chat bubble transition
 
-Kavsoft’s SwiftUI “Chat Bubble Transition”, ported to Compose Desktop: the composer’s
-chrome and typed text detach on Send, fly into the transcript, and morph into a sent
-bubble while older messages slide up.
+This Compose Desktop version of Kavsoft’s SwiftUI “Chat Bubble Transition” animates sending a message.
+When you select Send, the input field and typed text move into the conversation and become a sent
+bubble. Older messages slide up.
 
 Standalone:
 

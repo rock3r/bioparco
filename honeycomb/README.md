@@ -2,10 +2,10 @@
 
 A Compose Desktop take on [Shubham Singh](https://x.com/Shubham_iosdev)’s
 [honeycomb view](https://x.com/Shubham_iosdev/status/2106375285553992047)
-([withanimation](https://www.withanimation.app/library/honeycomb-view)). Circles packed in a
-honeycomb sit on black. Drag anywhere and the field follows the pointer, horizontally and
-vertically at once. A circle at the centre is full size and full brightness. Further out it
-shrinks hard and darkens, until the ones near the edge disappear into the background.
+([withanimation](https://www.withanimation.app/library/honeycomb-view)). Circles form a
+honeycomb pattern on a black background. Drag anywhere to move the grid horizontally and
+vertically. Circles at the centre have full size and brightness. Circles further from the
+centre shrink and darken until they disappear near the edge.
 
 Standalone:
 

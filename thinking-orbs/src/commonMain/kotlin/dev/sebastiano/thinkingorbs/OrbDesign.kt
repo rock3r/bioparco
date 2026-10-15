@@ -1,15 +1,15 @@
 package dev.sebastiano.thinkingorbs
 
 enum class OrbDesign(val title: String, val summary: String) {
-    Working("Working", "Particles on tilted orbits"),
-    Searching("Searching", "A scan meridian sweeps a dotted globe"),
-    Solving("Solving", "Bands scramble, then click back solved"),
-    Listening("Listening", "A waveform rolls through the rings"),
-    Connecting("Connecting", "A constellation wires itself"),
-    Weaving("Weaving", "Three strands plait around the sphere"),
-    Composing("Composing", "An undulating multi-band sash"),
-    Breathing("Breathing", "A ring slowly morphing"),
-    Shaping("Shaping", "Circle → triangle → square");
+    Working("Working", "Particles follow tilted orbits."),
+    Searching("Searching", "A scan line rotates around a dotted globe."),
+    Solving("Solving", "Bands rotate out of alignment, then align again."),
+    Listening("Listening", "A waveform moves through the rings."),
+    Connecting("Connecting", "Lines connect points on a sphere."),
+    Weaving("Weaving", "Three strands twist around the sphere."),
+    Composing("Composing", "Several bands form a moving wave."),
+    Breathing("Breathing", "A ring slowly changes shape."),
+    Shaping("Shaping", "A circle becomes a triangle, then a square.");
 
     val accessibilityLabel: String
         get() = if (this == Breathing) "Thinking…" else "$title…"

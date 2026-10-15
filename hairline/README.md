@@ -2,9 +2,9 @@
 
 A Compose Desktop port of [Lucas Marques](https://github.com/lucasmarkes)’s
 [hairline](https://github.com/lucasmarkes/hairline) ([live](https://hairline.lucasmarkes.com)):
-nineteen isometric line figures that answer the pointer. Each one is drawn in hairlines on a
-400 × 320 stage, with springs for what follows the pointer and a long ease-out for what it picks.
-One `intensity` slider sets how strongly every figure answers, from subtle to strong.
+nineteen isometric line figures that respond to pointer movement. Each figure uses thin lines on a
+400 × 320 stage. Spring animations track the pointer, and a long ease-out animates selections.
+One `intensity` slider controls the strength of these responses.
 
 | Figure | What it is | A stronger intensity |
 |---|---|---|

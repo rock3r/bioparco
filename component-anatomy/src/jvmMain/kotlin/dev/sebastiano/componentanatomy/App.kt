@@ -56,7 +56,7 @@ private fun Header(stage: AnatomyStage) {
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Component anatomy", style = JewelTheme.typography.h1TextStyle)
             Text(
-                "A Jewel button, taken apart into the layers it really paints, in the order it paints them.",
+                "A Jewel button shows its drawing layers in drawing order.",
                 color = JewelTheme.globalColors.text.info,
             )
         }
@@ -141,7 +141,7 @@ private fun Controls(stage: AnatomyStage) {
             )
             if (!stage.following) {
                 Link(
-                    "Back to groovin'",
+                    "Resume animation",
                     onClick = stage::backToGroovin,
                     modifier = Modifier.testTag(AnatomyTags.BACK_TO_GROOVIN),
                 )
