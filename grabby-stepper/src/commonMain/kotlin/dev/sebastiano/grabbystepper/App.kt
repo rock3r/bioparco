@@ -75,7 +75,8 @@ private fun GrabbyScene(
                 fontWeight = FontWeight.Medium,
             )
             Text(
-                text = "Keyboard: Tab to the pill · arrows or −/+ step · 0 resets",
+                text =
+                    "Press Tab to focus the control. Use arrows or −/+ to change the count. Press 0 to reset.",
                 color = colors.hint,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,

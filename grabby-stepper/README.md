@@ -1,7 +1,7 @@
 # Grabby stepper
 
-The count is a **thumb**, not a label. − / + live in the same pill. The dark track is
-rubber: it stretches toward the grab, then springs home with the thumb.
+Drag the number to change the count, or use the −/+ buttons in the same pill.
+The dark track stretches toward the pointer and springs back with the thumb on release.
 
 Standalone:
 

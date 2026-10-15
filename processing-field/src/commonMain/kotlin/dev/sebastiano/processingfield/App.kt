@@ -86,10 +86,11 @@ fun App(modifier: Modifier = Modifier) {
                     Text(
                         text =
                             when {
-                                showsStill -> "Still frame. The same field, simply not moving."
-                                !isRunning -> "Parked. The timeline leaves the tree entirely."
+                                showsStill -> "The field shows a still frame."
+                                !isRunning ->
+                                    "Animation is stopped. The animation loop is inactive."
                                 else ->
-                                    "The mark centres never move. Only their size and their ink do."
+                                    "The mark centres stay fixed while their size and opacity change."
                             },
                         style = JewelTheme.typography.small,
                         color = colors.muted,
@@ -193,10 +194,10 @@ fun App(modifier: Modifier = Modifier) {
                             foldSpeed = it
                         }
 
-                        SectionLabel("Weight of a mark", colors)
+                        SectionLabel("Mark size and opacity", colors)
                         Knob(
                             colors = colors,
-                            label = "Radius floor",
+                            label = "Minimum radius",
                             value = radiusFloor,
                             range = 0.0..0.20,
                             tag = ProcessingFieldTags.RADIUS_FLOOR,
@@ -206,7 +207,7 @@ fun App(modifier: Modifier = Modifier) {
                         }
                         Knob(
                             colors = colors,
-                            label = "Radius ceiling",
+                            label = "Maximum radius",
                             value = radiusCeiling,
                             range = 0.02..0.45,
                             tag = ProcessingFieldTags.RADIUS_CEILING,
@@ -216,7 +217,7 @@ fun App(modifier: Modifier = Modifier) {
                         }
                         Knob(
                             colors = colors,
-                            label = "Ink floor",
+                            label = "Minimum opacity",
                             value = inkFloor,
                             range = 0.0..0.70,
                             tag = ProcessingFieldTags.INK_FLOOR,
@@ -225,7 +226,7 @@ fun App(modifier: Modifier = Modifier) {
                         }
                         Knob(
                             colors = colors,
-                            label = "Ink ceiling",
+                            label = "Maximum opacity",
                             value = inkCeiling,
                             range = 0.05..1.0,
                             tag = ProcessingFieldTags.INK_CEILING,

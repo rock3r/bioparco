@@ -39,7 +39,7 @@ fun App(modifier: Modifier = Modifier) {
                 ) {
                     Text("Achievement badge", style = JewelTheme.typography.h1TextStyle)
                     Text(
-                        "A trophy badge that pops in, bursts, and lights itself up.",
+                        "A trophy badge appears with confetti and light effects.",
                         color = JewelTheme.globalColors.text.info,
                     )
                 }

@@ -1,13 +1,12 @@
 # Component anatomy
 
-A Jewel button, taken apart into the layers it really paints. The stack tilts, opens up, and
-tours the button's states to a beat: Normal, Hovered, Pressed, Focused, Disabled. Every layer has
-a label that names the style property it is painting right now, and the value. When a state
-changes, the layers that changed glow.
+This view separates a Jewel button into its drawing layers. The layers tilt and spread apart
+as the button cycles through Normal, Hovered, Pressed, Focused and Disabled states in time with music.
+Each label shows the layer's current style property and value. Changed layers glow.
 
 The exploded view is after [Jae](https://x.com/Jaenam97)’s
 [Badge Tech](https://x.com/Jaenam97/status/2104201809132990900) enamel pin. That piece is a
-raymarched shader. This one is plain Compose: no shaders, just flat layers and one matrix.
+raymarched shader. This version uses flat Compose layers and one transformation matrix.
 
 Standalone:
 

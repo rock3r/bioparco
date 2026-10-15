@@ -1,8 +1,8 @@
 # Dot-matrix recorder
 
-A floating record/screenshot control. Every icon is a 5×5 grid of dots. At rest it is a small
-vertical pill. When you hover it, it opens into a menu. Record counts down 3, 2, 1 on the red
-lens. Then the pill folds into a timer while diagonal stripes scroll across the lens.
+This floating control records video and takes screenshots. Every icon is a 5×5 grid of dots.
+At rest, the control is a small vertical pill. Hover over it to open the menu. Select Record
+to count down 3, 2, 1 on the red indicator. The control then shows a timer and scrolling diagonal stripes.
 
 Standalone:
 

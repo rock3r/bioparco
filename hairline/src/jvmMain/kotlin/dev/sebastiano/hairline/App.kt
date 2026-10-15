@@ -95,7 +95,7 @@ private fun Header(
             color = palette.edge,
         )
         Text(
-            "Nineteen isometric figures that answer the pointer",
+            "Nineteen isometric figures respond to pointer movement.",
             style = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Medium),
             color = palette.hi,
         )

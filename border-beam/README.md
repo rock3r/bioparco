@@ -2,8 +2,8 @@
 
 A Compose Desktop port of [Jakub Antalik’s border-beam](https://github.com/Jakubantalik/border-beam)
 ([libraries.dev](https://libraries.dev/beam.html), [playground](https://beam.jakubantalik.com/)):
-a glow that rides the border of a card. Sizes `md`, `sm`, and `line` travel; `pulse-inner` and
-`pulse-outside` breathe. Palettes are `colorful`, `mono`, `ocean`, and `sunset`, in light or dark.
+a glow that moves along the border of a card. Sizes `md`, `sm`, and `line` move along the edge;
+`pulse-inner` and `pulse-outside` pulse in place. Palettes are `colorful`, `mono`, `ocean`, and `sunset`, in light or dark.
 
 Standalone:
 

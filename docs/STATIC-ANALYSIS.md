@@ -14,6 +14,6 @@ bioparco uses:
 ./gradlew ktfmtFormat
 ```
 
-`MagicNumber` is off on purpose: the animals *are* the numbers. Do not add a baseline
-or sprinkle `@Suppress` without an explicit ask. Fix the cause. See the
+`MagicNumber` is disabled because animation and drawing code uses many intentional numeric constants.
+Do not add a baseline or `@Suppress` without an explicit request. Fix the cause. See the
 `addressing-detekt-violations` skill.

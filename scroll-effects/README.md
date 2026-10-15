@@ -2,8 +2,8 @@
 
 A Compose Desktop take on [sucodee](https://x.com/sucodeee)’s
 [scroll effects](https://x.com/sucodeee/status/2104191756350713967) for SwiftUI, React Native and
-the web ([metalforge.xyz](https://metalforge.xyz)). A looping carousel of six grainy gradient
-cards, and six ways for a card to leave the centre:
+the web ([metalforge.xyz](https://metalforge.xyz)). The looping carousel has six grainy gradient
+cards. Choose from six effects that animate cards as they move away from the centre:
 
 | Effect | What happens away from the centre |
 |---|---|

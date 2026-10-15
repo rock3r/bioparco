@@ -1,8 +1,8 @@
 # Thinking Orbs
 
-A Compose Desktop port of [Haplo LLC’s ThinkingOrbs](https://github.com/haplollc/ThinkingOrbs):
-nine monochrome, dotted indicators for AI and agent activity, each in regular and small
-purpose-tuned sizes.
+This Compose Desktop port of [Haplo LLC’s ThinkingOrbs](https://github.com/haplollc/ThinkingOrbs)
+has nine monochrome, dotted indicators for AI and agent activity. Each indicator has regular
+and small variants with motion adjusted for its size.
 
 Standalone:
 

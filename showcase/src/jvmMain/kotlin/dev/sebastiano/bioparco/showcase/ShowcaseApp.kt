@@ -201,78 +201,77 @@ private fun Catalog(
     ) {
         Text("bioparco", style = JewelTheme.typography.h1TextStyle)
         Text(
-            "Specimens gathered like a bioparco: small Compose Desktop animals, each in its own enclosure.",
+            "A collection of Compose Desktop experiments. Open a specimen to try it.",
             style = JewelTheme.typography.regular,
         )
         SpecimenCard(
             name = "Grabby stepper",
             summary =
-                "A thumb you can actually grab. The dark track stretches after it like rubber.",
+                "Drag the number to change the count. The dark track stretches toward the pointer.",
             testTag = "open-grabby-stepper",
             onOpen = onOpenGrabby,
         )
         SpecimenCard(
             name = "Chat bubble transition",
-            summary = "The composer chrome flies into the transcript and becomes a sent bubble.",
+            summary = "The message input moves into the conversation and becomes a sent bubble.",
             testTag = "open-chat-bubble-transition",
             onOpen = onOpenChat,
         )
         SpecimenCard(
             name = "Processing field",
-            summary =
-                "A grid of marks whose sizes describe one soft mass that drifts, folds and breathes.",
+            summary = "A grid forms an animated shape as each mark changes size and opacity.",
             testTag = "open-processing-field",
             onOpen = onOpenProcessingField,
         )
         SpecimenCard(
             name = "Thinking Orbs",
-            summary = "Nine dotted 3D signals for what an AI or agent is doing.",
+            summary = "Nine dotted 3D indicators show AI or agent activity.",
             testTag = "open-thinking-orbs",
             onOpen = onOpenThinkingOrbs,
         )
         SpecimenCard(
             name = "Dot-matrix recorder",
             summary =
-                "A record pill with 5×5 dot icons that counts down 3, 2, 1 and folds into a " +
-                    "timer. After Sasha Birukoff’s Halogen.",
+                "A recording control uses 5×5 dot icons, counts down 3, 2, 1 and becomes a " +
+                    "timer. Based on Sasha Birukoff’s Halogen.",
             testTag = "open-dot-matrix-recorder",
             onOpen = onOpenDotMatrixRecorder,
         )
         SpecimenCard(
             name = "Border beam",
-            summary = "A traveling or breathing glow that rides the border of a card.",
+            summary = "A glow moves along a card border or pulses in place.",
             testTag = "open-border-beam",
             onOpen = onOpenBorderBeam,
         )
         SpecimenCard(
             name = "Achievement badge",
             summary =
-                "A trophy badge that spins into its slot, bursts into confetti, and lights " +
-                    "itself up. After Adrian (@adriankuleszo).",
+                "A trophy badge spins into its slot with confetti and light effects. " +
+                    "Based on Adrian’s animation (@adriankuleszo).",
             testTag = "open-achievement-badge",
             onOpen = onOpenAchievementBadge,
         )
         SpecimenCard(
             name = "Component anatomy",
             summary =
-                "A Jewel button taken apart into the layers it really paints, touring its states " +
-                    "to the beat. After Jae (@Jaenam97).",
+                "A Jewel button shows its drawing layers and cycles through its states " +
+                    "in time with music. Based on Jae’s design (@Jaenam97).",
             testTag = "open-component-anatomy",
             onOpen = onOpenComponentAnatomy,
         )
         SpecimenCard(
             name = "Scroll effects",
             summary =
-                "A card carousel with six ways to leave the centre: stretch, bulge, drum, " +
-                    "shatter, Thanos and glitch. After sucodee (@sucodeee).",
+                "A card carousel has six scroll effects: stretch, bulge, drum, " +
+                    "shatter, Thanos and glitch. Based on sucodee’s design (@sucodeee).",
             testTag = "open-scroll-effects",
             onOpen = onOpenScrollEffects,
         )
         SpecimenCard(
             name = "Peel sticker",
             summary =
-                "A die-cut sticker you peel off by an edge, with five shines under the pointer: " +
-                    "white, sparkle, prism, ripple and halftone. After sucodee (@sucodeee).",
+                "Peel a die-cut sticker by dragging an edge. Choose a pointer-controlled light effect: " +
+                    "white, sparkle, prism, ripple or halftone. Based on sucodee’s design (@sucodeee).",
             testTag = "open-peel-sticker",
             onOpen = onOpenPeelSticker,
         )
@@ -287,8 +286,8 @@ private fun Catalog(
         SpecimenCard(
             name = "Hairline",
             summary =
-                "Nineteen isometric line figures that answer the pointer: cards, pillars, a " +
-                    "turntable, a vault and more. A port of Lucas Marques's hairline (MIT).",
+                "Nineteen isometric line figures respond to pointer movement: cards, pillars, a " +
+                    "turntable, a vault and more. This ports Lucas Marques's hairline (MIT).",
             testTag = "open-hairline",
             onOpen = onOpenHairline,
         )

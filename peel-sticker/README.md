@@ -35,9 +35,9 @@ Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. 
 
 ## How it works
 
-The original runs on WebGL. Here the whole sticker is one SkSL shader, drawn in four passes: the
-soft shadow of the part still on the table, that part, the shadow the lifted part casts, and the
-lifted part itself.
+The original runs on WebGL. This version combines cached images with separate SkSL programs for
+each layer and shine effect. It draws the flat sticker and its shadow, then the lifted shadow
+and sheet. GPU and software rendering use different paths, described under Performance below.
 
 - The picture is printed once into two 1024 × 1024 textures. The die-cut border is an exact
   distance-transform offset of the picture's coverage, 4.1% of its size, with the inside corners

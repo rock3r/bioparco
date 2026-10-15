@@ -22,7 +22,7 @@ fun App(modifier: Modifier = Modifier) {
             RecorderPill(Modifier.align(Alignment.Center))
             Text(
                 text =
-                    "Hover the pill. Record counts down; hover again to stop, restart, or delete.",
+                    "Hover to record or take a screenshot. Hover during recording to stop, restart, or delete.",
                 style =
                     TextStyle(
                         color = Color(0xFF4A4A4A),
