@@ -1,11 +1,11 @@
 # Static analysis
 
-bioparco uses:
+Bioparco checks Kotlin with these tools:
 
 - `detekt` 2.x plus Compose Rules (`io.nlopez.compose.rules:detekt`)
 - `ktfmt` with KotlinLang style
 
-`./gradlew check` runs both. Do not add a Detekt formatting plugin; `ktfmt` owns format.
+`./gradlew check` runs both tools. Use `ktfmt` for formatting. Do not add a Detekt formatting plugin.
 
 ```bash
 ./gradlew check
@@ -14,6 +14,6 @@ bioparco uses:
 ./gradlew ktfmtFormat
 ```
 
-`MagicNumber` is disabled because animation and drawing code uses many intentional numeric constants.
-Do not add a baseline or `@Suppress` without an explicit request. Fix the cause. See the
-`addressing-detekt-violations` skill.
+The Detekt configuration disables `MagicNumber` because drawing and animation code needs many numeric constants.
+Fix the cause of each finding. Adding a baseline or `@Suppress` requires an explicit request from the owner.
+The `addressing-detekt-violations` skill describes the review steps.

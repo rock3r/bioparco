@@ -1,28 +1,27 @@
 # Contributing
 
-Welcome in. bioparco is a small public zoo of Compose Desktop specimens. The bar for a
-PR is "a cute or useful enclosure, a reviewable diff, and `./gradlew check` is green."
+Bioparco accepts Compose Desktop specimens and changes to its shared tools and rules.
+Keep each pull request focused and small enough to review. Run `./gradlew check` before pushing.
 
-New specimens should:
+Each new specimen must meet these requirements:
 
-- live in their own top-level folder
-- be a Gradle submodule imported by `:showcase`
-- ship a README with concepts, references, and the tricky bits
-- grow a Spectre recording test next to the others in `:recordings`
-- show its animation: link the stable preview and MP4 URLs in both its root README entry
-  and its own README. Run the CI workflow once on the branch, naming the specimen, so the
-  URLs exist (see [docs/RECORDING.md](docs/RECORDING.md)). `./gradlew check` fails without
-  the links. Do not `gh release upload` in the happy path.
+- Put the specimen in its own top-level folder.
+- Add it as a Gradle submodule that `:showcase` imports.
+- Include a README with concepts, references, and implementation limits.
+- Add a Spectre recording test in `:recordings`.
+- Link the stable preview and MP4 URLs in the root README entry and the specimen README.
+  Run the CI workflow on the branch with the specimen's name to publish those files.
+  See [docs/RECORDING.md](docs/RECORDING.md). `./gradlew check` requires the links.
+  Use the workflow for routine uploads.
 
 ## Pull requests
 
-- Branch off `main`; PR back into `main`.
-- One specimen or one house-rule change per PR.
-- `./gradlew check` passes locally. `./gradlew ktfmtFormat` keeps Kotlin / `.gradle.kts`
-  files formatted.
-- Commit messages: present-tense, explain the *why*.
+- Create a branch from `main` and target `main` with the pull request.
+- Limit each pull request to one specimen or one shared rule.
+- Run `./gradlew check` locally. Use `./gradlew ktfmtFormat` to format Kotlin and `.gradle.kts` files.
+- Write present-tense commit subjects that explain the reason for the change. Omit conventional commit prefixes.
 
 ## License
 
-Apache License 2.0. By contributing you agree your contribution is licensed under
+Contributions use the Apache License 2.0. By contributing, you agree to the terms in
 [LICENSE](LICENSE).

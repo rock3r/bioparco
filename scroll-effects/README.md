@@ -1,6 +1,6 @@
 # Scroll effects
 
-A Compose Desktop take on [sucodee](https://x.com/sucodeee)’s
+This Compose Desktop specimen recreates [sucodee](https://x.com/sucodeee)’s
 [scroll effects](https://x.com/sucodeee/status/2104191756350713967) for SwiftUI, React Native and
 the web ([metalforge.xyz](https://metalforge.xyz)). The looping carousel has six grainy gradient
 cards. Choose from six effects that animate cards as they move away from the centre:
@@ -16,7 +16,7 @@ cards. Choose from six effects that animate cards as they move away from the cen
 
 Bulge and Drum also blur with the carousel's speed, as the original does.
 
-Standalone:
+Run the specimen on its own:
 
 ```bash
 ./gradlew :scroll-effects:run
@@ -31,22 +31,21 @@ The tabs at the bottom switch the effect.
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/scroll-effects.mp4)
 
-Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. See
+Spectre captures this recording. Regenerate it with `./gradlew :recordings:recordSpecimens`. See
 [docs/RECORDING.md](../docs/RECORDING.md).
 
 ## How it works
 
-The original runs on WebGL. Here every effect is a mesh of textured triangles, drawn with
-Skia's `drawVertices`:
+The original uses WebGL. This implementation draws each effect as textured triangles through Skia's `drawVertices`.
 
-- Each card is painted once into a bitmap: gradient blobs, a grain overlay, the number and its
-  chart. The bitmap is the texture for all six effects.
-- The effects are plain Kotlin in `commonMain`. For each card and each frame they move the mesh
-  vertices according to the card's distance from the centre. Stretch and the two cylinders bend a
-  grid, Shatter moves Voronoi cells, and Thanos moves about 10,000 one-grain quads per card.
+- The renderer paints each card's gradients, grain, number, and chart into one bitmap.
+  All six effects use that bitmap as their texture.
+- Kotlin code in `commonMain` moves each card's mesh vertices every frame according to its distance from the centre.
+  Stretch and the two cylinder effects bend a grid. Shatter moves Voronoi cells.
+  Thanos moves about 10,000 one-grain quads per card.
 - Glitch adds a small SkSL shader for the colour split, the scanlines and the blocky noise.
 - Mesh edges fall on transparent padding around the card art, so the rounded corners stay
   anti-aliased.
 
-The card designs, colours and numbers were read off the source video frame by frame. The motion
-is a reconstruction from that video, not a port of the original code.
+The card designs, colours, numbers, and motion follow frame-by-frame observations of the source video.
+This implementation uses no original source code.

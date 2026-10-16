@@ -1,6 +1,6 @@
 ---
 name: using-git-worktree
-description: Use when starting nontrivial feature work that should stay isolated from the main checkout. Creates or reuses a safe git worktree with sensible defaults.
+description: Creates or reuses an isolated Git workspace. Use before substantial feature work in the main checkout.
 metadata:
   internal: true
 ---
@@ -9,34 +9,34 @@ metadata:
 
 ## Purpose
 
-Create isolated workspaces for implementation work without disturbing the main checkout.
+Use an isolated branch or worktree to keep implementation changes separate from the main checkout.
 
 ## Before Creating Anything
 
-Check whether isolation already exists:
+Check the current checkout before creating a worktree:
 
-1. Are you already inside a worktree?
-2. Are you already on a non-main branch?
+1. Determine whether the current directory is already a linked worktree.
+2. Determine whether the current branch differs from `main`.
 
-If either is true, report that isolation already exists and skip worktree creation.
+If either condition holds, keep working there. Report the existing isolation and skip worktree creation.
 
 ## Directory Selection
 
-Prefer these locations in order:
+Choose an existing worktree directory in this order:
 
-1. `.worktrees/`
-2. `worktrees/`
-3. create `.worktrees/`
+1. Use `.worktrees/` if it exists.
+2. Otherwise, use `worktrees/` if it exists.
+3. If neither exists, create `.worktrees/`.
 
-Before creating a project-local worktree directory, verify it is gitignored. If it is not, fix
-that first.
+Before creating a project-local worktree directory, check that Git ignores it.
+Add an ignore rule first if needed.
 
 ## Creation Flow
 
 1. Determine the current branch and default branch.
 2. Choose the base branch.
 3. Create a new worktree with a descriptive branch name.
-4. Run an initial project sanity check in the worktree.
+4. Run the project's initial build check inside the worktree.
 
 Example commands:
 
@@ -48,8 +48,8 @@ git worktree add .worktrees/<branch-name> -b <branch-name> <base-branch>
 ./gradlew build
 ```
 
-## Spectre Notes
+## Repository paths
 
-- Keep `.plans/` in the root checkout rather than inside the worktree.
-- Use absolute paths when switching between Spectre and prior-art repos under `~/src`.
-- Prefer a worktree for implementation-heavy tasks, not for tiny doc-only edits.
+- Keep `.plans/` in the root checkout.
+- Use absolute paths when switching between Spectre and reference repositories under `~/src`.
+- Use worktrees for substantial implementation work. A feature branch is enough for a small documentation change.
