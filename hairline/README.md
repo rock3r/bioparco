@@ -52,7 +52,7 @@ The original builds each figure's SVG tree once, then updates path `d` attribute
 The port keeps this structure close to the TypeScript source.
 
 - `Iso.kt`, `Solids.kt`, and `Motion.kt` port `core/iso.ts` and `core/motion.ts`.
-  They define the orthographic camera, its ground-plane inverse, and geometry for rings, hulls, prisms, fillets, and reflections.
+  They define the orthographic camera, its ground-plane inverse, rounded rings with their normals, hulls, prisms, fillets, and reflections.
   They also keep the 240 Hz substepped springs and 700ms lift tween.
 - `Svg.kt` retains the tree and supports `append`, `after`, `before`, and class lists.
   `Stage.kt` handles frames, pointer input, and cleanup through a `Stage` interface that the Compose host implements.

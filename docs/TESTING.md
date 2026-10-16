@@ -30,7 +30,9 @@ Review visual motion directly. Tests must not freeze animation constants unless 
 ./gradlew :recordings:recordSpecimens
 ```
 
-Recording tests skip when the JVM has no display. Local runs of `:recordings:recordSpecimens` can therefore finish without capturing anything.
+Recording tests skip when the JVM has no display.
+On a clean checkout, `:recordings:recordSpecimens` then fails its output check because specimen movies are missing.
+Existing usable movies can satisfy that check. Runs filtered with `--tests` skip the output check.
 The recordings job runs under `xvfb-run` on `v*` tags and pushes to `main`.
 That job fails if a test skips or a README movie is missing.
 Specimen windows must not call `exitProcess` on close, because that stops the worker after the first MP4.
