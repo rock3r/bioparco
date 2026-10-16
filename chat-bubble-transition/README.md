@@ -4,7 +4,7 @@ This Compose Desktop version of Kavsoft’s SwiftUI “Chat Bubble Transition”
 When you select Send, the input field and typed text move into the conversation and become a sent
 bubble. Older messages slide up.
 
-Standalone:
+Run the specimen on its own:
 
 ```bash
 ./gradlew :chat-bubble-transition:run
@@ -18,17 +18,17 @@ Or open it from the [showcase](../README.md).
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/chat-bubble-transition.mp4)
 
-Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. See
+Spectre captures this recording. Regenerate it with `./gradlew :recordings:recordSpecimens`. See
 [docs/RECORDING.md](../docs/RECORDING.md).
 
 ## Concepts
 
-- `LazyColumn(reverseLayout = true)` so new messages land at the bottom.
-- `Modifier.animateItem()` slides older bubbles up in sync with the flight.
-- Overlay-only morph: measure composer bounds as start, the clipped destination bubble
-  as end, then lerp an overlay along a quadratic Bézier.
-- Right-anchored flight so a still-wide morph does not overshoot the message margin.
-- Text size stays constant. The chrome lerps from composer white to bubble grey.
+- `LazyColumn(reverseLayout = true)` places new messages at the bottom.
+- `Modifier.animateItem()` slides older bubbles up while the new bubble moves.
+- An overlay changes shape between the measured composer bounds and the clipped destination bubble.
+  It follows a quadratic Bézier curve.
+- The overlay anchors to the right, so its wider starting shape stays inside the message margin.
+- The text keeps its size. The background interpolates from composer white to bubble grey.
 
 ## Reference
 
@@ -37,12 +37,8 @@ Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. 
 
 ## Tricky bits
 
-- Desktop `SharedTransitionLayout` was unreliable for this flight. The overlay path is
-  the one that actually looks like Kavsoft.
-- `reverseLayout` can leave the new item off-screen; the send path pins `scrollToItem(0)`
-  so the destination composes and the flight can arm.
-- Draw the overlay immediately at composer bounds. Waiting for the destination makes the
-  text blink out.
-- Use `graphicsLayer { translationX/Y }` for the overlay, not `IntOffset`. Rounding
-  hitch is visible on the arc.
-- Enter sends; Shift+Enter inserts a newline.
+- Desktop `SharedTransitionLayout` did not reliably reproduce the reference transition. The implementation uses an overlay.
+- `reverseLayout` can leave the new item off-screen. Sending calls `scrollToItem(0)` so Compose creates the destination before the transition starts.
+- Draw the overlay at the composer bounds immediately. Waiting for the destination makes the text disappear briefly.
+- Use `graphicsLayer { translationX/Y }` for the overlay. `IntOffset` rounds positions and causes visible jumps along the curve.
+- Enter sends the message. Shift+Enter inserts a newline.

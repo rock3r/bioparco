@@ -1,10 +1,9 @@
 # Peel sticker
 
-A Compose Desktop take on [sucodee](https://x.com/sucodeee)’s
+This Compose Desktop specimen recreates [sucodee](https://x.com/sucodeee)’s
 [sticker effect](https://x.com/sucodeee/status/2104873657885438135) for SwiftUI, React Native and
-the web ([metalforge.xyz](https://metalforge.xyz)). A die-cut sticker sits on the table. Grab it by
-an edge and peel it off: it curls up, rolls over and shows its printed backing. Let go and it lays
-itself back down. Move over it and its face catches the light:
+the web ([metalforge.xyz](https://metalforge.xyz)). Drag a die-cut sticker's edge to curl it up and reveal its printed backing.
+Release it to return it to the flat position. Moving the pointer over the sticker changes its shine:
 
 | Shine | What happens under the pointer |
 |---|---|
@@ -14,15 +13,14 @@ itself back down. Move over it and its face catches the light:
 | Ripple | Rings spread out from the pointer and bend the picture, as on water. |
 | Halftone | The picture turns into a printed dot screen around the pointer. |
 
-Standalone:
+Run the specimen on its own:
 
 ```bash
 ./gradlew :peel-sticker:run
 ```
 
-Or open it from the [showcase](../README.md). The tabs at the bottom, or the keys 1 to 5, switch
-the shine. P swaps the picture between the two from the original video, and dropping an image file
-on the window prints that instead.
+Or open it from the [showcase](../README.md). Use the bottom tabs or keys 1 to 5 to switch shine effects.
+Press P to switch between the two pictures from the original video. Drop an image file on the window to use another picture.
 
 ## Recording
 
@@ -30,7 +28,7 @@ on the window prints that instead.
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/peel-sticker.mp4)
 
-Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. See
+Spectre captures this recording. Regenerate it with `./gradlew :recordings:recordSpecimens`. See
 [docs/RECORDING.md](../docs/RECORDING.md).
 
 ## How it works
@@ -39,58 +37,47 @@ The original runs on WebGL. This version combines cached images with separate Sk
 each layer and shine effect. It draws the flat sticker and its shadow, then the lifted shadow
 and sheet. GPU and software rendering use different paths, described under Performance below.
 
-- The picture is printed once into two 1024 × 1024 textures. The die-cut border is an exact
-  distance-transform offset of the picture's coverage, 4.1% of its size, with the inside corners
-  rounded by a closing. The front is the picture on that white border; the back is a white
-  backing with a faint mirrored watermark, at the original's text-to-base contrast (about 1.4:1).
-- The peel is a side-view curve in plain Kotlin (`PeelCurve`): from the fold axis the sheet stands
-  up around a tight curl, rolls back over a looser one, then lies flipped and flat. The shader
-  inverts it per pixel, so it draws the backing wherever the sheet has come over, and the face
-  on the rising curl.
-- The peel starts from the sticker's edge in the direction the drag came from, found from the
-  die-cut's convex hull, so a drag from anywhere on the sticker lifts an edge instead of popping in
-  halfway across. Both curls grow with the drag. On release a critically damped spring lays the
-  sticker back down.
-- The shines run on the face in texture space, so they follow the sticker onto the curl.
+- The renderer prints the picture once into two 1024 × 1024 textures.
+  A distance transform offsets the picture's coverage by 4.1% of its size to create the die-cut border.
+  A morphological closing rounds inside corners. The front combines the picture and white border.
+  The white backing has a faint mirrored watermark with the original's text-to-base contrast of about 1.4:1.
+- `PeelCurve` defines the sheet's side-view curve in Kotlin.
+  From the fold axis, the sheet rises through a tight curl, rolls over a looser curl, and ends flat and flipped.
+  The shader inverts that curve per pixel. It draws the backing on the flipped part and the face on the rising curl.
+- The die-cut's convex hull identifies the starting edge in the drag's direction.
+  Drags anywhere on the sticker therefore lift an edge. Both curls grow with drag distance.
+  A critically damped spring returns the sticker to its flat position on release.
+- Shine effects use face texture coordinates, so they follow the curl.
 
 ### Performance
 
-The peel is drawn by SkSL runtime shaders, so how fast it runs depends on where Skia runs them. On a
-GPU (Metal, OpenGL, Direct3D) shading is nearly free and the CPU only records draw calls. In
-software (`SOFTWARE_COMPAT`, which the Xvfb recordings use) Skia's raster pipeline shades every
-pixel on one CPU thread, about 30 ns a pixel for any filtered draw on the machine it was tuned on.
-Everything below was measured with the house [tracing](../docs/TRACING.md), which every specimen
-carries.
+SkSL runtime shaders draw the peel. Metal, OpenGL, and Direct3D run those shaders on a GPU while the CPU records draw calls.
+The Xvfb recordings use `SOFTWARE_COMPAT`, where Skia shades every pixel on one CPU thread.
+Filtered draws cost about 30 ns a pixel on the tuning machine.
+The measurements below use the shared [tracing](../docs/TRACING.md) tools.
 
-How it got here:
+1. The first version used one shader in four full passes.
+   Software drawing took 54 ms at rest and 147 ms while peeling. Recordings showed 6 to 8 distinct frames a second.
+2. Separate programs for each layer and shine reduced drawing to 11 ms at rest and 95 ms while peeling.
+   The flat part uses an image, and shine shaders cover only the affected area.
+   This avoids texture samples after early `return` statements, which Skia's CPU pipeline runs for every pixel.
+3. Whole-pixel placement reduced sticker copies from 4.5 ms to 0.07 ms.
+   The renderer caches the blurred drop shadow and draws the lifted shadow at quarter resolution.
+   Three bands along the fold use separate minimal shader programs.
+   These changes reached 0.3 ms at rest, 14 ms while peeling, and about 20 distinct recorded frames a second.
+4. On M1 Max with Metal, the quarter-resolution lifted shadow accounted for 96% of sticker drawing.
+   It still rasterised on the CPU during frame recording. The GPU path now draws that shadow as a blurred layer.
+   Shadow time fell from 4.2 ms to 0.05 ms. Peeling frame time at the 95th percentile fell from 8.1 ms to 1.1 ms.
+   The display refresh interval at 120 Hz is 8.3 ms.
+5. Fold seams came from missed clip boundaries, the flat part's anti-aliased edge, watermark aliasing, and undefined GPU mip-level derivatives.
+   Shaders now select bands from the same `q`, overlap the fold, fade compressed print, and sample without mipmaps.
+   `GpuParity` compares OpenGL output with software under Xvfb using Mesa's software OpenGL.
+6. Printing the first sticker originally took 745 ms after launch, mostly for distance transforms.
+   Meijster's row-ordered transform reduced warm transform time from 90 ms to 43 ms. Built-in pictures now include precomputed die-cuts.
+   Background printing also scales the face and blurs its shadow. The first sticker draw takes a 0.2 ms copy.
+   Other cold-start work includes JVM warm-up.
 
-1. **One shader, four full passes.** 54 ms a frame at rest and 147 ms while peeling, in software;
-   the recording showed 6 to 8 distinct frames a second.
-2. **A program per layer and shine**, since Skia's CPU pipeline runs texture samples after an early
-   `return` for every pixel. The flat sticker became an image, with the shine shaded only where it
-   reaches. 11 ms at rest, 95 ms peeling.
-3. **Whole pixels and small surfaces.** The sticker is placed on whole pixels, so drawing it is a
-   copy (0.07 ms instead of 4.5 ms); the drop shadow is blurred once and cached; the lifted shadow is
-   shaded and blurred at a quarter of the resolution; the lifted sheet is shaded in three bands
-   along the fold, each with the least program it needs. 0.3 ms at rest, 14 ms peeling, and about
-   20 distinct frames a second in the recording.
-4. **A run on an M1 Max (Metal)** found the quarter-resolution lifted shadow was 96% of the
-   sticker's drawing there, because it rasterises on the CPU while Compose records the frame,
-   whatever the backend. On a GPU it is now a blurred layer the GPU draws: 4.2 ms went to 0.05 ms,
-   and a peeling frame's 95th percentile from 8.1 ms to 1.1 ms, against 8.3 ms a refresh at 120 Hz.
-5. **Seams.** Dotted lines along the fold came from band clips missing boundary pixels, the table
-   part's anti-aliased edge showing through, the watermark aliasing at the curl's rim, and, on the
-   GPU only, mip levels picked from undefined derivatives inside shader branches. The shaders now
-   pick their band from the same `q`, overlap the fold, fade the print where the roll squeezes it and
-   sample without mipmaps. `GpuParity` draws the peel on Skia's OpenGL backend under Xvfb and checks
-   it against software, so GPU-only artefacts show up without a GPU.
-6. **Starting up.** The first sticker was printed 745 ms after launch, most of it the die-cut's
-   distance transforms. The transform was rewritten (Meijster's, row by row: 90 ms to 43 ms warm) and
-   the built-in pictures' die-cuts now ship baked. Scaling the face and blurring its shadow moved off
-   the UI thread, into the print's background work, so the sticker's first draw is a 0.2 ms copy.
-   The rest of a cold start is the JVM warming up.
-
-GPU and software want different things:
+The renderer selects work according to the backend:
 
 | | On a GPU | In software |
 |---|---|---|
@@ -99,10 +86,9 @@ GPU and software want different things:
 | Shaders | Sample without mipmaps: in branches the GPU cannot choose a mip level | One small program per layer and shine; the lifted sheet in bands; nothing sampled after an early `return` |
 | What to watch | Work that quietly rasterises on the CPU while recording | Pixels shaded, and filtered draws at about 30 ns a pixel |
 
-The stage asks which one it is on every draw, from the render API of the windows on screen, so a
-fallback to software switches paths. [PERFORMANCE.md](PERFORMANCE.md) has the step-by-step numbers,
-the per-pixel cost ladder, the dead ends, the Metal results and how to check it all again.
+The stage checks the visible windows' render API on every draw. It changes paths if a window falls back to software.
+[PERFORMANCE.md](PERFORMANCE.md) lists measurements, unsuccessful approaches, Metal results, and reproduction steps.
 
-The layout, colours, the G's geometry and the peel's look were read off the source video frame by
-frame. White and Sparkle do not appear in the video, so those two are this specimen's own reading
-of their names. The motion is a reconstruction from that video, not a port of the original code.
+The layout, colours, G geometry, and peel motion follow frame-by-frame observations of the source video.
+The video omits White and Sparkle, so this specimen defines those effects from their names.
+This implementation uses no original source code.

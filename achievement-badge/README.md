@@ -1,11 +1,11 @@
 # Achievement badge
 
-A Compose Desktop take on [Adrian](https://x.com/adriankuleszo)’s
+This Compose Desktop specimen recreates [Adrian](https://x.com/adriankuleszo)’s
 [celebratory badge animation](https://x.com/adriankuleszo/status/2103473953868063151).
 The animation spins a trophy badge into an empty slot and adds a shockwave, confetti and light rays.
 It then draws a neon outline and a moving highlight. The rays keep turning while small lights flash.
 
-Standalone:
+Run the specimen on its own:
 
 ```bash
 ./gradlew :achievement-badge:run
@@ -19,7 +19,7 @@ Or open it from the [showcase](../README.md). The **Replay** button plays the ce
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/achievement-badge.mp4)
 
-Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. See
+Spectre captures this recording. Regenerate it with `./gradlew :recordings:recordSpecimens`. See
 [docs/RECORDING.md](../docs/RECORDING.md).
 
 ## The artwork
@@ -34,6 +34,7 @@ of it, and the Compose drawing uses the same geometry:
 - The fan, the sparkle and the trophy sit 5 px left of the stars. That offset is in the source
   bitmap, so the reconstruction keeps it.
 
-Positions and colours were measured on the bitmap, and a render of the SVG was compared with it
-pixel by pixel. The mean difference is about 7 of 255 per colour channel, mostly on anti-aliased
-edges and in the bitmap's background vignette, which the SVG does not include. The animation timings come from the source video, measured frame by frame at 60 fps.
+The reconstruction uses positions and colours measured from the bitmap.
+A pixel comparison between the SVG render and bitmap found a mean difference of about 7 of 255 per colour channel.
+Most differences occur at anti-aliased edges and in the bitmap's background vignette. The SVG omits that vignette.
+The animation uses timings measured frame by frame from the source video at 60 fps.

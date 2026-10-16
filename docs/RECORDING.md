@@ -1,10 +1,8 @@
 # Recordings
 
-Every specimen should be visible in motion. The movies are produced by Spectre tests in
-`:recordings`, not by hand-waving a screen recorder.
-
-They are **not** committed on `main`. MP4s are large and they go stale. CI writes them
-to two places:
+Spectre tests in `:recordings` produce a movie for every specimen.
+CI stores the large MP4 files outside `main` and replaces them on each publishing run.
+It writes download copies to two places:
 
 - the floating GitHub Release named [`recordings`](https://github.com/rock3r/bioparco/releases/tag/recordings)
   (download / archive; browsers treat these URLs as attachments)
@@ -13,7 +11,7 @@ to two places:
 
 `raw.githubusercontent.com` serves these files as `application/octet-stream` with
 `X-Content-Type-Options: nosniff`, so a browser downloads them instead of playing them.
-The READMEs therefore link a third copy.
+The READMEs link a third copy that browsers can play.
 
 ## README media
 
@@ -29,37 +27,33 @@ Cloudflare's edge serves the previous file for at most 60 seconds.
 Every specimen shows both, in its root README entry and in its own `README.md` under
 `## Recording`. `ReadmeMediaTest` requires exactly these URLs in `./gradlew check`.
 
-The job cuts each preview from the MP4 with `recordings/previews/make-previews.sh`.
+The job creates each preview from the MP4 with `recordings/previews/make-previews.sh`.
 [`recordings/previews/previews.tsv`](../recordings/previews/previews.tsv) sets the frame rate,
-width, length and crop per specimen. Tune a preview there, not by uploading by hand. To try
-a change locally, run the script on a folder of MP4s; it needs `ffmpeg` and `img2webp`.
+width, length and crop per specimen. Change preview settings in that file.
+To test a change locally, run the script on a folder of MP4s with `ffmpeg` and `img2webp` installed.
 
 Uploads use the `STATIC_UPLOAD_TOKEN` Actions secret, a token scoped to the `bioparco`
 namespace.
 
 Do not put `<video>` inside a markdown `| table |` cell: GitHub strips it.
 
-**Tag `vX.Y.Z` to refresh the recordings.** That is the intentional signal. The
-`recordings` CI job records under `xvfb-run`, fails if any specimen MP4 is missing or
-empty, publishes the README media, then uploads every `*.mp4` to the floating
-`recordings` release (`--clobber` / delete-asset) and force-pushes `recordings-assets`. A
-push to `main` is a backup feed of the same job. On a version tag the job also attaches
-the same MP4s to that GitHub Release for archival.
+Push a `vX.Y.Z` tag to refresh the recordings. The `recordings` CI job captures them under `xvfb-run`.
+It fails if any specimen MP4 is missing or empty, then publishes the README media.
+The job replaces every `*.mp4` on the floating `recordings` release with `--clobber` or delete-asset and force-pushes `recordings-assets`.
+Pushes to `main` also run this job as a backup. Version-tag runs attach the same MP4s to the version's GitHub Release for archival.
 
-**A new specimen** needs its stable URLs filled before its README links work. Run the CI
-workflow on the specimen's branch and name it:
+A new specimen needs published files before its README links work.
+Run the CI workflow on the specimen's branch and pass its name:
 
 ```bash
 gh workflow run CI --ref <branch> -f specimens=<specimen>
 ```
 
-A manual run records every specimen but publishes the README media of the named ones
-only, so a stale branch cannot overwrite the others. It leaves the release and
-`recordings-assets` alone.
+A manual run records every specimen and publishes README media only for the names passed to it.
+This prevents an older branch from overwriting other specimens' media. Manual runs leave the release and `recordings-assets` unchanged.
 
-You do not need Coso, Screen Recording, a seated monitor, or a local Gradle recording
-run to get the recordings. Local regeneration is optional: useful when iterating on
-motion before the next tag.
+CI can produce recordings without Coso, local Screen Recording permission, or a physical monitor.
+Local recording runs are optional and help test motion before the next tag.
 
 ## Regenerate
 
@@ -67,7 +61,7 @@ motion before the next tag.
 ./gradlew :recordings:recordSpecimens
 ```
 
-You do **not** need a seated desktop monitor. Spectre records an AWT window:
+Spectre records an Abstract Window Toolkit (AWT) window. A physical monitor is optional when the host meets these requirements:
 
 | Host | What is enough |
 |---|---|
@@ -75,8 +69,7 @@ You do **not** need a seated desktop monitor. Spectre records an AWT window:
 | macOS (Coso) | Aqua session + Screen Recording for the JDK. `DISPLAY` can stay unset. |
 | Windows | Graphics Capture. Interactive or RDP session. |
 
-Outputs (one MP4 per specimen module; discovered from Gradle includes, not a hardcoded
-list):
+The task discovers specimen modules from Gradle includes and writes one MP4 per module:
 
 - `recordings/build/recordings/grabby-stepper.mp4`
 - `recordings/build/recordings/chat-bubble-transition.mp4`
@@ -101,27 +94,23 @@ sudo apt-get install -y xvfb \
 CI=true xvfb-run -a ./gradlew :recordings:recordSpecimens
 ```
 
-`gstreamer1.0-plugins-bad` is required for `h264parse`. Without it Spectre can skip
-and leave empty outputs while Gradle still looks green — CI installs the same set and
-fails closed if an MP4 is missing or tiny.
+`h264parse` requires `gstreamer1.0-plugins-bad`. Without that package, Spectre can skip recording and leave empty outputs despite a successful Gradle result.
+CI installs these packages and fails if an MP4 is missing or too small.
 
 `CI=true` turns on Skiko `SOFTWARE_COMPAT` so the virtual framebuffer has pixels.
 
 ### macOS
 
-Grant Screen Recording to the JDK that launches Gradle (`spectre permissions request`
-from a [Spectre](https://github.com/rock3r/spectre) install, or System Settings). Then
-the same Gradle task. Xvfb is a Linux X11 thing; it does not drive ScreenCaptureKit.
-
-If capture permission is missing, Spectre fails fast on purpose.
+Grant Screen Recording permission to the JDK that launches Gradle.
+Use `spectre permissions request` from a [Spectre](https://github.com/rock3r/spectre) installation, or grant it in System Settings.
+Then run the recording task. macOS uses ScreenCaptureKit; Xvfb supports Linux X11 capture only.
+Spectre stops immediately if capture permission is missing.
 
 ## Publish the movies
 
-Happy path: `git tag vX.Y.Z && git push origin vX.Y.Z`. CI refreshes the README media,
-the release and `recordings-assets`. Do not `gh release upload` by hand unless the job is
-down.
-
-Emergency local publish:
+Use `git tag vX.Y.Z && git push origin vX.Y.Z` for routine publishing.
+CI refreshes the README media, release, and `recordings-assets`.
+Use `gh release upload` manually only when the job is unavailable:
 
 ```bash
 gh release view recordings || gh release create recordings --title "specimen recordings" --notes "Auto-generated by ./gradlew :recordings:recordSpecimens"
@@ -159,11 +148,10 @@ Each `recording`-tagged test:
 3. Drives the UI with `ComposeAutomator.inProcess()`.
 4. Stops the recorder and asserts the MP4 is non-empty.
 
-Windows use `application(exitProcessOnExit = false)`. Compose Desktop's default
-`application {}` calls `exitProcess(0)` when the window closes, which kills the
-Gradle test worker after the first MP4 (chat-bubble, alphabetically) and leaves
-later enclosures unwritten. The task also forks one JVM per test so a leaked
-`exitProcess` cannot cancel the rest of the set.
+Recording windows use `application(exitProcessOnExit = false)`.
+The default `application {}` calls `exitProcess(0)` when its window closes.
+That call kills the Gradle test worker after the first MP4, chat-bubble in alphabetical order, and prevents later recordings.
+The task also starts one JVM per test to contain accidental `exitProcess` calls.
 
 `./gradlew check` excludes the `recording` tag. The `recordings` CI job (`v*` tags, or
 a push to `main`) runs them under `xvfb-run` on Ubuntu and uploads every MP4 to the
@@ -172,30 +160,39 @@ partial set.
 
 ### Prove all twelve MP4s
 
-On the `recordings` CI job, the "Record specimens" step must list every enclosure
-as `PASSED` (`AchievementBadgeRecordingTest`, `BorderBeamRecordingTest`, `ChatBubbleRecordingTest`,
-`ComponentAnatomyRecordingTest`, `DotMatrixRecorderRecordingTest`, `GrabbyStepperRecordingTest`,
-`HairlineRecordingTest`, `HoneycombRecordingTest`, `PeelStickerRecordingTest`,
-`ProcessingFieldRecordingTest`, `ScrollEffectsRecordingTest`, `ThinkingOrbsRecordingTest`) and
-`recordings/build/recordings/` must contain twelve files each larger than 1 KB. The task fails closed
-if any name is missing. A run filtered with `--tests` records only the enclosures it matches, so it
-skips this check.
+In the `recordings` CI job, the "Record specimens" step must report `PASSED` for all twelve tests:
 
-Locally, same gate under Xvfb:
+- `AchievementBadgeRecordingTest`
+- `BorderBeamRecordingTest`
+- `ChatBubbleRecordingTest`
+- `ComponentAnatomyRecordingTest`
+- `DotMatrixRecorderRecordingTest`
+- `GrabbyStepperRecordingTest`
+- `HairlineRecordingTest`
+- `HoneycombRecordingTest`
+- `PeelStickerRecordingTest`
+- `ProcessingFieldRecordingTest`
+- `ScrollEffectsRecordingTest`
+- `ThinkingOrbsRecordingTest`
+
+`recordings/build/recordings/` must contain twelve files, each larger than 1 KB.
+The task fails if any expected file is missing.
+A run filtered with `--tests` records only matching specimens and skips this completeness check.
+
+Run the same checks locally under Xvfb:
 
 ```bash
 CI=true xvfb-run -a ./gradlew :recordings:recordSpecimens
 ls -la recordings/build/recordings/*.mp4
 ```
 
-Config-cache hygiene (does not need a display; `--dry-run` still stores the task):
+Check configuration-cache storage without a display. `--dry-run` still stores the task:
 
 ```bash
 ./gradlew :recordings:recordSpecimens --dry-run --configuration-cache
 ```
 
-A stored entry with "cannot serialize Gradle script object references" means the
-`doLast` expected-files check captured `rootProject` / script objects again.
+A "cannot serialize Gradle script object references" error means the `doLast` expected-files check captured `rootProject` or script objects.
 
-Spectre 0.7.1 from Maven Central. Helpers ride along as `testRuntimeOnly`
-(`spectre-recording-macos` / `-linux` / `-windows`).
+The tests use Spectre 0.7.1 from Maven Central.
+Platform helpers use `testRuntimeOnly` dependencies: `spectre-recording-macos`, `spectre-recording-linux`, and `spectre-recording-windows`.

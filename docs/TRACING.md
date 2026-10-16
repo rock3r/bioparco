@@ -1,16 +1,15 @@
 # Tracing
 
-Every specimen, the showcase and the Spectre recordings can write a
-[Perfetto](https://perfetto.dev) trace. Tracing is off unless you ask for it, and a trace section
-that is off costs one field read, so sections can stay in hot paths for good.
+Every specimen, the showcase, and Spectre recordings can write a [Perfetto](https://perfetto.dev) trace.
+Tracing starts disabled. A disabled section costs one field read, so sections can remain in frequently called code.
 
-The `:tracing` house module holds it. It writes through
-[androidx.tracing](https://developer.android.com/jetpack/androidx/releases/tracing)'s wire
-driver, the same library Spectre's own `PerfettoTracer` uses.
+The shared `:tracing` module writes through the
+[androidx.tracing](https://developer.android.com/jetpack/androidx/releases/tracing) wire driver.
+Spectre's `PerfettoTracer` uses the same library.
 
 ## Turn it on
 
-Name a directory in `BIOPARCO_TRACE_DIR`, or in the `bioparco.trace.dir` system property:
+Set an output directory with `BIOPARCO_TRACE_DIR` or the `bioparco.trace.dir` system property:
 
 ```bash
 BIOPARCO_TRACE_DIR=/tmp/traces ./gradlew :peel-sticker:run
@@ -18,26 +17,24 @@ BIOPARCO_TRACE_DIR=/tmp/traces ./gradlew :showcase:run
 BIOPARCO_TRACE_DIR=/tmp/traces CI=true xvfb-run -a ./gradlew :recordings:recordSpecimens
 ```
 
-Each run writes a `.perfetto-trace` into a folder named after the specimen, such as
-`/tmp/traces/peel-sticker/`. The file is flushed when the JVM exits, so close the window rather
-than killing the process. A recording run writes one folder per specimen, since each recording has
-a JVM of its own.
+Each run writes a `.perfetto-trace` in a specimen-specific folder, such as `/tmp/traces/peel-sticker/`.
+Close the window normally so the JVM can flush the file on exit. Killing the process can lose trace data.
+Recording runs use one JVM and output folder per specimen.
 
 ## What is in a trace
 
-- `frame`: every frame a window renders, from `TracedFrames()`, which every specimen's window and
-  the recordings' `SpecimenWindow` call. It wraps the window's Skiko render delegate, so it sees
-  each frame whatever changed. It covers Compose recording the frame's draw calls, not Skiko
-  playing them back into pixels and handing them to the window, which comes after it: see below.
-  Gaps between `frame` sections are that, or stalls.
-- Anything a specimen marks with `Tracing.section`:
+- `frame` measures every window frame through `TracedFrames()`.
+  Every specimen window and the recordings' `SpecimenWindow` call it.
+  It wraps Skiko's render delegate and measures Compose recording draw calls.
+  Skiko later rasterises those calls and presents the pixels outside this section.
+  Gaps between sections include that later work and any stalls.
+- Specimens add named sections with `Tracing.section`:
 
   ```kotlin
   Tracing.section("lifted shadow") { drawLiftedShadow(canvas, lifted, outline, frame, fold) }
   ```
 
-  Nested sections nest in the trace. Peel sticker marks each of its drawing layers and the
-  printing of a new sticker, for example.
+  The trace preserves nested sections. Peel sticker adds sections for each drawing layer and for printing a new sticker.
 
 ## Read a trace
 
@@ -49,33 +46,32 @@ python3 tracing/tools/trace-summary.py /tmp/traces            # every trace in t
 python3 tracing/tools/trace-summary.py /tmp/traces/peel-sticker
 ```
 
-For each trace it lists every section, nested under its parent, with count, median, 95th
-percentile and worst time, and the frame-to-frame pacing of the `frame` sections. The first run
-downloads Perfetto's trace processor.
+The script lists each section under its parent, with count, median, 95th percentile, and worst time.
+It also reports the intervals between `frame` sections. Its first run downloads Perfetto's trace processor.
 
-For a worked example, the peel sticker's software rendering was traced and optimised with these
-tools: see [peel-sticker/PERFORMANCE.md](../peel-sticker/PERFORMANCE.md), and its
-`SoftwareRenderingBenchmark` and `CpuCostLadder` tests, which are skipped unless asked for. Its
-`GpuParity` test draws on Skia's OpenGL backend under Xvfb, with Mesa's software OpenGL, and
-compares with the CPU backend: GPU-only artefacts show up there without a GPU.
+[peel-sticker/PERFORMANCE.md](../peel-sticker/PERFORMANCE.md) describes measurements from these tools.
+Peel sticker's `SoftwareRenderingBenchmark` and `CpuCostLadder` tests run only when requested.
+Its `GpuParity` test compares Skia's OpenGL and CPU backends under Xvfb.
+Mesa's software OpenGL runs the GPU path, so the test can detect GPU-path artefacts without physical GPU hardware.
 
-## Things that fool you
+<a id="things-that-fool-you"></a>
 
-- **Compose records draw calls and rasterises them later.** A section around drawing code in an
-  app times the recording of the draw calls, which is usually well under a millisecond, not the
-  pixels. To time the pixels, call the same drawing code on a raster `Surface`
-  (`Surface.makeRasterN32Premul`), where Skia draws at call time, and trace that. The peel sticker
-  was optimised that way.
-- **In software, most of a frame is after the `frame` section.** Skiko plays the recorded frame
-  back into a bitmap, then `SOFTWARE_COMPAT` hands it to the window through Java2D, whose
-  per-pixel colour conversion (`OpaqueCopyAnyToArgb`, `ComponentColorModel.getRGB`) took about
-  two thirds of the event thread in a peel sticker recording under Xvfb, and most of the 60 ms
-  between frames in software on a Retina Mac. Playing back the sticker's drawing took a sixth.
-  That is Skiko's and the JDK's, not a specimen's; `SOFTWARE_FAST` did not make the recordings
-  any smoother. Java Flight Recorder sees it where the trace cannot.
-- **Skia's CPU backend is not the GPU.** Under Xvfb (the recordings) Skia draws on the CPU, one
-  thread, a batch of pixels at a time through its raster pipeline. A frame that is cheap on a GPU
-  can be slow in a recording. Measured on the Skia in Skiko 0.150.1 (per pixel, 2.1 GHz Xeon):
+## Measurement limits
+
+- Compose records draw calls before Skiko rasterises them.
+  A section around app drawing code usually measures well under a millisecond of recording work.
+  To measure rasterisation, trace the same drawing code on `Surface.makeRasterN32Premul`, where Skia draws immediately.
+  Peel sticker's optimisation used this method.
+- In software, Skiko draws the recorded frame into a bitmap after `frame` ends.
+  `SOFTWARE_COMPAT` then presents it through Java2D.
+  Java2D converts pixels with `OpaqueCopyAnyToArgb` and `ComponentColorModel.getRGB`.
+  This conversion took about two thirds of the event thread in a peel sticker recording under Xvfb.
+  It also took most of the 60 ms between software frames on a Retina Mac.
+  Playing back the sticker drawing took a sixth. These costs belong to Skiko and the JDK.
+  `SOFTWARE_FAST` did not improve recording smoothness. Java Flight Recorder can measure this work outside the trace sections.
+- Under Xvfb, Skia's raster pipeline draws batches of pixels on one CPU thread.
+  A frame with low GPU cost can therefore be slow in a recording.
+  The following measurements used Skia in Skiko 0.150.1 on a 2.1 GHz Xeon:
 
   | | ns/px |
   |---|---|
@@ -86,10 +82,9 @@ compares with the CPU backend: GPU-only artefacts show up there without a GPU.
   | Filtered texture sample inside a shader | 10–20 each |
   | 8 × `sin`, `cos`, `sqrt` in a shader (the same maths in a plain Kotlin loop: 181) | 81–88 |
 
-  Skia jumps over an `if` block that no pixel in the batch takes, and over maths after an early
-  `return`, but **not over texture samples after an early `return`**: those run for every pixel
-  (4 samples: 80 ns/px either way, 5 ns/px inside an untaken `if`). Keep samples inside `if`
-  blocks, or give each case its own program. A branch that differs between neighbouring pixels
-  runs both sides.
-- **`ImageComposeScene` redraws everything on every `render()`**, unlike a window, which only
-  redraws when something changed. It is fine for comparing costs, not for counting frames.
+  Skia skips `if` blocks that no pixel takes and skips maths after early `return` statements.
+  Texture samples after an early `return` still run for every pixel.
+  Four samples cost 80 ns/px either way, compared with 5 ns/px inside an untaken `if`.
+  Keep samples inside `if` blocks or use separate programs. Branches that differ between neighbouring pixels run both sides.
+- `ImageComposeScene` redraws everything on every `render()` call. A window redraws only after a change.
+  Use scene renders to compare costs. They cannot measure a window's actual frame count.

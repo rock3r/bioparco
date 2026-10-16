@@ -1,10 +1,10 @@
 # Hairline
 
-A Compose Desktop port of [Lucas Marques](https://github.com/lucasmarkes)’s
-[hairline](https://github.com/lucasmarkes/hairline) ([live](https://hairline.lucasmarkes.com)):
-nineteen isometric line figures that respond to pointer movement. Each figure uses thin lines on a
-400 × 320 stage. Spring animations track the pointer, and a long ease-out animates selections.
-One `intensity` slider controls the strength of these responses.
+This Compose Desktop specimen ports [Lucas Marques](https://github.com/lucasmarkes)’s
+[hairline](https://github.com/lucasmarkes/hairline) ([live](https://hairline.lucasmarkes.com)).
+Its nineteen isometric line figures respond to pointer movement on a 400 × 320 stage.
+Spring animations follow the pointer. Selections use a long ease-out animation.
+The `intensity` slider controls how strongly the figures respond.
 
 | Figure | What it is | A stronger intensity |
 |---|---|---|
@@ -28,7 +28,7 @@ One `intensity` slider controls the strength of these responses.
 | Dish | A parabolic dish on a two-axis gimbal. The pointer aims it; it follows on a spring. | The dish swings further. |
 | Router | A router with its antennas up. Each antenna leans toward the pointer, the nearest most. | The lean spreads further. |
 
-Standalone:
+Run the specimen on its own:
 
 ```bash
 ./gradlew :hairline:run
@@ -43,54 +43,49 @@ switch and a reduced-motion box. Riffle takes the arrow keys and Escape once it 
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/hairline.mp4)
 
-Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. See
+Spectre captures this recording. Regenerate it with `./gradlew :recordings:recordSpecimens`. See
 [docs/RECORDING.md](../docs/RECORDING.md).
 
 ## How it works
 
-The original draws into SVG: each figure builds a tree of groups, paths, circles and ellipses once,
-then rewrites their `d` attributes and classes every frame. The port keeps that shape, so each
-figure reads almost line for line against its TypeScript:
+The original builds each figure's SVG tree once, then updates path `d` attributes and classes every frame.
+The port keeps this structure close to the TypeScript source.
 
-- `Iso.kt`, `Solids.kt` and `Motion.kt` are the original's `core/iso.ts` and `core/motion.ts`: the
-  orthographic camera and its ground-plane inverse, rounded rings with their normals, hulls,
-  prisms, fillets and reflections, the 240 Hz substepped springs and the 700ms lift tween.
-- `Svg.kt` is a small retained tree with the few DOM moves the figures make (`append`, `after`,
-  `before`, class lists). `Stage.kt` is the original's frame loop, pointer and tear-down, behind a
-  `Stage` interface the Compose host implements.
-- `figures/` holds the nineteen engines.
-- `HairlineRenderer.kt` paints the tree in order on a `Canvas`, so a nearer plate covers what is
-  behind it, as in the original. The stylesheet's cascade is `paintOf` in `Style.kt`. Strokes are
-  0.9dp at any size, like the original's non-scaling strokes; a class change eases its colour
-  over 260ms, as the CSS transition does; reflections fade out through a gradient, as the mask does.
-- `HairlineFigure` is the composable. A figure asks for frames only while something moves, and its
-  drawing invalidates in the draw phase only, so a figure at rest costs nothing.
+- `Iso.kt`, `Solids.kt`, and `Motion.kt` port `core/iso.ts` and `core/motion.ts`.
+  They define the orthographic camera, its ground-plane inverse, rounded rings with their normals, hulls, prisms, fillets, and reflections.
+  They also keep the 240 Hz substepped springs and 700ms lift tween.
+- `Svg.kt` retains the tree and supports `append`, `after`, `before`, and class lists.
+  `Stage.kt` handles frames, pointer input, and cleanup through a `Stage` interface that the Compose host implements.
+- `figures/` contains the nineteen animation engines.
+- `HairlineRenderer.kt` draws the tree in order on a `Canvas`. Nearer plates cover those behind them.
+  `paintOf` in `Style.kt` implements the stylesheet cascade. Strokes stay at 0.9dp regardless of size.
+  Class changes animate colour over 260ms, matching the CSS transition. Gradients fade reflections as the original mask does.
+- `HairlineFigure` hosts the figure in Compose. Moving figures request frames and invalidate only drawing.
+  Resting figures request no frames.
 
 ### Parity with the original
 
-`ParityTest` holds the port to the original. The goldens under `src/jvmTest/resources/goldens/`
-were captured by running the original figures in jsdom (commit
-[`c3692e0`](https://github.com/lucasmarkes/hairline/commit/c3692e0c797956268847d843949f79714b6f7a41))
-through one pointer script: rests, a flick, a circle, dwells, intensity changes and leaving, plus
-Riffle's keys. At every checkpoint the test replays the same steps on a fake clock and compares the
-whole tree, node for node and class for class, every number within 0.02 viewBox units, and the
-caption. All nineteen match. To capture them again, follow the note at the top of
+`ParityTest` compares the port with the original. The goldens in `src/jvmTest/resources/goldens/`
+come from the original figures running in jsdom at commit
+[`c3692e0`](https://github.com/lucasmarkes/hairline/commit/c3692e0c797956268847d843949f79714b6f7a41)
+with one pointer script. The script covers rest, a flick, a circle, pauses, intensity changes, pointer exit, and Riffle's keys.
+The test replays each checkpoint with a fake clock. It compares every node, class, caption, and number within 0.02 viewBox units.
+All nineteen figures match. To capture new goldens, follow the instructions at the top of
 [`parity/capture.test.ts`](parity/capture.test.ts).
 
 ### Where it differs
 
-- Desktop has no `prefers-reduced-motion` query, so reduced motion is a checkbox, and each
-  `HairlineFigure` takes its own. It does what the original's does: springs and tweens land at once,
-  and Phosphor and Slow stop their ambient motion. Phosphor then also stops asking for frames.
-- The theme is a parameter rather than CSS custom properties, with the original's two palettes.
-- There is no `IntersectionObserver`: the grid is lazy, so a figure scrolled away is disposed.
-- The accessible name is the figure's content description; there is no ARIA live region.
+- A checkbox controls reduced motion because Desktop has no `prefers-reduced-motion` query.
+  Each `HairlineFigure` accepts its own setting. Springs and tweens finish immediately when reduced motion is enabled.
+  Phosphor and Slow stop ambient motion. Phosphor also stops requesting frames.
+- A theme parameter selects the original's two palettes. The port has no CSS custom properties.
+- The lazy grid disposes figures after they scroll away. The port has no `IntersectionObserver`.
+- Each figure's content description supplies its accessible name. The port has no ARIA live region.
 
 ## Credit and license
 
-Ported from [hairline](https://github.com/lucasmarkes/hairline) by Lucas Marques: the figures,
-their drawing engine, their names, descriptions and captions, the intensity table and the palettes
-are his. His code is MIT licensed; the preserved license is in [LICENSE](LICENSE), every source
-file derived from it says so at its top, and the jar carries it as `META-INF/LICENSE-hairline.txt`.
-The goldens are output of the original, under the same license. The rest (the page, the tests and
-the capture script) is this repository's, under its [Apache 2.0 license](../LICENSE).
+Lucas Marques created [hairline](https://github.com/lucasmarkes/hairline), including its figures, drawing engine, names, descriptions, captions, intensity table, and palettes.
+His code and the original's golden outputs use the MIT license.
+This port keeps that license in [LICENSE](LICENSE) and the jar's `META-INF/LICENSE-hairline.txt`.
+Every derived source file includes a notice at the top.
+This repository's page, tests, and capture script use its [Apache 2.0 license](../LICENSE).

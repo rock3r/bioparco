@@ -1,5 +1,8 @@
 # Local skills
 
+Use these skills for isolated work, static-analysis fixes, and pull-request review.
+The repository keeps the PR watcher in sync with its upstream project.
+
 | Skill | Use it for |
 |---|---|
 | `using-git-worktree` | Isolated feature work without dirtying `main` |

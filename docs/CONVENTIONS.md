@@ -2,14 +2,13 @@
 
 ## Code style
 
-- no wildcard imports
-- keep lines around 120 characters
-- public composables take `modifier: Modifier = Modifier`
-- do not read pointer-driven motion in composition; read it in `graphicsLayer` / `offset`
-  lambdas
-- mark expensive work with `Tracing.section("name") { … }` from `:tracing`; sections cost nothing
-  while tracing is off, so they stay in (see [TRACING.md](TRACING.md))
-- prose slash style is `a/b`, never `a / b`
+- Use explicit imports.
+- Keep lines around 120 characters.
+- Give public composables a `modifier: Modifier = Modifier` parameter.
+- Read pointer-driven motion in `graphicsLayer` and `offset` lambdas. Composition must not read these values.
+- Mark expensive work with `Tracing.section("name") { … }` from `:tracing`.
+  Disabled sections only read a field, so keep them in the code. See [TRACING.md](TRACING.md).
+- Write slashes without spaces, as in `a/b`.
 
 ## File placement
 
@@ -25,12 +24,13 @@
 
 ## Git
 
-- Prefer a worktree or a feature branch for non-trivial work.
-- Push to `main` only when the owner has asked for that in the current task.
-- Keep commits scoped. Present-tense subjects, explain the why.
+- Use a worktree or feature branch for substantial changes.
+- Push to `main` only with the owner's approval for the current task.
+- Keep each commit focused. Write present-tense subjects that explain the reason for the change.
+  Omit conventional commit prefixes.
 
 ## Verification
 
-- `./gradlew check` is the CI-shaped gate: tests + Detekt + ktfmt.
-- `./gradlew ktfmtFormat` is the formatting pass.
-- `./gradlew :showcase:run` is the manual catalog.
+- Run `./gradlew check` to run the tests, Detekt, and ktfmt checks that CI requires.
+- Run `./gradlew ktfmtFormat` to format the code.
+- Run `./gradlew :showcase:run` to inspect specimens in the catalog.
