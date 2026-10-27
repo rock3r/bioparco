@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test
 
 /**
  * A live tour of the anatomy page: each figure is scrolled into view and played with through real
- * pointer and key input, in page order.
+ * pointer and key input, in page order, from the first figure to the last.
  */
 class AnatomyRecordingTest {
     @Test
@@ -56,15 +56,37 @@ class AnatomyRecordingTest {
 }
 
 private class Tour(private val automator: ComposeAutomator, private val windowTop: Int) {
+    /**
+     * Every figure, in page order. The `when` has no `else`, so a new [Figure] does not compile
+     * until it has its part of the tour.
+     */
     suspend fun play() {
-        // Fig 1: the idle tour, then the pointer slides the carriage block to block.
+        for (figure in Figure.entries) {
+            if (figure != Figure.entries.first()) scrollTo(figure)
+            when (figure) {
+                Figure.DialIndicator -> dialIndicator()
+                Figure.TokenBucket -> tokenBucket()
+                Figure.BunsenBurner -> bunsenBurner()
+                Figure.EspressoMachine -> espressoMachine()
+                Figure.TurningDial -> turningDial()
+                Figure.RaptorEngine -> raptorEngine()
+                Figure.DeskComputer -> deskComputer()
+                Figure.ArcadeCabinet -> arcadeCabinet()
+                Figure.SpotPlate -> spotPlate()
+            }
+        }
+    }
+
+    /** Fig 1: the idle tour, then the pointer slides the carriage block to block. */
+    private suspend fun dialIndicator() {
         delay(2_500)
         glide(dial(), 0.78f to 0.6f, 0.22f to 0.6f, steps = 40, ms = 40)
         glide(dial(), 0.22f to 0.6f, 0.5f to 0.6f, steps = 20, ms = 40)
         delay(1_200)
+    }
 
-        // Fig 2: a burst of requests drains the bucket, then one a second gets through.
-        scrollTo(Figure.TokenBucket)
+    /** Fig 2: a burst of requests drains the bucket, then one a second gets through. */
+    private suspend fun tokenBucket() {
         delay(800)
         automator.click(canvas(BUCKET))
         repeat(11) {
@@ -72,17 +94,19 @@ private class Tour(private val automator: ComposeAutomator, private val windowTo
             automator.pressKey(KeyEvent.VK_SPACE)
         }
         delay(2_500)
+    }
 
-        // Fig 3: opening the air collar turns the lazy yellow flame into a blue cone.
-        scrollTo(Figure.BunsenBurner)
+    /** Fig 3: opening the air collar turns the lazy yellow flame into a blue cone. */
+    private suspend fun bunsenBurner() {
         delay(1_200)
         glide(canvas(BUNSEN), 0.2f to 0.5f, 0.8f to 0.5f, steps = 50, ms = 60)
         delay(1_500)
         glide(canvas(BUNSEN), 0.8f to 0.5f, 0.45f to 0.5f, steps = 25, ms = 60)
         delay(1_500)
+    }
 
-        // Fig 4: pull a shot. Its own tour may be pulling one already: a click stops that first.
-        scrollTo(Figure.EspressoMachine)
+    /** Fig 4: pull a shot. Its own tour may be pulling one already: a click stops that first. */
+    private suspend fun espressoMachine() {
         delay(1_000)
         if (automator.allNodes().any { it.text?.startsWith("shot ") == true }) {
             automator.click(canvas(ESPRESSO))
@@ -90,9 +114,10 @@ private class Tour(private val automator: ComposeAutomator, private val windowTo
         }
         automator.click(canvas(ESPRESSO))
         delay(10_000)
+    }
 
-        // Fig 5: turn the dial by hand, then break the pod off.
-        scrollTo(Figure.TurningDial)
+    /** Fig 5: turn the dial by hand, then break the pod off. */
+    private suspend fun turningDial() {
         delay(1_200)
         drag(canvas(TURNING), 0.36f to 0.33f, 0.66f to 0.36f)
         delay(800)
@@ -100,10 +125,13 @@ private class Tour(private val automator: ComposeAutomator, private val windowTo
         delay(1_000)
         automator.pressKey(KeyEvent.VK_B)
         delay(3_500)
+    }
 
-        // Fig 6: hover the Raptor to take it apart, light up assemblies under the pointer, let it
-        // close up again, then fire it and shut it down.
-        scrollTo(Figure.RaptorEngine)
+    /**
+     * Fig 6: hover the Raptor to take it apart, light up assemblies under the pointer, let it close
+     * up again, then fire it and shut it down.
+     */
+    private suspend fun raptorEngine() {
         delay(1_200)
         val raptor = canvas(RAPTOR)
         glide(raptor, 0.5f to 0.98f, 0.5f to 0.45f, steps = 15, ms = 40)
@@ -125,6 +153,56 @@ private class Tour(private val automator: ComposeAutomator, private val windowTo
         delay(9_000)
         automator.click(automator.allNodes().first { it.text == "SHUT DOWN" })
         delay(3_500)
+    }
+
+    /** Fig 7: click a key to take over from the tour, type on the screen, then switch it off. */
+    private suspend fun deskComputer() {
+        delay(1_200)
+        val desk = canvas(DESK)
+        clickAt(desk, DESK_KEY)
+        delay(400)
+        automator.typeText("hello, bioparco")
+        delay(1_500)
+        automator.pressKey(KeyEvent.VK_ESCAPE)
+        delay(1_800)
+        automator.pressKey(KeyEvent.VK_ESCAPE)
+        delay(1_500)
+    }
+
+    /** Fig 8: drop a quarter to wake the cabinet, then play its attract game with the stick. */
+    private suspend fun arcadeCabinet() {
+        delay(1_000)
+        val arcade = canvas(ARCADE)
+        clickAt(arcade, ARCADE_TRAY)
+        delay(5_000)
+        for (key in
+            listOf(KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_RIGHT, KeyEvent.VK_LEFT)) {
+            automator.pressKey(key)
+            delay(250)
+            automator.pressKey(KeyEvent.VK_SPACE)
+            delay(500)
+        }
+        delay(2_000)
+    }
+
+    /** Fig 11: slide across the plate to open the fan, so each pair runs together in turn. */
+    private suspend fun spotPlate() {
+        delay(1_200)
+        val spot = canvas(SPOT)
+        glide(spot, 0.1f to 0.5f, 0.9f to 0.5f, steps = 60, ms = 50)
+        delay(1_000)
+        glide(spot, 0.9f to 0.5f, 0.3f to 0.5f, steps = 30, ms = 50)
+        delay(2_000)
+    }
+
+    /** A click at a fraction of [node]'s bounds: a press and release that does not move. */
+    private suspend fun clickAt(node: AutomatorNode, at: Pair<Float, Float>) {
+        val b = node.boundsOnScreen
+        val x = (b.x + at.first * b.width).toInt()
+        val y = (b.y + at.second * b.height).toInt()
+        automator.moveTo(x, y)
+        delay(150)
+        automator.swipe(x, y, x, y, 1, 80.milliseconds)
     }
 
     private fun dial(): AutomatorNode = canvas(DIAL)
@@ -196,6 +274,12 @@ private class Tour(private val automator: ComposeAutomator, private val windowTo
         const val ESPRESSO = "A heat-exchanger"
         const val TURNING = "A combination dial"
         const val RAPTOR = "Raptor 2 on a test stand"
+        const val DESK = "Desk computer."
+        const val ARCADE = "Arcade cabinet."
+        const val SPOT = "Merge, in pixels."
+        /** Fractions of the canvas: the H key, and the stack of quarters on its tray. */
+        val DESK_KEY = 0.4f to 0.72f
+        val ARCADE_TRAY = 0.59f to 0.9f
         const val TOP_MARGIN = 40
         const val NOTCH = 60
         const val MAX_NOTCHES = 200
