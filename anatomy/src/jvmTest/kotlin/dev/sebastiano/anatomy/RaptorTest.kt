@@ -1,7 +1,9 @@
 package dev.sebastiano.anatomy
 
 import dev.sebastiano.anatomy.figures.BurnPhase
+import dev.sebastiano.anatomy.figures.Raptor
 import dev.sebastiano.anatomy.figures.RaptorBurn
+import dev.sebastiano.anatomy.figures.RaptorControls
 import dev.sebastiano.anatomy.figures.RaptorLive
 import dev.sebastiano.anatomy.figures.RaptorNumbers
 import kotlin.math.abs
@@ -154,5 +156,20 @@ class RaptorTest {
         live.tick(1.0 / 60, calm = false) // Only the first assemblies have started.
         assertFalse(live.tick(1.0 / 60, calm = true), "a calm frame should settle everything")
         assertTrue(live.springs.values.all { it.x == 1.0 && it.pending == null })
+    }
+
+    @Test
+    fun `a tap takes the engine apart and lights the part, and it stays apart after the finger lifts`() {
+        val live = RaptorLive().apply { touring = false }
+        var closes = 0
+        val controls =
+            RaptorControls(live, quiet = {}, kick = {}, later = { closes++ }, cancel = {})
+        val part = Raptor.ORDER.last()
+        controls.tap(part)
+        controls.lift()
+        assertTrue(live.apart)
+        assertEquals(part, live.selected)
+        assertFalse(live.inside, "a lifted finger is not over the engine")
+        assertEquals(0, closes, "lifting a finger must not close the engine")
     }
 }
