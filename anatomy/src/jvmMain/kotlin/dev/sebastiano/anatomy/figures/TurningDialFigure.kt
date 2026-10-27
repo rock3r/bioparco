@@ -302,7 +302,15 @@ fun TurningDialFigure(
                                     hold()
                                     state.press(x, y)
                                 }
-                                PointerEventType.Move -> if (state.drag(x, y)) hold()
+                                // Once the dial turns it owns the drag, so the page doesn't
+                                // scroll under it; a drag the page took first is not a turn.
+                                PointerEventType.Move ->
+                                    if (change.isConsumed && !state.dragging) {
+                                        state.dragFrom = null
+                                    } else if (state.drag(x, y)) {
+                                        hold()
+                                        change.consume()
+                                    }
                                 PointerEventType.Release -> state.dragFrom = null
                             }
                         }
