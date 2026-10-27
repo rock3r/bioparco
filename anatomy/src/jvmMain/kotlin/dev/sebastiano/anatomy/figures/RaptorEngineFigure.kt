@@ -25,6 +25,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
@@ -211,6 +212,31 @@ internal class RaptorControls(
         }
     }
 
+    /** A finger or pen down on [piece] (or on nothing): what hovering does with a mouse. */
+    fun tap(piece: String?) = hover(piece)
+
+    /**
+     * The finger lifted. Unlike a mouse leaving, it doesn't close the engine: it stays apart until
+     * the idle tour takes over again.
+     */
+    fun lift() {
+        live.inside = false
+    }
+
+    /**
+     * One pointer event over the canvas. A tap has no hover, so a touch or pen press does what
+     * hovering does; only a mouse leaving closes the engine, and a pen leaving is only gone.
+     */
+    fun pointer(type: PointerEventType, mouse: Boolean, pieceUnder: () -> String?) {
+        when (type) {
+            PointerEventType.Enter,
+            PointerEventType.Move -> hover(pieceUnder())
+            PointerEventType.Press -> if (!mouse) tap(pieceUnder())
+            PointerEventType.Release -> if (!mouse) lift()
+            PointerEventType.Exit -> if (mouse) leave() else lift()
+        }
+    }
+
     /** A legend button hovered, focused or clicked. */
     fun show(part: String) {
         if (live.burn.on) return
@@ -296,19 +322,15 @@ private fun RaptorCanvas(
                         while (true) {
                             val event = awaitPointerEvent()
                             val unit = size.width / Raptor.W
-                            when (event.type) {
-                                PointerEventType.Enter,
-                                PointerEventType.Move -> {
-                                    val p = event.changes.first().position
-                                    val at = Flat(p.x / unit, p.y / unit)
-                                    controls.hover(
-                                        hits.pieceAt(at, order, RaptorEngine.NODES) {
-                                            live.springs.getValue(it).x
-                                        }
-                                    )
+                            val change = event.changes.first()
+                            val mouse = change.type == PointerType.Mouse
+                            fun pieceUnder(): String? {
+                                val at = Flat(change.position.x / unit, change.position.y / unit)
+                                return hits.pieceAt(at, order, RaptorEngine.NODES) {
+                                    live.springs.getValue(it).x
                                 }
-                                PointerEventType.Exit -> controls.leave()
                             }
+                            controls.pointer(event.type, mouse, ::pieceUnder)
                         }
                     }
                 }
