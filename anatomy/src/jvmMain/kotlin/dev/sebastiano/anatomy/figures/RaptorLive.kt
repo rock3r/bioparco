@@ -82,7 +82,8 @@ internal class RaptorLive(
 
     private fun steer(spring: PieceSpring, dt: Double, calm: Boolean): Boolean {
         val pending = spring.pending
-        if (pending != null && clock >= pending.second) {
+        // A calm frame takes a goal still waiting its turn at once, so nothing is left halfway.
+        if (pending != null && (calm || clock >= pending.second)) {
             spring.target = pending.first
             spring.pending = null
         }

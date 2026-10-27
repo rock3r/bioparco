@@ -146,4 +146,13 @@ class RaptorTest {
         assertEquals("nozzle", RaptorLive.tourAt(1.3 + 10 * 1.5 + 0.1).part)
         assertEquals(true, RaptorLive.tourAt(1.3 + 11 * 1.5 + 1.5).fire)
     }
+
+    @Test
+    fun `turning reduced motion on mid-explode finishes the explode at once`() {
+        val live = RaptorLive().apply { touring = false }
+        live.setApart(true)
+        live.tick(1.0 / 60, calm = false) // Only the first assemblies have started.
+        assertFalse(live.tick(1.0 / 60, calm = true), "a calm frame should settle everything")
+        assertTrue(live.springs.values.all { it.x == 1.0 && it.pending == null })
+    }
 }
