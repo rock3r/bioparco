@@ -23,6 +23,7 @@ import chatbubble.ChatApp
 import dev.sebastiano.achievementbadge.App as AchievementBadgeApp
 import dev.sebastiano.borderbeam.App as BorderBeamApp
 import dev.sebastiano.componentanatomy.App as ComponentAnatomyApp
+import dev.sebastiano.currencyswarm.App as CurrencySwarmApp
 import dev.sebastiano.departureboard.App as DepartureBoardApp
 import dev.sebastiano.dotmatrixrecorder.App as DotMatrixRecorderApp
 import dev.sebastiano.grabbystepper.App
@@ -57,6 +58,7 @@ private enum class SpecimenRoute {
     DepartureBoard,
     HoloCard,
     WheelPicker,
+    CurrencySwarm,
 }
 
 @Composable
@@ -83,6 +85,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenDepartureBoard = { route = SpecimenRoute.DepartureBoard },
                     onOpenHoloCard = { route = SpecimenRoute.HoloCard },
                     onOpenWheelPicker = { route = SpecimenRoute.WheelPicker },
+                    onOpenCurrencySwarm = { route = SpecimenRoute.CurrencySwarm },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -205,6 +208,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     WheelPickerApp()
                 }
+            SpecimenRoute.CurrencySwarm ->
+                SpecimenHost(
+                    title = "Currency swarm",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    CurrencySwarmApp()
+                }
         }
     }
 }
@@ -226,6 +237,7 @@ private fun Catalog(
     onOpenDepartureBoard: () -> Unit,
     onOpenHoloCard: () -> Unit,
     onOpenWheelPicker: () -> Unit,
+    onOpenCurrencySwarm: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -350,6 +362,14 @@ private fun Catalog(
                     "colour at the edges, and the readout rolls. After Alex (@a_cucos).",
             testTag = "open-wheel-picker",
             onOpen = onOpenWheelPicker,
+        )
+        SpecimenCard(
+            name = "Currency swarm",
+            summary =
+                "A cloud of dots settles into ₹, $, ₩ and ¥ in turn, and parts around the " +
+                    "pointer. After Karthik Balasubramanian (@_iam_karthik).",
+            testTag = "open-currency-swarm",
+            onOpen = onOpenCurrencySwarm,
         )
     }
 }

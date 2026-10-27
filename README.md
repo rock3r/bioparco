@@ -131,6 +131,14 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/wheel-picker.mp4)
 
+### [Currency swarm](currency-swarm/)
+
+**Seb** · [Karthik Balasubramanian](https://x.com/_iam_karthik)’s [particle currency login screen](https://x.com/_iam_karthik/status/2106622203337044366)
+
+![Currency swarm](https://static.sebastiano.dev/stable/bioparco/currency-swarm.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/currency-swarm.mp4)
+
 The recording job uses [Spectre](https://spectre.sebastiano.dev) to generate the clips.
 The animated WebP previews use lower quality settings. The MP4 links contain the full recordings.
 
@@ -162,6 +170,7 @@ Run a specimen directly with its module task:
 ./gradlew :departure-board:run
 ./gradlew :holo-card:run
 ./gradlew :wheel-picker:run
+./gradlew :currency-swarm:run
 ...
 ```
 

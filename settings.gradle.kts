@@ -57,6 +57,8 @@ include(":holo-card")
 
 include(":wheel-picker")
 
+include(":currency-swarm")
+
 include(":tracing")
 
 include(":showcase")

@@ -31,6 +31,7 @@ kotlin {
             implementation(project(":departure-board"))
             implementation(project(":holo-card"))
             implementation(project(":wheel-picker"))
+            implementation(project(":currency-swarm"))
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)

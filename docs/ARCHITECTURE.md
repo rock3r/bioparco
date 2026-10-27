@@ -19,6 +19,7 @@ showcase  -->  grabby-stepper
           \->  departure-board
           \->  holo-card
           \->  wheel-picker
+          \->  currency-swarm
 
 recordings --> grabby-stepper
            \->  chat-bubble-transition
@@ -35,6 +36,7 @@ recordings --> grabby-stepper
            \->  departure-board
            \->  holo-card
            \->  wheel-picker
+           \->  currency-swarm
            \->  Spectre (Maven Central)
 
 every specimen, showcase, recordings --> tracing --> androidx.tracing (Perfetto)
@@ -58,6 +60,7 @@ every specimen, showcase, recordings --> tracing --> androidx.tracing (Perfetto)
 | `:departure-board` | Specimen 13. Library + standalone `run`. |
 | `:holo-card` | Specimen 14. Library + standalone `run`. |
 | `:wheel-picker` | Specimen 15. Library + standalone `run`. |
+| `:currency-swarm` | Specimen 16. Library + standalone `run`. |
 | `:recordings` | Spectre-driven recording tests. Not part of `check`. |
 | `:tracing` | House module: Perfetto trace sections for any specimen, off unless asked for. See [TRACING.md](TRACING.md). |
 

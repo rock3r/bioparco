@@ -27,6 +27,7 @@ dependencies {
     implementation(project(":departure-board"))
     implementation(project(":holo-card"))
     implementation(project(":wheel-picker"))
+    implementation(project(":currency-swarm"))
     implementation(project(":tracing"))
 
     testImplementation(libs.junit.jupiter)
