@@ -126,6 +126,7 @@ Working on `main` is allowed only when the owner has said so for that task.
 ./gradlew :wheel-picker:run
 ./gradlew :thinking-bloom:run
 ./gradlew :squeeze-progress:run
+./gradlew :anatomy:run
 ./gradlew :recordings:recordSpecimens
 ```
 
@@ -134,3 +135,4 @@ Working on `main` is allowed only when the owner has said so for that task.
 - `using-git-worktree`
 - `addressing-detekt-violations`
 - `babysit-pr`
+- `anatomy`

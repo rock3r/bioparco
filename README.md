@@ -146,6 +146,14 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/squeeze-progress.mp4)
 
+### [Anatomy](anatomy/)
+
+**Chris** · Ryan’s [Anatomy](https://github.com/wheresryan22/anatomy) (MIT): the kit, the figures and an agent skill that makes new ones
+
+![Anatomy](https://static.sebastiano.dev/stable/bioparco/anatomy.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/anatomy.mp4)
+
 The recording job uses [Spectre](https://spectre.sebastiano.dev) to generate the clips.
 The animated WebP previews use lower quality settings. The MP4 links contain the full recordings.
 
@@ -179,6 +187,7 @@ Run a specimen directly with its module task:
 ./gradlew :wheel-picker:run
 ./gradlew :thinking-bloom:run
 ./gradlew :squeeze-progress:run
+./gradlew :anatomy:run
 ...
 ```
 

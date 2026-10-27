@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import chatbubble.ChatApp
 import dev.sebastiano.achievementbadge.App as AchievementBadgeApp
+import dev.sebastiano.anatomy.App as AnatomyApp
 import dev.sebastiano.borderbeam.App as BorderBeamApp
 import dev.sebastiano.componentanatomy.App as ComponentAnatomyApp
 import dev.sebastiano.departureboard.App as DepartureBoardApp
@@ -61,6 +62,7 @@ private enum class SpecimenRoute {
     WheelPicker,
     ThinkingBloom,
     SqueezeProgress,
+    Anatomy,
 }
 
 @Composable
@@ -89,6 +91,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenWheelPicker = { route = SpecimenRoute.WheelPicker },
                     onOpenThinkingBloom = { route = SpecimenRoute.ThinkingBloom },
                     onOpenSqueezeProgress = { route = SpecimenRoute.SqueezeProgress },
+                    onOpenAnatomy = { route = SpecimenRoute.Anatomy },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -227,6 +230,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     SqueezeProgressApp()
                 }
+            SpecimenRoute.Anatomy ->
+                SpecimenHost(
+                    title = "Anatomy",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    AnatomyApp()
+                }
         }
     }
 }
@@ -250,6 +261,7 @@ private fun Catalog(
     onOpenWheelPicker: () -> Unit,
     onOpenThinkingBloom: () -> Unit,
     onOpenSqueezeProgress: () -> Unit,
+    onOpenAnatomy: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -390,6 +402,15 @@ private fun Catalog(
                     "shakes out flat when you resume. After Petar Cirkovic (@kippe07).",
             testTag = "open-squeeze-progress",
             onOpen = onOpenSqueezeProgress,
+        )
+        SpecimenCard(
+            name = "Anatomy",
+            summary =
+                "Ideas explained by building them as real, working objects: crafted isometric " +
+                    "figures of shaded solids, with a kit and an agent skill to make more. A port " +
+                    "of Ryan's Anatomy (MIT).",
+            testTag = "open-anatomy",
+            onOpen = onOpenAnatomy,
         )
     }
 }

@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":wheel-picker"))
     implementation(project(":thinking-bloom"))
     implementation(project(":squeeze-progress"))
+    implementation(project(":anatomy"))
     implementation(project(":tracing"))
 
     testImplementation(libs.junit.jupiter)
