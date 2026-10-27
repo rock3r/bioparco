@@ -53,6 +53,12 @@ include(":hairline")
 
 include(":departure-board")
 
+include(":holo-card")
+
+include(":wheel-picker")
+
+include(":thinking-bloom")
+
 include(":squeeze-progress")
 
 include(":tracing")

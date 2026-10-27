@@ -27,12 +27,15 @@ import dev.sebastiano.departureboard.App as DepartureBoardApp
 import dev.sebastiano.dotmatrixrecorder.App as DotMatrixRecorderApp
 import dev.sebastiano.grabbystepper.App
 import dev.sebastiano.hairline.App as HairlineApp
+import dev.sebastiano.holocard.App as HoloCardApp
 import dev.sebastiano.honeycomb.App as HoneycombApp
 import dev.sebastiano.peelsticker.App as PeelStickerApp
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
 import dev.sebastiano.scrolleffects.App as ScrollEffectsApp
 import dev.sebastiano.squeezeprogress.App as SqueezeProgressApp
+import dev.sebastiano.thinkingbloom.App as ThinkingBloomApp
 import dev.sebastiano.thinkingorbs.App as ThinkingOrbsApp
+import dev.sebastiano.wheelpicker.App as WheelPickerApp
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.DefaultButton
 import org.jetbrains.jewel.ui.component.OutlinedButton
@@ -54,6 +57,9 @@ private enum class SpecimenRoute {
     Honeycomb,
     Hairline,
     DepartureBoard,
+    HoloCard,
+    WheelPicker,
+    ThinkingBloom,
     SqueezeProgress,
 }
 
@@ -79,6 +85,9 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenHoneycomb = { route = SpecimenRoute.Honeycomb },
                     onOpenHairline = { route = SpecimenRoute.Hairline },
                     onOpenDepartureBoard = { route = SpecimenRoute.DepartureBoard },
+                    onOpenHoloCard = { route = SpecimenRoute.HoloCard },
+                    onOpenWheelPicker = { route = SpecimenRoute.WheelPicker },
+                    onOpenThinkingBloom = { route = SpecimenRoute.ThinkingBloom },
                     onOpenSqueezeProgress = { route = SpecimenRoute.SqueezeProgress },
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -186,6 +195,30 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     DepartureBoardApp()
                 }
+            SpecimenRoute.HoloCard ->
+                SpecimenHost(
+                    title = "Holo card",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    HoloCardApp()
+                }
+            SpecimenRoute.WheelPicker ->
+                SpecimenHost(
+                    title = "Wheel picker",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    WheelPickerApp()
+                }
+            SpecimenRoute.ThinkingBloom ->
+                SpecimenHost(
+                    title = "Thinking bloom",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    ThinkingBloomApp()
+                }
             SpecimenRoute.SqueezeProgress ->
                 SpecimenHost(
                     title = "Squeeze progress",
@@ -213,6 +246,9 @@ private fun Catalog(
     onOpenHoneycomb: () -> Unit,
     onOpenHairline: () -> Unit,
     onOpenDepartureBoard: () -> Unit,
+    onOpenHoloCard: () -> Unit,
+    onOpenWheelPicker: () -> Unit,
+    onOpenThinkingBloom: () -> Unit,
     onOpenSqueezeProgress: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -322,6 +358,30 @@ private fun Catalog(
                     "field puts another city on the board. After HASSCO (@itshassco).",
             testTag = "open-departure-board",
             onOpen = onOpenDepartureBoard,
+        )
+        SpecimenCard(
+            name = "Holo card",
+            summary =
+                "A holographic trading card tilts towards the pointer in 3D. Its puffy foil " +
+                    "mascot shifts colour as it turns. After Ann Nguyen (@ann_nnng).",
+            testTag = "open-holo-card",
+            onOpen = onOpenHoloCard,
+        )
+        SpecimenCard(
+            name = "Wheel picker",
+            summary =
+                "A duration ruler wrapped around a drum: ticks squeeze, fade and split into " +
+                    "colour at the edges, and the readout rolls. After Alex (@a_cucos).",
+            testTag = "open-wheel-picker",
+            onOpen = onOpenWheelPicker,
+        )
+        SpecimenCard(
+            name = "Thinking bloom",
+            summary =
+                "A “Thinking…” label blooms into a sweep of tiny flowers, and the dots bob as it " +
+                    "passes. Type your own word. After daniel petho (@nonzeroexitcode).",
+            testTag = "open-thinking-bloom",
+            onOpen = onOpenThinkingBloom,
         )
         SpecimenCard(
             name = "Squeeze progress",

@@ -17,6 +17,9 @@ object RecordingPaths {
     const val HONEYCOMB = "honeycomb.mp4"
     const val HAIRLINE = "hairline.mp4"
     const val DEPARTURE_BOARD = "departure-board.mp4"
+    const val HOLO_CARD = "holo-card.mp4"
+    const val WHEEL_PICKER = "wheel-picker.mp4"
+    const val THINKING_BLOOM = "thinking-bloom.mp4"
     const val SQUEEZE_PROGRESS = "squeeze-progress.mp4"
     const val MIN_USABLE_BYTES = 1_000L
 

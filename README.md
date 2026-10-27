@@ -114,6 +114,30 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 ![Departure board](https://static.sebastiano.dev/stable/bioparco/departure-board.webp)
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/departure-board.mp4)
+### [Holo card](holo-card/)
+
+**Seb** · [Ann Nguyen](https://x.com/ann_nnng)’s [holo 3D card effect](https://x.com/ann_nnng/status/2108122086569136417)
+
+![Holo card](https://static.sebastiano.dev/stable/bioparco/holo-card.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/holo-card.mp4)
+
+### [Wheel picker](wheel-picker/)
+
+**Seb** · [Alex](https://x.com/a_cucos)’s [wheel picker with edge distortion](https://x.com/a_cucos/status/2104949571461829086)
+
+![Wheel picker](https://static.sebastiano.dev/stable/bioparco/wheel-picker.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/wheel-picker.mp4)
+
+### [Thinking bloom](thinking-bloom/)
+
+**Seb** · daniel petho ([@nonzeroexitcode](https://x.com/nonzeroexitcode))’s [shimmering “Thinking…”](https://x.com/nonzeroexitcode/status/2105042956583670154)
+
+![Thinking bloom](https://static.sebastiano.dev/stable/bioparco/thinking-bloom.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/thinking-bloom.mp4)
+
 ### [Squeeze progress](squeeze-progress/)
 
 **Seb** · [Petar Cirkovic](https://x.com/kippe07)’s [squeezing progress bar](https://x.com/kippe07/status/2105216988855542196)
@@ -151,6 +175,9 @@ Run a specimen directly with its module task:
 ./gradlew :honeycomb:run
 ./gradlew :hairline:run
 ./gradlew :departure-board:run
+./gradlew :holo-card:run
+./gradlew :wheel-picker:run
+./gradlew :thinking-bloom:run
 ./gradlew :squeeze-progress:run
 ...
 ```
