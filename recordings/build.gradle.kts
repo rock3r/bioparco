@@ -24,6 +24,8 @@ dependencies {
     implementation(project(":peel-sticker"))
     implementation(project(":honeycomb"))
     implementation(project(":hairline"))
+    implementation(project(":departure-board"))
+    implementation(project(":holo-card"))
     implementation(project(":thinking-bloom"))
     implementation(project(":tracing"))
 

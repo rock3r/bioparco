@@ -23,9 +23,11 @@ import chatbubble.ChatApp
 import dev.sebastiano.achievementbadge.App as AchievementBadgeApp
 import dev.sebastiano.borderbeam.App as BorderBeamApp
 import dev.sebastiano.componentanatomy.App as ComponentAnatomyApp
+import dev.sebastiano.departureboard.App as DepartureBoardApp
 import dev.sebastiano.dotmatrixrecorder.App as DotMatrixRecorderApp
 import dev.sebastiano.grabbystepper.App
 import dev.sebastiano.hairline.App as HairlineApp
+import dev.sebastiano.holocard.App as HoloCardApp
 import dev.sebastiano.honeycomb.App as HoneycombApp
 import dev.sebastiano.peelsticker.App as PeelStickerApp
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
@@ -52,6 +54,8 @@ private enum class SpecimenRoute {
     PeelSticker,
     Honeycomb,
     Hairline,
+    DepartureBoard,
+    HoloCard,
     ThinkingBloom,
 }
 
@@ -76,6 +80,8 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenPeelSticker = { route = SpecimenRoute.PeelSticker },
                     onOpenHoneycomb = { route = SpecimenRoute.Honeycomb },
                     onOpenHairline = { route = SpecimenRoute.Hairline },
+                    onOpenDepartureBoard = { route = SpecimenRoute.DepartureBoard },
+                    onOpenHoloCard = { route = SpecimenRoute.HoloCard },
                     onOpenThinkingBloom = { route = SpecimenRoute.ThinkingBloom },
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -175,6 +181,22 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     HairlineApp()
                 }
+            SpecimenRoute.DepartureBoard ->
+                SpecimenHost(
+                    title = "Departure board",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    DepartureBoardApp()
+                }
+            SpecimenRoute.HoloCard ->
+                SpecimenHost(
+                    title = "Holo card",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    HoloCardApp()
+                }
             SpecimenRoute.ThinkingBloom ->
                 SpecimenHost(
                     title = "Thinking bloom",
@@ -201,6 +223,8 @@ private fun Catalog(
     onOpenPeelSticker: () -> Unit,
     onOpenHoneycomb: () -> Unit,
     onOpenHairline: () -> Unit,
+    onOpenDepartureBoard: () -> Unit,
+    onOpenHoloCard: () -> Unit,
     onOpenThinkingBloom: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -302,6 +326,22 @@ private fun Catalog(
                     "turntable, a vault and more. This ports Lucas Marques's hairline (MIT).",
             testTag = "open-hairline",
             onOpen = onOpenHairline,
+        )
+        SpecimenCard(
+            name = "Departure board",
+            summary =
+                "World clocks on a dot-matrix board. Letters scramble into place, and a search " +
+                    "field puts another city on the board. After HASSCO (@itshassco).",
+            testTag = "open-departure-board",
+            onOpen = onOpenDepartureBoard,
+        )
+        SpecimenCard(
+            name = "Holo card",
+            summary =
+                "A holographic trading card tilts towards the pointer in 3D. Its puffy foil " +
+                    "mascot shifts colour as it turns. After Ann Nguyen (@ann_nnng).",
+            testTag = "open-holo-card",
+            onOpen = onOpenHoloCard,
         )
         SpecimenCard(
             name = "Thinking bloom",

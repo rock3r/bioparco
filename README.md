@@ -107,6 +107,22 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/hairline.mp4)
 
+### [Departure board](departure-board/)
+
+**Seb** · [HASSCO](https://x.com/itshassco)’s [airport matrix clock](https://x.com/itshassco/status/2106761271282737292)
+
+![Departure board](https://static.sebastiano.dev/stable/bioparco/departure-board.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/departure-board.mp4)
+
+### [Holo card](holo-card/)
+
+**Seb** · [Ann Nguyen](https://x.com/ann_nnng)’s [holo 3D card effect](https://x.com/ann_nnng/status/2108122086569136417)
+
+![Holo card](https://static.sebastiano.dev/stable/bioparco/holo-card.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/holo-card.mp4)
+
 ### [Thinking bloom](thinking-bloom/)
 
 **Seb** · daniel petho ([@nonzeroexitcode](https://x.com/nonzeroexitcode))’s [shimmering “Thinking…”](https://x.com/nonzeroexitcode/status/2105042956583670154)
@@ -143,6 +159,8 @@ Run a specimen directly with its module task:
 ./gradlew :peel-sticker:run
 ./gradlew :honeycomb:run
 ./gradlew :hairline:run
+./gradlew :departure-board:run
+./gradlew :holo-card:run
 ./gradlew :thinking-bloom:run
 ...
 ```
