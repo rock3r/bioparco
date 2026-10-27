@@ -11,6 +11,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
+import dev.sebastiano.bioparco.tracing.Tracing
 import kotlin.math.min
 import kotlinx.coroutines.flow.first
 
@@ -19,13 +20,14 @@ import kotlinx.coroutines.flow.first
  * [LONGEST_FRAME], for as long as it returns true. It starts on first composition and stops when
  * the figure leaves composition. While [isOnScreen] says no, it waits without asking for frames,
  * then carries on where it was, so a figure at rest or scrolled away costs nothing. [isOnScreen]
- * must read snapshot state, so the loop hears when it changes. Call the returned function to start
- * the loop again after it settled.
+ * must read snapshot state, so the loop hears when it changes. Each step is a [trace] section. Call
+ * the returned function to start the loop again after it settled.
  */
 @Composable
 fun rememberFrameLoop(
     calm: Boolean,
     isOnScreen: () -> Boolean = { true },
+    trace: String = "tick",
     tick: (dt: Double, calm: Boolean) -> Boolean,
 ): () -> Unit {
     val latestTick by rememberUpdatedState(tick)
@@ -45,7 +47,7 @@ fun rememberFrameLoop(
                 val more = withFrameNanos { now ->
                     val dt = if (last == 0L) 1.0 / 60 else min((now - last) / 1e9, LONGEST_FRAME)
                     last = now
-                    latestTick(dt, latestCalm)
+                    Tracing.section(trace) { latestTick(dt, latestCalm) }
                 }
                 if (!more) break
             }

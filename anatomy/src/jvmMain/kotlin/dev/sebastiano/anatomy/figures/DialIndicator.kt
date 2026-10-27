@@ -382,7 +382,7 @@ fun DialIndicatorFigure(
     var touches by remember { mutableIntStateOf(0) }
     if (reducedMotion) state.touring = false
     val kick =
-        rememberFrameLoop(reducedMotion, isOnScreen) { dt, calm ->
+        rememberFrameLoop(reducedMotion, isOnScreen, trace = "dial-indicator tick") { dt, calm ->
             val s = state
             if (s.touring) {
                 s.clock += dt
@@ -474,6 +474,7 @@ fun DialIndicatorFigure(
                     true
                 }
                 .focusable(),
+            trace = "dial-indicator draw",
         ) {
             val x = carriageX
             val tip = tipAt

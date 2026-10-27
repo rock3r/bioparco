@@ -694,7 +694,7 @@ fun TokenBucketFigure(
     var touches by remember { mutableIntStateOf(0) }
     if (reducedMotion) state.touring = false
     val kick =
-        rememberFrameLoop(reducedMotion, isOnScreen) { dt, calm ->
+        rememberFrameLoop(reducedMotion, isOnScreen, trace = "token-bucket tick") { dt, calm ->
             val s = state
             if (s.touring) {
                 val before = m.tourSent(s.clock)
@@ -807,6 +807,7 @@ fun TokenBucketFigure(
                     }
                 }
                 .focusable(),
+            trace = "token-bucket draw",
         ) {
             with(d) { paint(state.view) }
         }

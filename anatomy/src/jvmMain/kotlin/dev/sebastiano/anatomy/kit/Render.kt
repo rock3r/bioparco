@@ -19,10 +19,12 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.skiaPaint
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.rememberTextMeasurer
+import dev.sebastiano.bioparco.tracing.Tracing
 import kotlin.math.hypot
 import org.jetbrains.skia.FilterBlurMode
 import org.jetbrains.skia.MaskFilter
@@ -381,7 +383,9 @@ class IsoScope(
 
 /**
  * A figure's drawing surface: a [width] by [height] viewBox, scaled to the available width. Read
- * any per-frame state inside [figure], so motion only redraws and never recomposes.
+ * any per-frame state inside [figure], so motion only redraws and never recomposes. Each canvas is
+ * its own layer, so a figure that moves redraws only itself, not every figure on the page; it is
+ * not drawn offscreen, so blend modes still reach what is under it. Each draw is a [trace] section.
  */
 @Composable
 fun IsoCanvas(
@@ -390,13 +394,16 @@ fun IsoCanvas(
     palette: Palette,
     modifier: Modifier = Modifier,
     clock: () -> Double = { 0.0 },
+    trace: String = "iso canvas",
     figure: IsoScope.() -> Unit,
 ) {
     val measurer = rememberTextMeasurer()
-    Canvas(modifier.aspectRatio((width / height).toFloat())) {
-        val unit = size.width / width.toFloat()
-        scale(unit, unit, pivot = Offset.Zero) {
-            IsoScope(this, palette, unit, measurer, clock(), MarkRecorder.active).figure()
+    Canvas(modifier.aspectRatio((width / height).toFloat()).graphicsLayer()) {
+        Tracing.section(trace) {
+            val unit = size.width / width.toFloat()
+            scale(unit, unit, pivot = Offset.Zero) {
+                IsoScope(this, palette, unit, measurer, clock(), MarkRecorder.active).figure()
+            }
         }
     }
 }

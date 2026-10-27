@@ -59,7 +59,7 @@ fun BunsenBurnerFigure(
     var readout by remember { mutableStateOf(Bunsen.readoutOf(state.opening)) }
     if (reducedMotion) state.touring = false
     val kick =
-        rememberFrameLoop(reducedMotion, isOnScreen) { dt, calm ->
+        rememberFrameLoop(reducedMotion, isOnScreen, trace = "bunsen-burner tick") { dt, calm ->
             val s = state
             // Back to the tour after a pause, timed on the frame clock like the flame.
             s.idle += dt
@@ -147,6 +147,7 @@ fun BunsenBurnerFigure(
                     true
                 }
                 .focusable(),
+            trace = "bunsen-burner draw",
         ) {
             with(BunsenCollar) { paint(opening, clock, state.flame) }
         }

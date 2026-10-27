@@ -97,7 +97,7 @@ fun RaptorEngineFigure(
     live.still = reducedMotion
     if (reducedMotion) live.touring = false
     val kick =
-        rememberFrameLoop(reducedMotion, isOnScreen) { dt, calm ->
+        rememberFrameLoop(reducedMotion, isOnScreen, trace = "raptor-engine tick") { dt, calm ->
             val more = live.tick(dt, calm)
             live.paintOrder(nodes, order)
             frame++
@@ -314,6 +314,7 @@ private fun RaptorCanvas(
                 .onKeyEvent(controls::key)
                 .focusable(),
             clock = { live.clock },
+            trace = "raptor-engine draw",
         ) {
             if (frame() >= 0)
                 drawRaptor(live, order, palettes, layers, if (live.still) 0.8 else live.clock)

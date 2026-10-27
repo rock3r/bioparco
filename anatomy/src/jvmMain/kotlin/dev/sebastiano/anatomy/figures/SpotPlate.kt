@@ -96,7 +96,7 @@ private fun rememberSpotControl(reducedMotion: Boolean, isOnScreen: () -> Boolea
     val hold = TurnHook.values?.get("merge")
     val control = remember(hold) { SpotControl(hold) }
     control.kick =
-        rememberFrameLoop(reducedMotion, isOnScreen) { dt, calm ->
+        rememberFrameLoop(reducedMotion, isOnScreen, trace = "spot-plate tick") { dt, calm ->
             val moving = hold == null && control.motion.tick(dt, calm)
             control.shown = control.motion.shown
             control.value = SpotModel.roundMerge(SpotDrops.keyOf(control.motion.shown) / 4.0)
@@ -186,6 +186,7 @@ private fun SpotCanvas(control: SpotControl, palette: Palette, modifier: Modifie
                 SpotRig.HEIGHT,
                 palette,
                 Modifier.fillMaxWidth().spotViewport(narrow),
+                trace = "spot-plate draw",
             ) {
                 paint.draw(this, control.shown)
             }

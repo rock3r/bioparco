@@ -243,7 +243,7 @@ fun TurningDialFigure(
     var touches by remember { mutableIntStateOf(0) }
     if (reducedMotion) state.touring = false
     val kick =
-        rememberFrameLoop(reducedMotion, isOnScreen) { dt, calm ->
+        rememberFrameLoop(reducedMotion, isOnScreen, trace = "turning-dial tick") { dt, calm ->
             val more = state.tick(dt, calm)
             frame = state.controller.generation
             readout = state.readout()
@@ -332,6 +332,7 @@ fun TurningDialFigure(
                     true
                 }
                 .focusable(),
+            trace = "turning-dial draw",
         ) {
             // Reading the frame counter redraws the canvas on every render, and nothing else.
             if (frame >= 0) drawDial(state)

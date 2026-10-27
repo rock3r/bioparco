@@ -54,7 +54,11 @@ fun ArcadeCabinetFigure(
     var status by remember { mutableStateOf("Off. Insert a coin.") }
     val focus = remember { FocusRequester() }
     val kick =
-        dev.sebastiano.anatomy.kit.rememberFrameLoop(reducedMotion, isOnScreen) { dt, calm ->
+        dev.sebastiano.anatomy.kit.rememberFrameLoop(
+            reducedMotion,
+            isOnScreen,
+            trace = "arcade-cabinet tick",
+        ) { dt, calm ->
             val busy = live.tick(dt, calm)
             frame++
             readout = arcadeSay(live, live.picture())
@@ -133,6 +137,7 @@ fun ArcadeCabinetFigure(
                     }
                 },
             clock = { live.clock },
+            trace = "arcade-cabinet draw",
         ) {
             frame
             paint.paint(this, live)

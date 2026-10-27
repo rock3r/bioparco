@@ -55,7 +55,7 @@ fun DeskComputerFigure(
     var touches by remember { mutableIntStateOf(0) }
     var readout by remember { mutableStateOf(pc.readout()) }
     val kick =
-        rememberFrameLoop(reducedMotion, isOnScreen) { dt, calm ->
+        rememberFrameLoop(reducedMotion, isOnScreen, trace = "desk-computer tick") { dt, calm ->
             val busy = pc.tick(dt, calm)
             redraw++
             readout = pc.readout()
@@ -98,6 +98,7 @@ fun DeskComputerFigure(
             DeskComputer.HEIGHT,
             palette,
             Modifier.fillMaxWidth().deskInput(pc, focus, readout, ::changed),
+            trace = "desk-computer draw",
         ) {
             redraw // Snapshot subscription is draw-phase only; pc itself is a plain model.
             drawDesk(pc, reducedMotion)

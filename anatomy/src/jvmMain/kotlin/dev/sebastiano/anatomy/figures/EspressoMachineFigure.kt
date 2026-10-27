@@ -121,7 +121,7 @@ fun EspressoMachineFigure(
     var touches by remember { mutableIntStateOf(0) }
     if (reducedMotion) state.touring = false
     val kick =
-        rememberFrameLoop(reducedMotion, isOnScreen) { dt, calm ->
+        rememberFrameLoop(reducedMotion, isOnScreen, trace = "espresso-machine tick") { dt, calm ->
             val more = state.tick(dt, calm)
             readout = Espresso.readoutOf(state.shot, state.boiler)
             more
@@ -201,6 +201,7 @@ fun EspressoMachineFigure(
                     }
                 }
                 .focusable(),
+            trace = "espresso-machine draw",
         ) {
             paint(state.view)
         }
