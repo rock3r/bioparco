@@ -107,6 +107,14 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/hairline.mp4)
 
+### [Squeeze progress](squeeze-progress/)
+
+**Seb** · [Petar Cirkovic](https://x.com/kippe07)’s [squeezing progress bar](https://x.com/kippe07/status/2105216988855542196)
+
+![Squeeze progress](https://static.sebastiano.dev/stable/bioparco/squeeze-progress.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/squeeze-progress.mp4)
+
 The recording job uses [Spectre](https://spectre.sebastiano.dev) to generate the clips.
 The animated WebP previews use lower quality settings. The MP4 links contain the full recordings.
 
@@ -135,6 +143,7 @@ Run a specimen directly with its module task:
 ./gradlew :peel-sticker:run
 ./gradlew :honeycomb:run
 ./gradlew :hairline:run
+./gradlew :squeeze-progress:run
 ...
 ```
 

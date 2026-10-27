@@ -30,6 +30,7 @@ import dev.sebastiano.honeycomb.App as HoneycombApp
 import dev.sebastiano.peelsticker.App as PeelStickerApp
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
 import dev.sebastiano.scrolleffects.App as ScrollEffectsApp
+import dev.sebastiano.squeezeprogress.App as SqueezeProgressApp
 import dev.sebastiano.thinkingorbs.App as ThinkingOrbsApp
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.DefaultButton
@@ -51,6 +52,7 @@ private enum class SpecimenRoute {
     PeelSticker,
     Honeycomb,
     Hairline,
+    SqueezeProgress,
 }
 
 @Composable
@@ -74,6 +76,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenPeelSticker = { route = SpecimenRoute.PeelSticker },
                     onOpenHoneycomb = { route = SpecimenRoute.Honeycomb },
                     onOpenHairline = { route = SpecimenRoute.Hairline },
+                    onOpenSqueezeProgress = { route = SpecimenRoute.SqueezeProgress },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -172,6 +175,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     HairlineApp()
                 }
+            SpecimenRoute.SqueezeProgress ->
+                SpecimenHost(
+                    title = "Squeeze progress",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    SqueezeProgressApp()
+                }
         }
     }
 }
@@ -190,6 +201,7 @@ private fun Catalog(
     onOpenPeelSticker: () -> Unit,
     onOpenHoneycomb: () -> Unit,
     onOpenHairline: () -> Unit,
+    onOpenSqueezeProgress: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -290,6 +302,14 @@ private fun Catalog(
                     "turntable, a vault and more. This ports Lucas Marques's hairline (MIT).",
             testTag = "open-hairline",
             onOpen = onOpenHairline,
+        )
+        SpecimenCard(
+            name = "Squeeze progress",
+            summary =
+                "A progress line that crumples into a springy squiggle when you pause it, and " +
+                    "shakes out flat when you resume. After Petar Cirkovic (@kippe07).",
+            testTag = "open-squeeze-progress",
+            onOpen = onOpenSqueezeProgress,
         )
     }
 }

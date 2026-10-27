@@ -51,6 +51,8 @@ include(":honeycomb")
 
 include(":hairline")
 
+include(":squeeze-progress")
+
 include(":tracing")
 
 include(":showcase")
