@@ -10,6 +10,20 @@ const val RUBBER_BAND_LIMIT = 0.6f
 const val COAST_SECONDS = 0.18f
 
 /**
+ * How long the pointer may hold still before a release stops being a flick. Compose's velocity
+ * tracker treats a pointer as stopped after the same gap.
+ */
+const val STILL_MILLIS = 40L
+
+/**
+ * The drag's [velocity], unless the pointer held still for longer than [STILL_MILLIS] between its
+ * last move and the release. The tracker only sees moves, so a fast drag that stops and then lets
+ * go would otherwise still flick.
+ */
+fun releaseVelocity(velocity: Float, lastMoveMillis: Long, releaseMillis: Long): Float =
+    if (releaseMillis - lastMoveMillis > STILL_MILLIS) 0f else velocity
+
+/**
  * The stop a release lands on: where [velocity] (stops a second) would carry [position] in
  * [COAST_SECONDS], rounded, and kept on the ruler.
  */

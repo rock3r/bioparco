@@ -164,14 +164,24 @@ private suspend fun PointerInputScope.trackDrag(scroll: WheelScroll, metrics: ()
         scroll.beginDrag()
         tracker.addPosition(start.uptimeMillis, start.position)
         scroll.dragBy(-overSlop / pitch, 0f)
+        var lastMove = start.uptimeMillis
         val completed =
             horizontalDrag(start.id) { change ->
                 tracker.addPosition(change.uptimeMillis, change.position)
+                lastMove = change.uptimeMillis
                 val speed = abs(tracker.calculateVelocity().x) / pitch
                 scroll.dragBy(-change.positionChange().x / pitch, speed)
                 change.consume()
             }
-        scroll.release(if (completed) -tracker.calculateVelocity().x / pitch else 0f)
+        // horizontalDrag keeps the release to itself; it is the scope's current event.
+        val released = currentEvent.changes.firstOrNull { it.id == start.id }?.uptimeMillis
+        val velocity =
+            if (completed && released != null) {
+                releaseVelocity(-tracker.calculateVelocity().x / pitch, lastMove, released)
+            } else {
+                0f
+            }
+        scroll.release(velocity)
     }
 }
 

@@ -91,6 +91,25 @@ class WheelMathTest {
     }
 
     @Test
+    fun aReleaseRightAfterMovingKeepsItsVelocity() {
+        assertEquals(24f, releaseVelocity(24f, lastMoveMillis = 1_000L, releaseMillis = 1_008L))
+        assertEquals(-24f, releaseVelocity(-24f, lastMoveMillis = 1_000L, releaseMillis = 1_000L))
+    }
+
+    @Test
+    fun aReleaseAfterHoldingStillDoesNotFlick() {
+        assertEquals(0f, releaseVelocity(24f, lastMoveMillis = 1_000L, releaseMillis = 1_300L))
+        assertEquals(
+            0f,
+            releaseVelocity(
+                -24f,
+                lastMoveMillis = 1_000L,
+                releaseMillis = 1_000L + STILL_MILLIS + 1,
+            ),
+        )
+    }
+
+    @Test
     fun rubberBandLeavesTheRulerAlone() {
         assertEquals(0f, rubberBand(0f, 10))
         assertEquals(4.25f, rubberBand(4.25f, 10))
