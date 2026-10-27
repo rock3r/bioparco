@@ -1,5 +1,6 @@
 package dev.sebastiano.anatomy
 
+import androidx.compose.ui.input.pointer.PointerEventType
 import dev.sebastiano.anatomy.figures.BurnPhase
 import dev.sebastiano.anatomy.figures.Raptor
 import dev.sebastiano.anatomy.figures.RaptorBurn
@@ -171,5 +172,29 @@ class RaptorTest {
         assertEquals(part, live.selected)
         assertFalse(live.inside, "a lifted finger is not over the engine")
         assertEquals(0, closes, "lifting a finger must not close the engine")
+    }
+
+    @Test
+    fun `a hovering pen that leaves without tapping is no longer inside, and closes nothing`() {
+        val live = RaptorLive().apply { touring = false }
+        var closes = 0
+        val controls =
+            RaptorControls(live, quiet = {}, kick = {}, later = { closes++ }, cancel = {})
+        controls.pointer(PointerEventType.Enter, mouse = false) { Raptor.ORDER.last() }
+        controls.pointer(PointerEventType.Exit, mouse = false) { null }
+        assertFalse(live.inside, "the idle tour waits forever while the pen counts as inside")
+        assertEquals(0, closes)
+    }
+
+    @Test
+    fun `a mouse leaving still closes the engine`() {
+        val live = RaptorLive().apply { touring = false }
+        var closes = 0
+        val controls =
+            RaptorControls(live, quiet = {}, kick = {}, later = { closes++ }, cancel = {})
+        controls.pointer(PointerEventType.Enter, mouse = true) { Raptor.ORDER.last() }
+        controls.pointer(PointerEventType.Exit, mouse = true) { null }
+        assertFalse(live.inside)
+        assertEquals(1, closes)
     }
 }

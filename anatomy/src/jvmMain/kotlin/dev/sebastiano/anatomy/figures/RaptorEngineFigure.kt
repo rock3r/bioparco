@@ -223,6 +223,20 @@ internal class RaptorControls(
         live.inside = false
     }
 
+    /**
+     * One pointer event over the canvas. A tap has no hover, so a touch or pen press does what
+     * hovering does; only a mouse leaving closes the engine, and a pen leaving is only gone.
+     */
+    fun pointer(type: PointerEventType, mouse: Boolean, pieceUnder: () -> String?) {
+        when (type) {
+            PointerEventType.Enter,
+            PointerEventType.Move -> hover(pieceUnder())
+            PointerEventType.Press -> if (!mouse) tap(pieceUnder())
+            PointerEventType.Release -> if (!mouse) lift()
+            PointerEventType.Exit -> if (mouse) leave() else lift()
+        }
+    }
+
     /** A legend button hovered, focused or clicked. */
     fun show(part: String) {
         if (live.burn.on) return
@@ -316,14 +330,7 @@ private fun RaptorCanvas(
                                     live.springs.getValue(it).x
                                 }
                             }
-                            // A tap has no hover, so a touch or pen press does what hovering does.
-                            when (event.type) {
-                                PointerEventType.Enter,
-                                PointerEventType.Move -> controls.hover(pieceUnder())
-                                PointerEventType.Press -> if (!mouse) controls.tap(pieceUnder())
-                                PointerEventType.Release -> if (!mouse) controls.lift()
-                                PointerEventType.Exit -> if (mouse) controls.leave()
-                            }
+                            controls.pointer(event.type, mouse, ::pieceUnder)
                         }
                     }
                 }
