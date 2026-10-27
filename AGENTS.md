@@ -124,6 +124,7 @@ Working on `main` is allowed only when the owner has said so for that task.
 ./gradlew :departure-board:run
 ./gradlew :holo-card:run
 ./gradlew :wheel-picker:run
+./gradlew :thinking-bloom:run
 ./gradlew :anatomy:run
 ./gradlew :recordings:recordSpecimens
 ```

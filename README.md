@@ -131,6 +131,14 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/wheel-picker.mp4)
 
+### [Thinking bloom](thinking-bloom/)
+
+**Seb** · daniel petho ([@nonzeroexitcode](https://x.com/nonzeroexitcode))’s [shimmering “Thinking…”](https://x.com/nonzeroexitcode/status/2105042956583670154)
+
+![Thinking bloom](https://static.sebastiano.dev/stable/bioparco/thinking-bloom.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/thinking-bloom.mp4)
+
 ### [Anatomy](anatomy/)
 
 **Chris** · Ryan’s [Anatomy](https://github.com/wheresryan22/anatomy) (MIT): the kit, the figures and an agent skill that makes new ones
@@ -170,6 +178,7 @@ Run a specimen directly with its module task:
 ./gradlew :departure-board:run
 ./gradlew :holo-card:run
 ./gradlew :wheel-picker:run
+./gradlew :thinking-bloom:run
 ./gradlew :anatomy:run
 ...
 ```

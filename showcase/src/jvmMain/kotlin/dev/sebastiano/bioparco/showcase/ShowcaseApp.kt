@@ -33,6 +33,7 @@ import dev.sebastiano.honeycomb.App as HoneycombApp
 import dev.sebastiano.peelsticker.App as PeelStickerApp
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
 import dev.sebastiano.scrolleffects.App as ScrollEffectsApp
+import dev.sebastiano.thinkingbloom.App as ThinkingBloomApp
 import dev.sebastiano.thinkingorbs.App as ThinkingOrbsApp
 import dev.sebastiano.wheelpicker.App as WheelPickerApp
 import org.jetbrains.jewel.foundation.theme.JewelTheme
@@ -58,6 +59,7 @@ private enum class SpecimenRoute {
     DepartureBoard,
     HoloCard,
     WheelPicker,
+    ThinkingBloom,
     Anatomy,
 }
 
@@ -85,6 +87,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenDepartureBoard = { route = SpecimenRoute.DepartureBoard },
                     onOpenHoloCard = { route = SpecimenRoute.HoloCard },
                     onOpenWheelPicker = { route = SpecimenRoute.WheelPicker },
+                    onOpenThinkingBloom = { route = SpecimenRoute.ThinkingBloom },
                     onOpenAnatomy = { route = SpecimenRoute.Anatomy },
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -208,6 +211,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     WheelPickerApp()
                 }
+            SpecimenRoute.ThinkingBloom ->
+                SpecimenHost(
+                    title = "Thinking bloom",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    ThinkingBloomApp()
+                }
             SpecimenRoute.Anatomy ->
                 SpecimenHost(
                     title = "Anatomy",
@@ -237,6 +248,7 @@ private fun Catalog(
     onOpenDepartureBoard: () -> Unit,
     onOpenHoloCard: () -> Unit,
     onOpenWheelPicker: () -> Unit,
+    onOpenThinkingBloom: () -> Unit,
     onOpenAnatomy: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -362,6 +374,14 @@ private fun Catalog(
                     "colour at the edges, and the readout rolls. After Alex (@a_cucos).",
             testTag = "open-wheel-picker",
             onOpen = onOpenWheelPicker,
+        )
+        SpecimenCard(
+            name = "Thinking bloom",
+            summary =
+                "A “Thinking…” label blooms into a sweep of tiny flowers, and the dots bob as it " +
+                    "passes. Type your own word. After daniel petho (@nonzeroexitcode).",
+            testTag = "open-thinking-bloom",
+            onOpen = onOpenThinkingBloom,
         )
         SpecimenCard(
             name = "Anatomy",

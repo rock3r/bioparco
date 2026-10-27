@@ -57,6 +57,8 @@ include(":holo-card")
 
 include(":wheel-picker")
 
+include(":thinking-bloom")
+
 include(":anatomy")
 
 include(":tracing")
