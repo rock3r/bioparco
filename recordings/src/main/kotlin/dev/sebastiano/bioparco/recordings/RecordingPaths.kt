@@ -16,6 +16,7 @@ object RecordingPaths {
     const val PEEL_STICKER = "peel-sticker.mp4"
     const val HONEYCOMB = "honeycomb.mp4"
     const val HAIRLINE = "hairline.mp4"
+    const val DEPARTURE_BOARD = "departure-board.mp4"
     const val HOLO_CARD = "holo-card.mp4"
     const val MIN_USABLE_BYTES = 1_000L
 
