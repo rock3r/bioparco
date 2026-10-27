@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.Key
@@ -53,16 +54,24 @@ internal fun SqueezeProgressStage(modifier: Modifier = Modifier) {
     val line = remember { CrumpledLine() }
     val focus = remember { FocusRequester() }
     LaunchedEffect(focus) { focus.requestFocus() }
+    val keys = remember { KeyRepeatFilter() }
 
     Box(
         modifier
             .fillMaxSize()
             .testTag(SqueezeProgressTags.STAGE)
+            // Space and Enter toggle once per press: held down, the OS repeats key-downs.
             .onPreviewKeyEvent { event ->
                 val toggles = event.key == Key.Spacebar || event.key == Key.Enter
-                if (toggles && event.type == KeyEventType.KeyDown) motion.toggle()
+                if (toggles) {
+                    when (event.type) {
+                        KeyEventType.KeyDown -> if (keys.press(event.key.keyCode)) motion.toggle()
+                        KeyEventType.KeyUp -> keys.release(event.key.keyCode)
+                    }
+                }
                 toggles
             }
+            .onFocusChanged { if (!it.hasFocus) keys.reset() }
             .focusRequester(focus)
             .focusable()
             // Everything that moves is read in here, so a frame redraws without recomposing.
