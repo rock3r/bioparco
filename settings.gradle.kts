@@ -51,6 +51,8 @@ include(":honeycomb")
 
 include(":hairline")
 
+include(":holo-card")
+
 include(":tracing")
 
 include(":showcase")

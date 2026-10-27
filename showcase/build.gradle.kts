@@ -28,6 +28,7 @@ kotlin {
             implementation(project(":peel-sticker"))
             implementation(project(":honeycomb"))
             implementation(project(":hairline"))
+            implementation(project(":holo-card"))
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
