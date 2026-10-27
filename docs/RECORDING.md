@@ -160,11 +160,12 @@ a push to `main`) runs them under `xvfb-run` on Ubuntu and uploads every MP4 to 
 floating release. A skipped or empty recording fails the job instead of publishing a
 partial set.
 
-### Prove all twelve MP4s
+### Prove all thirteen MP4s
 
-In the `recordings` CI job, the "Record specimens" step must report `PASSED` for all twelve tests:
+In the `recordings` CI job, the "Record specimens" step must report `PASSED` for all thirteen tests:
 
 - `AchievementBadgeRecordingTest`
+- `AnatomyRecordingTest`
 - `BorderBeamRecordingTest`
 - `ChatBubbleRecordingTest`
 - `ComponentAnatomyRecordingTest`
@@ -177,7 +178,7 @@ In the `recordings` CI job, the "Record specimens" step must report `PASSED` for
 - `ScrollEffectsRecordingTest`
 - `ThinkingOrbsRecordingTest`
 
-`recordings/build/recordings/` must contain twelve files, each larger than 1 KB.
+`recordings/build/recordings/` must contain thirteen files, each larger than 1 KB.
 The task fails if any expected file is missing.
 A run filtered with `--tests` records only matching specimens and skips this completeness check.
 
