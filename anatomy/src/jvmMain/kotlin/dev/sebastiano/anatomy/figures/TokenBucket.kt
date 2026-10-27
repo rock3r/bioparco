@@ -667,7 +667,12 @@ private const val OUTCOME_S = 1.4
 private const val QUEUE = 4
 
 @Composable
-fun TokenBucketFigure(palette: Palette, reducedMotion: Boolean, modifier: Modifier = Modifier) {
+fun TokenBucketFigure(
+    palette: Palette,
+    reducedMotion: Boolean,
+    modifier: Modifier = Modifier,
+    isOnScreen: () -> Boolean = { true },
+) {
     val d = TokenBucketDispenser
     val m = DispenserMotion
     val state = remember {
@@ -689,7 +694,7 @@ fun TokenBucketFigure(palette: Palette, reducedMotion: Boolean, modifier: Modifi
     var touches by remember { mutableIntStateOf(0) }
     if (reducedMotion) state.touring = false
     val kick =
-        rememberFrameLoop(reducedMotion) { dt, calm ->
+        rememberFrameLoop(reducedMotion, isOnScreen) { dt, calm ->
             val s = state
             if (s.touring) {
                 val before = m.tourSent(s.clock)
@@ -740,7 +745,7 @@ fun TokenBucketFigure(palette: Palette, reducedMotion: Boolean, modifier: Modifi
                 s.outcome != null ||
                 s.bucket.tokens < m.CAPACITY
         }
-    LaunchedEffect(touches) {
+    LaunchedEffect(touches, reducedMotion) {
         if (touches == 0) return@LaunchedEffect
         delay(IDLE_MS)
         if (!reducedMotion) {

@@ -230,7 +230,12 @@ private fun IsoScope.drawDial(state: DialState) {
 }
 
 @Composable
-fun TurningDialFigure(palette: Palette, reducedMotion: Boolean, modifier: Modifier = Modifier) {
+fun TurningDialFigure(
+    palette: Palette,
+    reducedMotion: Boolean,
+    modifier: Modifier = Modifier,
+    isOnScreen: () -> Boolean = { true },
+) {
     val state = remember { DialState(TurningDial.scene, reducedMotion) }
     var frame by remember { mutableLongStateOf(0L) }
     var readout by remember { mutableStateOf(state.readout()) }
@@ -238,14 +243,14 @@ fun TurningDialFigure(palette: Palette, reducedMotion: Boolean, modifier: Modifi
     var touches by remember { mutableIntStateOf(0) }
     if (reducedMotion) state.touring = false
     val kick =
-        rememberFrameLoop(reducedMotion) { dt, calm ->
+        rememberFrameLoop(reducedMotion, isOnScreen) { dt, calm ->
             val more = state.tick(dt, calm)
             frame = state.controller.generation
             readout = state.readout()
             described = state.describe()
             more
         }
-    LaunchedEffect(touches) {
+    LaunchedEffect(touches, reducedMotion) {
         if (touches == 0) return@LaunchedEffect
         delay(IDLE_MS)
         if (!reducedMotion) {

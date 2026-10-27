@@ -36,7 +36,12 @@ private const val IDLE_S = 3.6
 private fun tourAt(t: Double): Double = TOUR[floor(t / TOUR_STEP).toInt() % TOUR.size]
 
 @Composable
-fun BunsenBurnerFigure(palette: Palette, reducedMotion: Boolean, modifier: Modifier = Modifier) {
+fun BunsenBurnerFigure(
+    palette: Palette,
+    reducedMotion: Boolean,
+    modifier: Modifier = Modifier,
+    isOnScreen: () -> Boolean = { true },
+) {
     val state = remember {
         object {
             var opening = 0.0
@@ -54,7 +59,7 @@ fun BunsenBurnerFigure(palette: Palette, reducedMotion: Boolean, modifier: Modif
     var readout by remember { mutableStateOf(Bunsen.readoutOf(state.opening)) }
     if (reducedMotion) state.touring = false
     val kick =
-        rememberFrameLoop(reducedMotion) { dt, calm ->
+        rememberFrameLoop(reducedMotion, isOnScreen) { dt, calm ->
             val s = state
             // Back to the tour after a pause, timed on the frame clock like the flame.
             s.idle += dt

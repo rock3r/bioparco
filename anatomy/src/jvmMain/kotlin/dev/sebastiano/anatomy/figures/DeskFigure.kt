@@ -43,14 +43,19 @@ import dev.sebastiano.anatomy.kit.slabOf
 import kotlinx.coroutines.delay
 
 @Composable
-fun DeskComputerFigure(palette: Palette, reducedMotion: Boolean, modifier: Modifier = Modifier) {
+fun DeskComputerFigure(
+    palette: Palette,
+    reducedMotion: Boolean,
+    modifier: Modifier = Modifier,
+    isOnScreen: () -> Boolean = { true },
+) {
     val pc = remember { DeskModel() }
     val focus = remember { FocusRequester() }
     var redraw by remember { mutableIntStateOf(0) }
     var touches by remember { mutableIntStateOf(0) }
     var readout by remember { mutableStateOf(pc.readout()) }
     val kick =
-        rememberFrameLoop(reducedMotion) { dt, calm ->
+        rememberFrameLoop(reducedMotion, isOnScreen) { dt, calm ->
             val busy = pc.tick(dt, calm)
             redraw++
             readout = pc.readout()

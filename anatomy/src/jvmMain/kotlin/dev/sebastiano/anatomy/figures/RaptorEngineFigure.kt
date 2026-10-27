@@ -76,7 +76,12 @@ internal class RaptorTexts {
 }
 
 @Composable
-fun RaptorEngineFigure(palette: Palette, reducedMotion: Boolean, modifier: Modifier = Modifier) {
+fun RaptorEngineFigure(
+    palette: Palette,
+    reducedMotion: Boolean,
+    modifier: Modifier = Modifier,
+    isOnScreen: () -> Boolean = { true },
+) {
     val pieces = remember { RaptorEngine.BUILD.pieces.mapValues { it.value.say } }
     val live = remember { RaptorLive(pieces = pieces) }
     val nodes = RaptorEngine.NODES
@@ -92,14 +97,14 @@ fun RaptorEngineFigure(palette: Palette, reducedMotion: Boolean, modifier: Modif
     live.still = reducedMotion
     if (reducedMotion) live.touring = false
     val kick =
-        rememberFrameLoop(reducedMotion) { dt, calm ->
+        rememberFrameLoop(reducedMotion, isOnScreen) { dt, calm ->
             val more = live.tick(dt, calm)
             live.paintOrder(nodes, order)
             frame++
             texts.update(live)
             more
         }
-    LaunchedEffect(touches) {
+    LaunchedEffect(touches, reducedMotion) {
         if (touches == 0) return@LaunchedEffect
         delay(IDLE_MS)
         if (live.inside || live.burn.on) {

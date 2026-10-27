@@ -92,11 +92,11 @@ private class SpotControl(hold: Double?) {
 }
 
 @Composable
-private fun rememberSpotControl(reducedMotion: Boolean): SpotControl {
+private fun rememberSpotControl(reducedMotion: Boolean, isOnScreen: () -> Boolean): SpotControl {
     val hold = TurnHook.values?.get("merge")
     val control = remember(hold) { SpotControl(hold) }
     control.kick =
-        rememberFrameLoop(reducedMotion) { dt, calm ->
+        rememberFrameLoop(reducedMotion, isOnScreen) { dt, calm ->
             val moving = hold == null && control.motion.tick(dt, calm)
             control.shown = control.motion.shown
             control.value = SpotModel.roundMerge(SpotDrops.keyOf(control.motion.shown) / 4.0)
@@ -120,8 +120,13 @@ private fun rememberSpotControl(reducedMotion: Boolean): SpotControl {
 
 /** The original's Fig 7 becomes Fig 11 in bioparco; its six pairs share one merge control. */
 @Composable
-fun SpotPlateFigure(palette: Palette, reducedMotion: Boolean, modifier: Modifier = Modifier) {
-    val control = rememberSpotControl(reducedMotion)
+fun SpotPlateFigure(
+    palette: Palette,
+    reducedMotion: Boolean,
+    modifier: Modifier = Modifier,
+    isOnScreen: () -> Boolean = { true },
+) {
+    val control = rememberSpotControl(reducedMotion, isOnScreen)
     Plate(
         fig = "Fig 11",
         title = "Spot plate",

@@ -359,7 +359,12 @@ object DialIndicator {
 private const val IDLE_MS = 3_600L
 
 @Composable
-fun DialIndicatorFigure(palette: Palette, reducedMotion: Boolean, modifier: Modifier = Modifier) {
+fun DialIndicatorFigure(
+    palette: Palette,
+    reducedMotion: Boolean,
+    modifier: Modifier = Modifier,
+    isOnScreen: () -> Boolean = { true },
+) {
     val d = DialIndicator
     val state = remember {
         object {
@@ -377,7 +382,7 @@ fun DialIndicatorFigure(palette: Palette, reducedMotion: Boolean, modifier: Modi
     var touches by remember { mutableIntStateOf(0) }
     if (reducedMotion) state.touring = false
     val kick =
-        rememberFrameLoop(reducedMotion) { dt, calm ->
+        rememberFrameLoop(reducedMotion, isOnScreen) { dt, calm ->
             val s = state
             if (s.touring) {
                 s.clock += dt
@@ -391,7 +396,7 @@ fun DialIndicatorFigure(palette: Palette, reducedMotion: Boolean, modifier: Modi
             tipAt = s.tip.at
             s.touring || s.x != s.target || !settled
         }
-    LaunchedEffect(touches) {
+    LaunchedEffect(touches, reducedMotion) {
         if (touches == 0) return@LaunchedEffect
         delay(IDLE_MS)
         if (!reducedMotion) {

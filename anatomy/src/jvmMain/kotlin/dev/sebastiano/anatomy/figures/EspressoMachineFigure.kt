@@ -110,18 +110,23 @@ internal class EspressoState {
 }
 
 @Composable
-fun EspressoMachineFigure(palette: Palette, reducedMotion: Boolean, modifier: Modifier = Modifier) {
+fun EspressoMachineFigure(
+    palette: Palette,
+    reducedMotion: Boolean,
+    modifier: Modifier = Modifier,
+    isOnScreen: () -> Boolean = { true },
+) {
     val state = remember { EspressoState() }
     var readout by remember { mutableStateOf(Espresso.readoutOf(state.shot, state.boiler)) }
     var touches by remember { mutableIntStateOf(0) }
     if (reducedMotion) state.touring = false
     val kick =
-        rememberFrameLoop(reducedMotion) { dt, calm ->
+        rememberFrameLoop(reducedMotion, isOnScreen) { dt, calm ->
             val more = state.tick(dt, calm)
             readout = Espresso.readoutOf(state.shot, state.boiler)
             more
         }
-    LaunchedEffect(touches) {
+    LaunchedEffect(touches, reducedMotion) {
         if (touches == 0) return@LaunchedEffect
         delay(IDLE_MS)
         if (!reducedMotion) {

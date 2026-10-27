@@ -13,10 +13,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -63,17 +66,19 @@ fun FigureContent(
     palette: Palette,
     reducedMotion: Boolean,
     modifier: Modifier = Modifier,
+    isOnScreen: () -> Boolean = { true },
 ) {
     when (figure) {
-        Figure.DialIndicator -> DialIndicatorFigure(palette, reducedMotion, modifier)
-        Figure.TokenBucket -> TokenBucketFigure(palette, reducedMotion, modifier)
-        Figure.BunsenBurner -> BunsenBurnerFigure(palette, reducedMotion, modifier)
-        Figure.EspressoMachine -> EspressoMachineFigure(palette, reducedMotion, modifier)
-        Figure.TurningDial -> TurningDialFigure(palette, reducedMotion, modifier)
-        Figure.RaptorEngine -> RaptorEngineFigure(palette, reducedMotion, modifier)
-        Figure.DeskComputer -> DeskComputerFigure(palette, reducedMotion, modifier)
-        Figure.ArcadeCabinet -> ArcadeCabinetFigure(palette, reducedMotion, modifier)
-        Figure.SpotPlate -> SpotPlateFigure(palette, reducedMotion, modifier)
+        Figure.DialIndicator -> DialIndicatorFigure(palette, reducedMotion, modifier, isOnScreen)
+        Figure.TokenBucket -> TokenBucketFigure(palette, reducedMotion, modifier, isOnScreen)
+        Figure.BunsenBurner -> BunsenBurnerFigure(palette, reducedMotion, modifier, isOnScreen)
+        Figure.EspressoMachine ->
+            EspressoMachineFigure(palette, reducedMotion, modifier, isOnScreen)
+        Figure.TurningDial -> TurningDialFigure(palette, reducedMotion, modifier, isOnScreen)
+        Figure.RaptorEngine -> RaptorEngineFigure(palette, reducedMotion, modifier, isOnScreen)
+        Figure.DeskComputer -> DeskComputerFigure(palette, reducedMotion, modifier, isOnScreen)
+        Figure.ArcadeCabinet -> ArcadeCabinetFigure(palette, reducedMotion, modifier, isOnScreen)
+        Figure.SpotPlate -> SpotPlateFigure(palette, reducedMotion, modifier, isOnScreen)
     }
 }
 
@@ -94,11 +99,17 @@ fun App(modifier: Modifier = Modifier) {
             ) {
                 Header(dark, { dark = it }, reduced, { reduced = it }, palette)
                 for (figure in Figure.entries) {
+                    // Every card stays composed, so it keeps its state, but a card scrolled out of
+                    // the window pauses its frame loop and leaves the frame budget to the others.
+                    val onScreen = remember { mutableStateOf(true) }
                     FigureContent(
                         figure,
                         palette,
                         reduced,
-                        Modifier.fillMaxWidth().testTag(AnatomyTags.figure(figure)),
+                        Modifier.fillMaxWidth()
+                            .testTag(AnatomyTags.figure(figure))
+                            .onGloballyPositioned { onScreen.value = !it.boundsInWindow().isEmpty },
+                        isOnScreen = { onScreen.value },
                     )
                 }
             }

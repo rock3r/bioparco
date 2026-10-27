@@ -40,7 +40,12 @@ import dev.sebastiano.anatomy.kit.Plate
 import kotlinx.coroutines.delay
 
 @Composable
-fun ArcadeCabinetFigure(palette: Palette, reducedMotion: Boolean, modifier: Modifier = Modifier) {
+fun ArcadeCabinetFigure(
+    palette: Palette,
+    reducedMotion: Boolean,
+    modifier: Modifier = Modifier,
+    isOnScreen: () -> Boolean = { true },
+) {
     val live = remember { ArcadeMachine() }
     val paint = remember(palette) { ArcadePaint(palette) }
     var frame by remember { mutableLongStateOf(0L) }
@@ -49,14 +54,14 @@ fun ArcadeCabinetFigure(palette: Palette, reducedMotion: Boolean, modifier: Modi
     var status by remember { mutableStateOf("Off. Insert a coin.") }
     val focus = remember { FocusRequester() }
     val kick =
-        dev.sebastiano.anatomy.kit.rememberFrameLoop(reducedMotion) { dt, calm ->
+        dev.sebastiano.anatomy.kit.rememberFrameLoop(reducedMotion, isOnScreen) { dt, calm ->
             val busy = live.tick(dt, calm)
             frame++
             readout = arcadeSay(live, live.picture())
             status = live.status
             busy
         }
-    LaunchedEffect(touches) {
+    LaunchedEffect(touches, reducedMotion) {
         if (touches == 0) return@LaunchedEffect
         delay(12_000)
         if (!reducedMotion) {
