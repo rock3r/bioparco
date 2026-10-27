@@ -67,7 +67,15 @@ class CurrencySwarmRecordingTest {
                     }
                 }
 
+                /**
+                 * Parks the pointer in the stage's corner, clear of the dots. The sign waits while
+                 * the pointer is over the stage, so the next change is the script's, however slow
+                 * the machine: without this, the sign moves on by itself 2.85 s after it set off.
+                 */
+                suspend fun park() = automator.moveTo(bounds.x + 12, bounds.y + 12)
+
                 expect("Indian rupee")
+                park()
                 delay(2_000)
                 // A slow pass through the sign: the dots part around the pointer and close behind.
                 // The sign waits while the pointer is over it.
@@ -78,6 +86,7 @@ class CurrencySwarmRecordingTest {
                 // Off the dots, the sign heals, then moves on by itself.
                 automator.moveTo(bounds.x + bounds.width / 2, bounds.y + bounds.height + 140)
                 expect("US dollar")
+                park()
                 delay(2_000)
 
                 // A click sends the dots on; an arrow key half a second later turns them
@@ -98,6 +107,7 @@ class CurrencySwarmRecordingTest {
                 // Back to the rupee from its chip, then one step back with ←.
                 automator.click(automator.waitForNode(tag = SwarmTags.chip("INR")))
                 expect("Indian rupee")
+                park()
                 delay(2_000)
                 automator.pressKey(KeyEvent.VK_LEFT)
                 expect("Japanese yen")
