@@ -123,6 +123,7 @@ Working on `main` is allowed only when the owner has said so for that task.
 ./gradlew :hairline:run
 ./gradlew :departure-board:run
 ./gradlew :holo-card:run
+./gradlew :wheel-picker:run
 ./gradlew :recordings:recordSpecimens
 ```
 

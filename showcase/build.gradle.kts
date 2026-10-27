@@ -30,6 +30,7 @@ kotlin {
             implementation(project(":hairline"))
             implementation(project(":departure-board"))
             implementation(project(":holo-card"))
+            implementation(project(":wheel-picker"))
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)

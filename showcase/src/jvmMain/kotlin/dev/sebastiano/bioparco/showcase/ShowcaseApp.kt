@@ -33,6 +33,7 @@ import dev.sebastiano.peelsticker.App as PeelStickerApp
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
 import dev.sebastiano.scrolleffects.App as ScrollEffectsApp
 import dev.sebastiano.thinkingorbs.App as ThinkingOrbsApp
+import dev.sebastiano.wheelpicker.App as WheelPickerApp
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.DefaultButton
 import org.jetbrains.jewel.ui.component.OutlinedButton
@@ -55,6 +56,7 @@ private enum class SpecimenRoute {
     Hairline,
     DepartureBoard,
     HoloCard,
+    WheelPicker,
 }
 
 @Composable
@@ -80,6 +82,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenHairline = { route = SpecimenRoute.Hairline },
                     onOpenDepartureBoard = { route = SpecimenRoute.DepartureBoard },
                     onOpenHoloCard = { route = SpecimenRoute.HoloCard },
+                    onOpenWheelPicker = { route = SpecimenRoute.WheelPicker },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -194,6 +197,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     HoloCardApp()
                 }
+            SpecimenRoute.WheelPicker ->
+                SpecimenHost(
+                    title = "Wheel picker",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    WheelPickerApp()
+                }
         }
     }
 }
@@ -214,6 +225,7 @@ private fun Catalog(
     onOpenHairline: () -> Unit,
     onOpenDepartureBoard: () -> Unit,
     onOpenHoloCard: () -> Unit,
+    onOpenWheelPicker: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -330,6 +342,14 @@ private fun Catalog(
                     "mascot shifts colour as it turns. After Ann Nguyen (@ann_nnng).",
             testTag = "open-holo-card",
             onOpen = onOpenHoloCard,
+        )
+        SpecimenCard(
+            name = "Wheel picker",
+            summary =
+                "A duration ruler wrapped around a drum: ticks squeeze, fade and split into " +
+                    "colour at the edges, and the readout rolls. After Alex (@a_cucos).",
+            testTag = "open-wheel-picker",
+            onOpen = onOpenWheelPicker,
         )
     }
 }
