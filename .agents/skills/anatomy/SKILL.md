@@ -1,0 +1,272 @@
+---
+name: anatomy
+description: >
+  Build crafted, highly detailed, interactive isometric figures in Compose that explain a technical
+  idea as a real physical object (a test rig, a dial gauge, a cabinet of drawers, a plotter, a lock),
+  with many small precise solid parts, four-tone shading, correct painter's order, a framed card with
+  title, hint and live readout, and calm eased motion. Use whenever someone in this repository asks
+  for an isometric illustration, an explanatory figure or diagram, an interactive explainer, or a
+  drawing that shows how a system, algorithm or component works, even if they never say isometric,
+  and for any change to the `:anatomy` module's kit or figures.
+---
+
+# Anatomy
+
+Adapted from Ryan's [Anatomy](https://github.com/wheresryan22/anatomy) skill (MIT, see
+`anatomy/LICENSE`) for the Compose port of its kit in `:anatomy`.
+
+This skill makes figures like a small instrument on a bench: a heavy base on feet, rails with tick
+rulers, a carriage on bushings, knurled knobs, coil springs, a dial gauge whose needle moves, screws
+as tiny dots. The reader understands the idea because they recognise the machine. Every number the
+figure shows comes from the same model that moves its parts.
+
+Open the closest example before you start, in `anatomy/src/jvmMain/kotlin/dev/sebastiano/anatomy/figures/`:
+
+- `DialIndicator.kt`, a dial gauge on a stand over a carriage of gauge blocks, about 400 lines. It is
+  a line-for-line port of the original's smallest example and `ParityTest` proves it draws the same
+  paths.
+- `TokenBucket.kt`, a token dispenser explaining a token bucket rate limiter: a feed wheel refills a
+  magazine of eight at one token a second, and each request pushes one out or strokes empty. It was
+  made from the one-line prompt by an agent using only this skill. It is the reference for a model
+  class with tests, static art split into layers around moving parts, repeated parts drawn at several
+  offsets, and discrete events (requests, falling tokens) that come and go.
+- `Raptor*.kt`, a Raptor 2 hanging in a test stand, a line-for-line port of the original's largest
+  example held to it by `RaptorParityTest`. It is the reference for dense pipework, turned parts,
+  exploded views (staggered springs, per-frame depth re-sorting, `ride`, selection) and the audit.
+  Its recording helpers live in the kit as `PartRecorder` (`kit/audit/Parts.kt` and
+  `PartsPipes.kt`): draw and record every part through them (see `references/audit.md`).
+- `DeskComputer.kt`, `DeskKeys.kt`, `DeskScreen.kt` and `DeskRender.kt`, the original's desk
+  computer held to both committed built pages by `DeskParityTest`. It is the reference for nested
+  recess walls and clips in a side-face plane, palette-backed fills, measured screen text and a
+  cursor, with 58 keycaps driven by a plain input/power/tour model (`DeskModel.kt`).
+
+- `Arcade*.kt`, Fig 8: the original's arcade cabinet, held to all 349 settled items and 15 routes
+  by `ArcadeParityTest`. It combines recorded concave panels/cables with face-local bitmap art,
+  quarter physics, switch-wire springs, cable pulses, CRT warm-up/self-test/attract states and
+  joystick microswitches. `ArcadeMachine` is the tested live model; `ArcadePaint` paints cached
+  geometry and reads each frame only inside `IsoCanvas`.
+
+- `Spot*.kt`, Fig 11: the original's spot plate, held to 26,764 golden lines from its TypeScript
+  by `SpotPlateParityTest`. Six glass pairs share one distance field per pair, with Float32
+  marching squares, quarter-pixel contour keys and a special tangent pose. `SpotMotion` drives
+  the feeler fan and all pairs with one double-eased merge control. It is the reference for
+  shapes that run together, concave glass shading and optical highlights, and one control
+  driving many parts. Use `capture --turn merge=16.25` to hold a threshold pose.
+
+The original's other examples (ripple tank and test rig) are worth reading for design even though
+they are JavaScript:
+https://github.com/wheresryan22/anatomy/tree/main/examples. The test rig is the quality bar.
+
+## The one idea that matters
+
+**The object is the explanation.** Don't draw boxes, arrows and labels. Invent a real, well-made
+physical thing whose working *is* the concept. Here is how earlier figures mapped:
+
+| Concept | Object |
+|---|---|
+| One shared GPU context serving many canvases | A gantry plotter: one print head visiting 16 wells |
+| A cache key that skips work when nothing changed | A pin-tumbler lock: when every pin matches, the plug turns and nothing is redrawn |
+| Seven render targets with different bytes per texel | A chest of seven drawers, each as deep as its bytes |
+| A separable blur (49 × 49 taps vs 49 + 49) | A bed-of-nails stamp beside two combs on rails |
+| A spring that presses and leans | A test rig with springs, a probe and a dial gauge |
+| A height profile | A profile (contour) gauge pressed against the edge |
+| Light that depends on facing | A small photo studio: key and fill lamps around a turntable |
+
+Two ways this fails, both seen in practice:
+
+- **Too abstract.** Stacked plates, floating slabs or labelled boxes don't read as anything.
+- **Too flat and bland.** One big slab with a few lines on it has no volume, no parts and nothing
+  to discover.
+
+The fix for both is the same: a recognisable machine, built from many small, precise, purposeful
+parts.
+
+**Every creation is highly detailed**, however small the idea or the request: a quick explainer is
+still a dense, real machine, never a few slabs.
+- **Read the real thing.** Build it the way the real object is built: every screw, seam, bevel,
+  bushing, label plate, scale with its ticks, and the parts that hold the parts.
+- **Two looks.** At 1× it reads as one clear machine. At 4× every region still has something true to
+  find; a bare face or an empty corner is unfinished work, not calm.
+- **Purposeful, never noise.** Detail comes from parts that belong to the mechanism. Each one sits on
+  another part and ends on an edge.
+- **Check it last.** Before you finish, capture 4× close-ups over the subject and mechanism and add
+  the real parts that are missing wherever a region is plain.
+
+## What the Compose kit can draw
+
+The kit is a port of the original's: floor prisms (`slabOf`, `cylinder`, `extrude`) with four-tone
+shading, lines and ticks on faces, knurls, coils, seams, dots, wires, face text, halos and groups
+that move; turned parts on any axis with smooth shading (`lathe`, `solidOf`, `disc`, `bandsOf`,
+`sphereOf`, `rodOut`, …); pipes, hoses and cables (`tubePieces`); a shader layer for fire, water and
+light (`drawShader`); the geometry audit (`Recorder`, `settle`, `audit`); and the line-end check.
+Each is held to the original's own output by a parity test. The original's beta 3D mode is ported
+too: see "3D: figures that turn (beta)" below.
+
+- Round parts: `references/kit.md` section 10 and `references/craft.md`, "Round parts and pipes".
+- Pipes and cables: `references/kit.md` section 11. Route them as `craft.md` says, record them, and
+  let the audit prove that nothing passes through anything.
+- Shaders: read `references/shaders.md` before writing one.
+- The audit: `references/audit.md`. Once a figure has pipes, cables or round parts, record every
+  item's true shape, `settle` the painter's order from geometry, and run `--audit` to zero.
+
+## 3D: figures that turn (beta)
+
+3D is an option like the shader layer. Use it when a part moving in depth is the idea: a dial or
+turntable that turns, fingers that flex, a piece that breaks off and falls. The rest of the figure
+stays static kit art. The turning dial (`figures/TurningDial*.kt`, Fig 5) is the worked example.
+
+It is in beta: the original's engine is proved on its example and one test figure, not yet on a
+production figure. Turn one subject at a time and keep the clutter around it static.
+
+- **Live parts are the kit's own picture.** Each frame, convex kit primitives (prisms, rounds,
+  domes, balls with flats, lathes, tubes) are re-projected and re-shaded by the kit's rules. A turn
+  by θ is the kit drawing at azimuth `a − θ`.
+- **Order comes from separating planes.** Same-group pairs get a plane fixed in the group, pairs on
+  different links one fixed in their common frame, and the rest are solved each frame. The audit
+  proves there are no cycles at any angle or in any clip frame.
+- **Contacts are flush, tangent or rim-on-flat.** Joints are coaxial knuckle discs on the child
+  group that touch the parent's link, or the audit calls the whole child group loose. No live line
+  spans two moving groups.
+- **Live tubes bend in near-horizontal planes or inside fittings, and never point along the
+  view.** A bend needs R ≥ 2r / sin²(e − θmax), where θmax includes the pitch range of every hinge
+  it rides: 8r when flat, 21r on a ±12° hinge.
+- **Materials remap the ramp.** Gold, chrome, steel, gunmetal, rubber, brass and copper each have a
+  light and a dark set; tones still come from facing.
+- **Shaders follow the motion.** Anchor them with `controller.anchor` or `toGroup`, occlude them
+  with `coverOf`, and keep world effects out of group space.
+- **Verify with `capture --audit`** (`turn audit passed`), `--turn` shots at many angles and
+  `--lines`. Iterate with `--audit --quick`; only a full run proves the figure, and it takes
+  minutes, so run it in the background.
+
+Read `references/3d.md` first.
+
+## Workflow
+
+Work in this order. Write the concept and the parts list before any geometry. Most of the quality
+is decided there.
+
+1. **Size it before you start.** Tell the user which size the request is and roughly how long it
+   will take, before any other work.
+   - **Figure**: one mechanism, 40–80 parts. About 30–90 minutes. Build it without asking.
+   - **Hero**: a dense object, 80–150 parts. About 2–4 hours. Say so, then build it unless the user
+     asked for something quick.
+   - **Epic**: a whole vehicle, building or plant with many moving systems. Do not start it. Give the
+     estimate, propose a Hero version that keeps the core of the idea, and list what the full version
+     would add.
+   - Whatever the size, have a figure that renders with `capture` within the first hour, and deepen it
+     from there. Run `date` at the start and at each step, and when a step runs past twice its share of
+     the estimate, tell the user where it stands and what is left.
+2. **Truth first.** Collect the real numbers and behaviour of the thing being explained: sizes,
+   counts, thresholds, curves. The readout, motion and caption must all be true. Write the model as
+   small pure functions (`heightUnder`, `blockUnder`, `readoutOf` in the dial indicator) and drive
+   everything from them. Per the repo's TDD rule, test the model's behaviour first; never freeze
+   animation constants in tests.
+3. **Invent the object.** Pick a machine, tool, instrument or piece of furniture whose mechanism maps
+   one-to-one onto the concept. Say in one sentence what moves and what that motion means. Never copy
+   a reference image: take its finish, not its object.
+4. **Parts list.** Write at least 40 parts (40–80 for a Figure, 80–150 for a Hero), grouped: base
+   (plate, feet, groove, corner screws, label plate, ruler strip), structure (posts, rails, frame bars,
+   end stops), mechanism (carriage, bushings, springs, plunger, needle), controls (knurled knob, thumb
+   screw, crown) and the subject itself, which is the one lit part. Each part sits on another part.
+   `references/craft.md` has a vocabulary of parts with recipes.
+5. **Plan the world.** Use world units of about 1 px of the real thing: x and y on the floor, z up.
+   Lay out plans as rounded rectangles `Plan(x, y, w, d, r)` and circles. Choose the camera: azimuth
+   45° by default, 35–60° to show the long side, elevation 30° (higher, up to about 44°, to look into
+   something open). Then fit with `fitProjection(points, width, height, pad, azimuth = …)`. Plan the
+   proportions for the card: the viewBox is about 600 × 380, so a tall object is fitted by its height
+   and comes out narrow. Measure how much of the card's *width* it fills (aim for 55–65%); if it is
+   height-bound, lower the tallest parts, or turn the long side toward the viewer, rather than
+   shrinking `pad`.
+6. **Build geometry once.** Put the figure in one file under
+   `anatomy/src/jvmMain/kotlin/dev/sebastiano/anatomy/figures/`. An `object` holds the constants,
+   the projection `P` and the static `ART`, built once with `art { … }` from the kit (`slabOf`,
+   `cylinder`, `extrude`, `planOutline`, `topTicks`, `knurl`, `coil`, `radialTicks` and so on).
+   Moving parts are built once at a rest position inside `group("name") { … }` and moved with
+   `translateAlong`. Only parts whose shape changes (a needle turning, a coil compressing) are rebuilt
+   per frame and drawn with the scope's `solid`, `line`, `dots` and `faceText`.
+   - **Split the file by job** once it grows: a pure model class (the truth, tested), an `object` for
+     the geometry and art, and one for timing (tour, envelopes, readout). Detekt allows 20 functions
+     per object and per file, and a Figure of 40–80 parts outgrows one object.
+   - **Layers.** `drawArt` paints a whole `Art` in order, so when a moving part sits between static
+     parts, split the static art into layers (`BASE`, `BACK`, `FRONT`, …) and draw the moving parts
+     between them. A part that appears several times at once (tokens on a tray, coins in a chute) is
+     one `Art` drawn at each copy's offset with `drawArt(PART, offset)`.
+7. **Paint back to front, bottom to top.** Sort repeated parts with `depthOf`. Split anything that
+   wraps another part into a back half and a front half: the springs around a rod (`coil` returns
+   both), the bars of a frame around a carriage. A moving part is drawn in the slot where it
+   physically sits. See "Painter's order" in `references/craft.md`.
+8. **Frame it.** Put the figure in a `Plate`: `Fig n` at top left, a short title at top right, the
+   interaction hint at bottom left and the live readout at bottom right. Legend keys and a true
+   caption go under the card, and words stay out of the drawing apart from at most one tiny engraved
+   label (`faceText`).
+9. **Make it live.** Calm, time-based motion: `follow` or real `spring`s in a `rememberFrameLoop`. An
+   idle tour loops when nobody touches it. The figure answers the pointer and the keyboard, stops when
+   settled, and goes still under reduced motion. The loop writes snapshot state that only the canvas
+   reads, so motion redraws and never recomposes. See `references/motion.md`.
+10. **Register it.** Add an entry to `Figure` and `FigureContent` in `App.kt`, and a row to the table in
+    `anatomy/README.md`. Number it `Fig n` in page order.
+11. **Verify like a critic.** The owner finds faults by zooming in, so you zoom in first. Read every
+    PNG you make with `view_media` (or open it).
+    - Capture the card in light and dark, at 650 and 390 wide, under the pointer, and at several moments
+      of the tour with `./gradlew :anatomy:capture`. Commands are in `references/verify.md`.
+    - **4× close-ups of every junction in both themes**: every place a part sits on another, every
+      crossing, every moving part at both ends of its travel, every knurl, tick row and seam.
+    - **Run the line check to zero.** `capture --lines` must report `line ends: 0` in both themes and
+      in every resting pose: every seam, rule, rib, tick and pointer ends on a stroke, a dot or an
+      outline. Read the ringed PNG.
+    - **Run the audit to zero** for any figure with pipes, cables or round parts: `capture --audit`
+      must end `audit passed`. Fix an interlock in the geometry, never with a key bias.
+    - **Painter's order.** At every pose, nearer parts cover farther ones and nothing sinks into
+      anything.
+    - Put your PNG next to the dial indicator and ask: is it instantly a real object, rich in small parts
+      with volume, with every line ending on something? Is it highly detailed at 1× and still rewarding
+      at 4×, with no bare face or empty corner? Iterate until yes. Checklist: `references/verify.md`.
+    - Finish with `./gradlew check` (Detekt, ktfmt, tests).
+
+## Craft rules (short form)
+
+These are the rules that separate a crafted figure from a diagram. `references/craft.md` gives the
+full reasoning and recipes.
+
+- **Solids, not wireframes.** Every part is filled in paper colour and painted in order, so things in
+  front hide things behind. No see-through edges and no dashed hidden lines.
+- **Let the kit shade.** `extrude` returns four side tones by facing plus a lighter top. Keep it for
+  anything with height, and use `flat = true` only for floors and inlays thinner than 1 unit.
+- **Tone hierarchy.** Base and feet are `Lo`, structure is `Mid` and the subject is `Hi`. Exactly one
+  accent is `lit` (white in dark, black in light): the part the reader should watch. Grooves are
+  `Faint`, minor ticks `Lo`, major ticks `Mid` and the zero mark `Hi`. Use colour only when colour is
+  the subject, such as red, green and blue channels.
+- **Small precise detail, never noise.** Use bevels of 0.4–1.6, grooves inset 3–5 from an edge, screws
+  as 0.4–0.55 dots with a ring at the corners of plates, knurls on knobs, ruler ticks every 4–5 units
+  with a major every 5th, and a label plate with three rule lines. Each detail belongs to a part.
+- **Lines resolve.** Every line ends on something: a face, another line or a terminal dot. Connectors
+  are `wire`s whose terminal dots land on objects. There are no leader lines, balloons, dimension
+  arrows or labels floating in the air. Only rule lines that stand for printed text, a needle's tail
+  and a pointer's tip may stop on a bare face (mark them `free`).
+- **Nothing passes through anything.** Parts meet flush, tangent or rim-on-surface, never sunk in. A
+  wire keeps clear of everything but its own two ends, and runs beside the structure rather than
+  across the subject's face.
+- **A texture ends on a real edge or fades.** Seams on a box wrap its corners (`sideSeam`, drawn as the
+  slab's `inner`), ticks hang from a ruler strip's edge, a line on one face runs edge to edge, vents
+  are closed outlines, and a single line that must stop ramps out with `fadeLine`.
+- **Things on faces fit them.** Text a machine displays fits its window at its widest string.
+- **Volume.** Give things real thickness, make them stand on other things, and put a soft `halo`
+  under the base and under anything lifted.
+- **Composition.** Centre the figure and let it fill about 55–65% of the card. Keep a consistent scale
+  across a set of figures, and make sure it still reads at 390 wide.
+
+## References
+
+Read these as you need them:
+
+- `references/craft.md`: the look in depth: what "crafted" means, the anti-patterns that got figures
+  rejected, the parts vocabulary with Kotlin recipes, tones, painter's order, camera and composition,
+  themes, exploded views.
+- `references/kit.md`: the Kotlin API, with signatures, and how it maps to the original's.
+- `references/motion.md`: live behaviour in Compose: the frame loop, springs, tours, pointer,
+  keyboard, accessibility, reduced motion, envelopes for one-shot events, exploded views.
+- `references/verify.md`: the `capture` commands, the line check and the review checklist.
+- `references/audit.md`: recording a figure's true shapes, settling painter's order, and the audit.
+- `references/shaders.md`: the shader layer: camera contract, layers, inks for light and dark.
+- `references/3d.md`: turning groups: parts that turn, hinge and break off, the runtime and the
+  orbit audit.

@@ -27,6 +27,9 @@ dependencies {
     implementation(project(":departure-board"))
     implementation(project(":holo-card"))
     implementation(project(":wheel-picker"))
+    implementation(project(":thinking-bloom"))
+    implementation(project(":squeeze-progress"))
+    implementation(project(":anatomy"))
     implementation(project(":currency-swarm"))
     implementation(project(":tracing"))
 

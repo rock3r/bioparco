@@ -114,7 +114,6 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 ![Departure board](https://static.sebastiano.dev/stable/bioparco/departure-board.webp)
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/departure-board.mp4)
-
 ### [Holo card](holo-card/)
 
 **Seb** · [Ann Nguyen](https://x.com/ann_nnng)’s [holo 3D card effect](https://x.com/ann_nnng/status/2108122086569136417)
@@ -130,6 +129,30 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 ![Wheel picker](https://static.sebastiano.dev/stable/bioparco/wheel-picker.webp)
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/wheel-picker.mp4)
+
+### [Thinking bloom](thinking-bloom/)
+
+**Seb** · daniel petho ([@nonzeroexitcode](https://x.com/nonzeroexitcode))’s [shimmering “Thinking…”](https://x.com/nonzeroexitcode/status/2105042956583670154)
+
+![Thinking bloom](https://static.sebastiano.dev/stable/bioparco/thinking-bloom.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/thinking-bloom.mp4)
+
+### [Squeeze progress](squeeze-progress/)
+
+**Seb** · [Petar Cirkovic](https://x.com/kippe07)’s [squeezing progress bar](https://x.com/kippe07/status/2105216988855542196)
+
+![Squeeze progress](https://static.sebastiano.dev/stable/bioparco/squeeze-progress.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/squeeze-progress.mp4)
+
+### [Anatomy](anatomy/)
+
+**Chris** · Ryan’s [Anatomy](https://github.com/wheresryan22/anatomy) (MIT): the kit, the figures and an agent skill that makes new ones
+
+![Anatomy](https://static.sebastiano.dev/stable/bioparco/anatomy.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/anatomy.mp4)
 
 ### [Currency swarm](currency-swarm/)
 
@@ -170,6 +193,10 @@ Run a specimen directly with its module task:
 ./gradlew :departure-board:run
 ./gradlew :holo-card:run
 ./gradlew :wheel-picker:run
+./gradlew :thinking-bloom:run
+./gradlew :squeeze-progress:run
+./gradlew :anatomy:run
+
 ./gradlew :currency-swarm:run
 ...
 ```

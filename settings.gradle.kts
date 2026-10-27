@@ -57,6 +57,12 @@ include(":holo-card")
 
 include(":wheel-picker")
 
+include(":thinking-bloom")
+
+include(":squeeze-progress")
+
+include(":anatomy")
+
 include(":currency-swarm")
 
 include(":tracing")
