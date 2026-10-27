@@ -37,7 +37,8 @@ internal fun BloomStage(word: String, modifier: Modifier = Modifier) {
         val density = LocalDensity.current
         val measurer = rememberTextMeasurer()
         val base = JewelTheme.defaultTextStyle.copy(fontWeight = FontWeight.Medium)
-        // Fit the label to the stage, in whole pixels so a resize does not rebuild it every step.
+        // Fit the label to the stage, in whole pixels so a resize does not rebuild it every step,
+        // and never below a readable size: a very narrow stage clips the label instead.
         val fontPx =
             with(density) {
                 val wanted = FONT_SIZE.toPx()
@@ -45,6 +46,7 @@ internal fun BloomStage(word: String, modifier: Modifier = Modifier) {
                 val natural =
                     measurer.measure(word + ".".repeat(DOTS), base.copy(fontSize = FONT_SIZE))
                 floor(wanted * minOf(1f, room / natural.size.width.coerceAtLeast(1)))
+                    .coerceAtLeast(MIN_FONT.toPx())
             }
         val style =
             with(density) {
@@ -144,6 +146,7 @@ private fun dotCentre(label: BloomLabel, index: Int): Float =
     (label.dotX[index] + label.dot.size.width / 2f) / label.width
 
 private val FONT_SIZE = 112.sp
+private val MIN_FONT = 12.sp
 private const val FILL = 0.84f
 private const val LETTER_SPACING = -0.01f
 private const val NANOS = 1_000_000_000f

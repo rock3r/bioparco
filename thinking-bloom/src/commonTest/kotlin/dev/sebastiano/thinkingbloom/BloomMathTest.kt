@@ -84,6 +84,12 @@ class BloomMathTest {
     }
 
     @Test
+    fun `scattering with no spacing scatters nothing instead of looping forever`() {
+        assertTrue(scatter(10, 10, spacing = 0f, random = Random(1)) { _, _ -> true }.isEmpty())
+        assertTrue(scatter(10, 10, spacing = -1f, random = Random(1)) { _, _ -> true }.isEmpty())
+    }
+
+    @Test
     fun `scattering is the same for the same seed`() {
         val first = scatter(80, 40, spacing = 6f, random = Random(3)) { x, _ -> x > 20f }
         val second = scatter(80, 40, spacing = 6f, random = Random(3)) { x, _ -> x > 20f }

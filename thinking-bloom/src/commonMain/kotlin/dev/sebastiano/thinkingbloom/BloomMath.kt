@@ -88,7 +88,8 @@ internal data class Spot(val x: Float, val y: Float)
 
 /**
  * Jittered-grid points over a [width] by [height] area, at most one per [spacing]-sized cell,
- * keeping those [inside] the shape. Even coverage without the clumps of plain random points.
+ * keeping those [inside] the shape. Even coverage without the clumps of plain random points. No
+ * spacing, as from a zero font size, scatters nothing.
  */
 internal fun scatter(
     width: Int,
@@ -97,6 +98,7 @@ internal fun scatter(
     random: Random,
     inside: (x: Float, y: Float) -> Boolean,
 ): List<Spot> {
+    if (spacing <= 0f) return emptyList()
     val columns = ceil(width / spacing).toInt()
     val rows = ceil(height / spacing).toInt()
     val spots = ArrayList<Spot>()
