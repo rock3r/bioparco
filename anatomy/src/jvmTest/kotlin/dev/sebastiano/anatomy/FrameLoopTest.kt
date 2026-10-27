@@ -54,6 +54,37 @@ class FrameLoopTest {
         }
     }
 
+    @Test
+    fun `a loop that settled under reduced motion moves again when it is turned off`() {
+        val calm = mutableStateOf(true)
+        var ticks = 0
+        val scene = ImageComposeScene(40, 40, Density(1f))
+        try {
+            scene.setContent {
+                // Like a flame: still while calm, always moving otherwise.
+                rememberFrameLoop(calm = calm.value) { _, isCalm ->
+                    ticks++
+                    !isCalm
+                }
+            }
+            var time = 0L
+            fun frames(count: Int) =
+                repeat(count) {
+                    time += FRAME
+                    scene.render(time)
+                }
+
+            frames(5)
+            assertEquals(1, ticks, "a calm loop settles on its first frame")
+
+            calm.value = false
+            frames(10)
+            assertTrue(ticks >= 9, "expected the loop to start again, got ${ticks - 1} ticks")
+        } finally {
+            scene.close()
+        }
+    }
+
     private companion object {
         const val FRAME = 16_666_667L
     }

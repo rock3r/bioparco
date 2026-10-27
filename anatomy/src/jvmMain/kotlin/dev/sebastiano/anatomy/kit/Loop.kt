@@ -20,8 +20,9 @@ import kotlinx.coroutines.flow.first
  * [LONGEST_FRAME], for as long as it returns true. It starts on first composition and stops when
  * the figure leaves composition. While [isOnScreen] says no, it waits without asking for frames,
  * then carries on where it was, so a figure at rest or scrolled away costs nothing. [isOnScreen]
- * must read snapshot state, so the loop hears when it changes. Each step is a [trace] section. Call
- * the returned function to start the loop again after it settled.
+ * must read snapshot state, so the loop hears when it changes. Each step is a [trace] section. It
+ * starts again when [calm] changes, so a figure that settled under reduced motion moves once it is
+ * turned off. Call the returned function to start the loop again after it settled.
  */
 @Composable
 fun rememberFrameLoop(
@@ -35,7 +36,7 @@ fun rememberFrameLoop(
     val latestOnScreen by rememberUpdatedState(isOnScreen)
     var kicks by remember { mutableIntStateOf(1) }
     val running = remember { BooleanArray(1) }
-    LaunchedEffect(kicks) {
+    LaunchedEffect(kicks, calm) {
         running[0] = true
         var last = 0L
         try {
