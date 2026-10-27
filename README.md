@@ -107,6 +107,14 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/hairline.mp4)
 
+### [Departure board](departure-board/)
+
+**Seb** · [HASSCO](https://x.com/itshassco)’s [airport matrix clock](https://x.com/itshassco/status/2106761271282737292)
+
+![Departure board](https://static.sebastiano.dev/stable/bioparco/departure-board.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/departure-board.mp4)
+
 ### [Anatomy](anatomy/)
 
 **Chris** · Ryan’s [Anatomy](https://github.com/wheresryan22/anatomy) (MIT): the kit, the figures and an agent skill that makes new ones
@@ -143,6 +151,7 @@ Run a specimen directly with its module task:
 ./gradlew :peel-sticker:run
 ./gradlew :honeycomb:run
 ./gradlew :hairline:run
+./gradlew :departure-board:run
 ./gradlew :anatomy:run
 ...
 ```

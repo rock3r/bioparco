@@ -16,6 +16,7 @@ showcase  -->  grabby-stepper
           \->  peel-sticker
           \->  honeycomb
           \->  hairline
+          \->  departure-board
           \->  anatomy
 
 recordings --> grabby-stepper
@@ -30,6 +31,7 @@ recordings --> grabby-stepper
            \->  peel-sticker
            \->  honeycomb
            \->  hairline
+           \->  departure-board
            \->  anatomy
            \->  Spectre (Maven Central)
 
@@ -51,7 +53,8 @@ every specimen, showcase, recordings --> tracing --> androidx.tracing (Perfetto)
 | `:peel-sticker` | Specimen 10. Library + standalone `run`. |
 | `:honeycomb` | Specimen 11. Library + standalone `run`. |
 | `:hairline` | Specimen 12. Library + standalone `run`. |
-| `:anatomy` | Specimen 13. The Anatomy kit, its figures, and `capture` for PNG review. |
+| `:departure-board` | Specimen 13. Library + standalone `run`. |
+| `:anatomy` | Specimen 14. The Anatomy kit, its figures, and `capture` for PNG review. |
 | `:recordings` | Spectre-driven recording tests. Not part of `check`. |
 | `:tracing` | House module: Perfetto trace sections for any specimen, off unless asked for. See [TRACING.md](TRACING.md). |
 
