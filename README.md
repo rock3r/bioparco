@@ -123,6 +123,14 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/holo-card.mp4)
 
+### [Wheel picker](wheel-picker/)
+
+**Seb** · [Alex](https://x.com/a_cucos)’s [wheel picker with edge distortion](https://x.com/a_cucos/status/2104949571461829086)
+
+![Wheel picker](https://static.sebastiano.dev/stable/bioparco/wheel-picker.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/wheel-picker.mp4)
+
 ### [Thinking bloom](thinking-bloom/)
 
 **Seb** · daniel petho ([@nonzeroexitcode](https://x.com/nonzeroexitcode))’s [shimmering “Thinking…”](https://x.com/nonzeroexitcode/status/2105042956583670154)
@@ -161,6 +169,7 @@ Run a specimen directly with its module task:
 ./gradlew :hairline:run
 ./gradlew :departure-board:run
 ./gradlew :holo-card:run
+./gradlew :wheel-picker:run
 ./gradlew :thinking-bloom:run
 ...
 ```

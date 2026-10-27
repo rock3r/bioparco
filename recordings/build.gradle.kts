@@ -26,6 +26,7 @@ dependencies {
     implementation(project(":hairline"))
     implementation(project(":departure-board"))
     implementation(project(":holo-card"))
+    implementation(project(":wheel-picker"))
     implementation(project(":thinking-bloom"))
     implementation(project(":tracing"))
 

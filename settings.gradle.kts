@@ -55,6 +55,8 @@ include(":departure-board")
 
 include(":holo-card")
 
+include(":wheel-picker")
+
 include(":thinking-bloom")
 
 include(":tracing")
