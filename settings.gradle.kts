@@ -51,6 +51,8 @@ include(":honeycomb")
 
 include(":hairline")
 
+include(":wheel-picker")
+
 include(":tracing")
 
 include(":showcase")

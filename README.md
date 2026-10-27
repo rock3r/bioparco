@@ -107,6 +107,14 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/hairline.mp4)
 
+### [Wheel picker](wheel-picker/)
+
+**Seb** · [Alex](https://x.com/a_cucos)’s [wheel picker with edge distortion](https://x.com/a_cucos/status/2104949571461829086)
+
+![Wheel picker](https://static.sebastiano.dev/stable/bioparco/wheel-picker.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/wheel-picker.mp4)
+
 The recording job uses [Spectre](https://spectre.sebastiano.dev) to generate the clips.
 The animated WebP previews use lower quality settings. The MP4 links contain the full recordings.
 
@@ -135,6 +143,7 @@ Run a specimen directly with its module task:
 ./gradlew :peel-sticker:run
 ./gradlew :honeycomb:run
 ./gradlew :hairline:run
+./gradlew :wheel-picker:run
 ...
 ```
 
