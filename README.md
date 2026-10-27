@@ -107,6 +107,13 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/hairline.mp4)
 
+### [Departure board](departure-board/)
+
+**Seb** · [HASSCO](https://x.com/itshassco)’s [airport matrix clock](https://x.com/itshassco/status/2106761271282737292)
+
+![Departure board](https://static.sebastiano.dev/stable/bioparco/departure-board.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/departure-board.mp4)
 ### [Squeeze progress](squeeze-progress/)
 
 **Seb** · [Petar Cirkovic](https://x.com/kippe07)’s [squeezing progress bar](https://x.com/kippe07/status/2105216988855542196)
@@ -143,6 +150,7 @@ Run a specimen directly with its module task:
 ./gradlew :peel-sticker:run
 ./gradlew :honeycomb:run
 ./gradlew :hairline:run
+./gradlew :departure-board:run
 ./gradlew :squeeze-progress:run
 ...
 ```

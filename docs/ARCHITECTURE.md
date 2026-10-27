@@ -16,6 +16,7 @@ showcase  -->  grabby-stepper
           \->  peel-sticker
           \->  honeycomb
           \->  hairline
+          \->  departure-board
           \->  squeeze-progress
 
 recordings --> grabby-stepper
@@ -30,6 +31,7 @@ recordings --> grabby-stepper
            \->  peel-sticker
            \->  honeycomb
            \->  hairline
+           \->  departure-board
            \->  squeeze-progress
            \->  Spectre (Maven Central)
 
@@ -51,7 +53,8 @@ every specimen, showcase, recordings --> tracing --> androidx.tracing (Perfetto)
 | `:peel-sticker` | Specimen 10. Library + standalone `run`. |
 | `:honeycomb` | Specimen 11. Library + standalone `run`. |
 | `:hairline` | Specimen 12. Library + standalone `run`. |
-| `:squeeze-progress` | Specimen 13. Library + standalone `run`. |
+| `:departure-board` | Specimen 13. Library + standalone `run`. |
+| `:squeeze-progress` | Specimen 14. Library + standalone `run`. |
 | `:recordings` | Spectre-driven recording tests. Not part of `check`. |
 | `:tracing` | House module: Perfetto trace sections for any specimen, off unless asked for. See [TRACING.md](TRACING.md). |
 

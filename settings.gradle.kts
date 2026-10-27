@@ -51,6 +51,8 @@ include(":honeycomb")
 
 include(":hairline")
 
+include(":departure-board")
+
 include(":squeeze-progress")
 
 include(":tracing")
