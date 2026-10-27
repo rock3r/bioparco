@@ -20,6 +20,7 @@ showcase  -->  grabby-stepper
           \->  holo-card
           \->  wheel-picker
           \->  thinking-bloom
+          \->  squeeze-progress
 
 recordings --> grabby-stepper
            \->  chat-bubble-transition
@@ -37,6 +38,7 @@ recordings --> grabby-stepper
            \->  holo-card
            \->  wheel-picker
            \->  thinking-bloom
+           \->  squeeze-progress
            \->  Spectre (Maven Central)
 
 every specimen, showcase, recordings --> tracing --> androidx.tracing (Perfetto)
@@ -61,6 +63,7 @@ every specimen, showcase, recordings --> tracing --> androidx.tracing (Perfetto)
 | `:holo-card` | Specimen 14. Library + standalone `run`. |
 | `:wheel-picker` | Specimen 15. Library + standalone `run`. |
 | `:thinking-bloom` | Specimen 16. Library + standalone `run`. |
+| `:squeeze-progress` | Specimen 17. Library + standalone `run`. |
 | `:recordings` | Spectre-driven recording tests. Not part of `check`. |
 | `:tracing` | House module: Perfetto trace sections for any specimen, off unless asked for. See [TRACING.md](TRACING.md). |
 

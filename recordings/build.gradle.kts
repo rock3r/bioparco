@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":holo-card"))
     implementation(project(":wheel-picker"))
     implementation(project(":thinking-bloom"))
+    implementation(project(":squeeze-progress"))
     implementation(project(":tracing"))
 
     testImplementation(libs.junit.jupiter)

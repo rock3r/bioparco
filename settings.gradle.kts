@@ -59,6 +59,8 @@ include(":wheel-picker")
 
 include(":thinking-bloom")
 
+include(":squeeze-progress")
+
 include(":tracing")
 
 include(":showcase")

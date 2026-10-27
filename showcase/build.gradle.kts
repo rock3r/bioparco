@@ -32,6 +32,7 @@ kotlin {
             implementation(project(":holo-card"))
             implementation(project(":wheel-picker"))
             implementation(project(":thinking-bloom"))
+            implementation(project(":squeeze-progress"))
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
