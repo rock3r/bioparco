@@ -81,6 +81,10 @@ class RecordingPathsTest {
             dir.resolve("thinking-bloom.mp4"),
             RecordingPaths.file(RecordingPaths.THINKING_BLOOM, dir),
         )
+        assertEquals(
+            dir.resolve("squeeze-progress.mp4"),
+            RecordingPaths.file(RecordingPaths.SQUEEZE_PROGRESS, dir),
+        )
         assertEquals(dir.resolve("anatomy.mp4"), RecordingPaths.file(RecordingPaths.ANATOMY, dir))
     }
 
@@ -105,6 +109,7 @@ class RecordingPathsTest {
                 "holo-card.mp4",
                 "wheel-picker.mp4",
                 "thinking-bloom.mp4",
+                "squeeze-progress.mp4",
                 "anatomy.mp4",
             ),
             RecordingPaths.expectedNames(settings),
@@ -192,6 +197,7 @@ class RecordingPathsTest {
                 "holo-card.mp4",
                 "wheel-picker.mp4",
                 "thinking-bloom.mp4",
+                "squeeze-progress.mp4",
                 "anatomy.mp4",
             ),
             RecordingPaths.missingOutputs(dir),
@@ -212,6 +218,7 @@ class RecordingPathsTest {
         Files.write(dir.resolve("holo-card.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("wheel-picker.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("thinking-bloom.mp4"), ByteArray(2_000))
+        Files.write(dir.resolve("squeeze-progress.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("anatomy.mp4"), ByteArray(2_000))
         assertEquals(emptyList<String>(), RecordingPaths.missingOutputs(dir))
     }

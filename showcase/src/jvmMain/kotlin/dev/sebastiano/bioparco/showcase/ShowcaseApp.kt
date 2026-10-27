@@ -33,6 +33,7 @@ import dev.sebastiano.honeycomb.App as HoneycombApp
 import dev.sebastiano.peelsticker.App as PeelStickerApp
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
 import dev.sebastiano.scrolleffects.App as ScrollEffectsApp
+import dev.sebastiano.squeezeprogress.App as SqueezeProgressApp
 import dev.sebastiano.thinkingbloom.App as ThinkingBloomApp
 import dev.sebastiano.thinkingorbs.App as ThinkingOrbsApp
 import dev.sebastiano.wheelpicker.App as WheelPickerApp
@@ -60,6 +61,7 @@ private enum class SpecimenRoute {
     HoloCard,
     WheelPicker,
     ThinkingBloom,
+    SqueezeProgress,
     Anatomy,
 }
 
@@ -88,6 +90,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenHoloCard = { route = SpecimenRoute.HoloCard },
                     onOpenWheelPicker = { route = SpecimenRoute.WheelPicker },
                     onOpenThinkingBloom = { route = SpecimenRoute.ThinkingBloom },
+                    onOpenSqueezeProgress = { route = SpecimenRoute.SqueezeProgress },
                     onOpenAnatomy = { route = SpecimenRoute.Anatomy },
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -219,6 +222,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     ThinkingBloomApp()
                 }
+            SpecimenRoute.SqueezeProgress ->
+                SpecimenHost(
+                    title = "Squeeze progress",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    SqueezeProgressApp()
+                }
             SpecimenRoute.Anatomy ->
                 SpecimenHost(
                     title = "Anatomy",
@@ -249,6 +260,7 @@ private fun Catalog(
     onOpenHoloCard: () -> Unit,
     onOpenWheelPicker: () -> Unit,
     onOpenThinkingBloom: () -> Unit,
+    onOpenSqueezeProgress: () -> Unit,
     onOpenAnatomy: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -382,6 +394,14 @@ private fun Catalog(
                     "passes. Type your own word. After daniel petho (@nonzeroexitcode).",
             testTag = "open-thinking-bloom",
             onOpen = onOpenThinkingBloom,
+        )
+        SpecimenCard(
+            name = "Squeeze progress",
+            summary =
+                "A progress line that crumples into a springy squiggle when you pause it, and " +
+                    "shakes out flat when you resume. After Petar Cirkovic (@kippe07).",
+            testTag = "open-squeeze-progress",
+            onOpen = onOpenSqueezeProgress,
         )
         SpecimenCard(
             name = "Anatomy",

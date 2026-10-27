@@ -114,7 +114,6 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 ![Departure board](https://static.sebastiano.dev/stable/bioparco/departure-board.webp)
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/departure-board.mp4)
-
 ### [Holo card](holo-card/)
 
 **Seb** · [Ann Nguyen](https://x.com/ann_nnng)’s [holo 3D card effect](https://x.com/ann_nnng/status/2108122086569136417)
@@ -138,6 +137,14 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 ![Thinking bloom](https://static.sebastiano.dev/stable/bioparco/thinking-bloom.webp)
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/thinking-bloom.mp4)
+
+### [Squeeze progress](squeeze-progress/)
+
+**Seb** · [Petar Cirkovic](https://x.com/kippe07)’s [squeezing progress bar](https://x.com/kippe07/status/2105216988855542196)
+
+![Squeeze progress](https://static.sebastiano.dev/stable/bioparco/squeeze-progress.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/squeeze-progress.mp4)
 
 ### [Anatomy](anatomy/)
 
@@ -179,6 +186,7 @@ Run a specimen directly with its module task:
 ./gradlew :holo-card:run
 ./gradlew :wheel-picker:run
 ./gradlew :thinking-bloom:run
+./gradlew :squeeze-progress:run
 ./gradlew :anatomy:run
 ...
 ```
