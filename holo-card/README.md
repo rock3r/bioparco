@@ -51,3 +51,15 @@ The shadow is one blurred image made once per size. Each frame draws it on whole
 nearest sampling, narrowed as the card turns and pushed further out while it is lifted.
 
 [PERFORMANCE.md](PERFORMANCE.md) explains how the card keeps to 60 Hz in software rendering.
+
+## Limits
+
+- The mascots are this specimen's own shapes, not the original's characters. They are flat
+  silhouettes blown up into pillows, so they have no sculpted detail and no extruded side wall
+  when the card turns edge-on.
+- The card has no back, and it never turns far enough to show one.
+- The foil is a stylised thin film, tuned by eye against the video, not a physical model.
+- In software rendering at density 2, a moving frame costs about 25 ms of CPU, so a HiDPI window
+  without a GPU backend runs at about 40 frames a second. HiDPI Macs use Metal instead.
+- With Skiko's `SOFTWARE_COMPAT` renderer, the one CI recordings use, Java2D presentation limits
+  the window to about 35 frames a second. See [PERFORMANCE.md](PERFORMANCE.md).
