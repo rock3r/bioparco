@@ -24,6 +24,7 @@ dependencies {
     implementation(project(":peel-sticker"))
     implementation(project(":honeycomb"))
     implementation(project(":hairline"))
+    implementation(project(":thinking-bloom"))
     implementation(project(":tracing"))
 
     testImplementation(libs.junit.jupiter)

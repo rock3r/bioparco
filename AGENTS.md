@@ -121,6 +121,7 @@ Working on `main` is allowed only when the owner has said so for that task.
 ./gradlew :peel-sticker:run
 ./gradlew :honeycomb:run
 ./gradlew :hairline:run
+./gradlew :thinking-bloom:run
 ./gradlew :recordings:recordSpecimens
 ```
 

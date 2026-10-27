@@ -107,6 +107,14 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/hairline.mp4)
 
+### [Thinking bloom](thinking-bloom/)
+
+**Seb** · daniel petho ([@nonzeroexitcode](https://x.com/nonzeroexitcode))’s [shimmering “Thinking…”](https://x.com/nonzeroexitcode/status/2105042956583670154)
+
+![Thinking bloom](https://static.sebastiano.dev/stable/bioparco/thinking-bloom.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/thinking-bloom.mp4)
+
 The recording job uses [Spectre](https://spectre.sebastiano.dev) to generate the clips.
 The animated WebP previews use lower quality settings. The MP4 links contain the full recordings.
 
@@ -135,6 +143,7 @@ Run a specimen directly with its module task:
 ./gradlew :peel-sticker:run
 ./gradlew :honeycomb:run
 ./gradlew :hairline:run
+./gradlew :thinking-bloom:run
 ...
 ```
 

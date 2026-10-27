@@ -51,6 +51,8 @@ include(":honeycomb")
 
 include(":hairline")
 
+include(":thinking-bloom")
+
 include(":tracing")
 
 include(":showcase")

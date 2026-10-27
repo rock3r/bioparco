@@ -30,6 +30,7 @@ import dev.sebastiano.honeycomb.App as HoneycombApp
 import dev.sebastiano.peelsticker.App as PeelStickerApp
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
 import dev.sebastiano.scrolleffects.App as ScrollEffectsApp
+import dev.sebastiano.thinkingbloom.App as ThinkingBloomApp
 import dev.sebastiano.thinkingorbs.App as ThinkingOrbsApp
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.DefaultButton
@@ -51,6 +52,7 @@ private enum class SpecimenRoute {
     PeelSticker,
     Honeycomb,
     Hairline,
+    ThinkingBloom,
 }
 
 @Composable
@@ -74,6 +76,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenPeelSticker = { route = SpecimenRoute.PeelSticker },
                     onOpenHoneycomb = { route = SpecimenRoute.Honeycomb },
                     onOpenHairline = { route = SpecimenRoute.Hairline },
+                    onOpenThinkingBloom = { route = SpecimenRoute.ThinkingBloom },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -172,6 +175,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     HairlineApp()
                 }
+            SpecimenRoute.ThinkingBloom ->
+                SpecimenHost(
+                    title = "Thinking bloom",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    ThinkingBloomApp()
+                }
         }
     }
 }
@@ -190,6 +201,7 @@ private fun Catalog(
     onOpenPeelSticker: () -> Unit,
     onOpenHoneycomb: () -> Unit,
     onOpenHairline: () -> Unit,
+    onOpenThinkingBloom: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -290,6 +302,14 @@ private fun Catalog(
                     "turntable, a vault and more. This ports Lucas Marques's hairline (MIT).",
             testTag = "open-hairline",
             onOpen = onOpenHairline,
+        )
+        SpecimenCard(
+            name = "Thinking bloom",
+            summary =
+                "A “Thinking…” label blooms into a sweep of tiny flowers, and the dots bob as it " +
+                    "passes. Type your own word. After daniel petho (@nonzeroexitcode).",
+            testTag = "open-thinking-bloom",
+            onOpen = onOpenThinkingBloom,
         )
     }
 }
