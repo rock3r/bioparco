@@ -39,6 +39,7 @@ import dev.sebastiano.anatomy.kit.KeyMark
 import dev.sebastiano.anatomy.kit.LegendKey
 import dev.sebastiano.anatomy.kit.Palette
 import dev.sebastiano.anatomy.kit.Plate
+import dev.sebastiano.anatomy.kit.focusOnPress
 import dev.sebastiano.anatomy.kit.rememberFrameLoop
 import dev.sebastiano.anatomy.kit.turn.TurnHook
 import kotlinx.coroutines.delay
@@ -177,6 +178,7 @@ private fun SpotCanvas(control: SpotControl, palette: Palette, modifier: Modifie
                     if (it.isFocused)
                         control.aim(SpotModel.roundMerge(control.motion.shown).toDouble())
                 }
+                .focusOnPress()
                 .focusable()
         androidx.compose.foundation.layout.Box(
             input.then(if (narrow) Modifier.clipToBounds() else Modifier)

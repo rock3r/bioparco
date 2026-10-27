@@ -48,6 +48,7 @@ import dev.sebastiano.anatomy.kit.corners
 import dev.sebastiano.anatomy.kit.cylinder
 import dev.sebastiano.anatomy.kit.depthOf
 import dev.sebastiano.anatomy.kit.fitProjection
+import dev.sebastiano.anatomy.kit.focusOnPress
 import dev.sebastiano.anatomy.kit.follow
 import dev.sebastiano.anatomy.kit.haloOf
 import dev.sebastiano.anatomy.kit.insetPlan
@@ -473,6 +474,7 @@ fun DialIndicatorFigure(
                     steer(d.STOPS[to])
                     true
                 }
+                .focusOnPress()
                 .focusable(),
             trace = "dial-indicator draw",
         ) {

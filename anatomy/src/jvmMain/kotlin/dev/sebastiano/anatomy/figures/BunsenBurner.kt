@@ -24,6 +24,7 @@ import dev.sebastiano.anatomy.kit.KeyMark
 import dev.sebastiano.anatomy.kit.LegendKey
 import dev.sebastiano.anatomy.kit.Palette
 import dev.sebastiano.anatomy.kit.Plate
+import dev.sebastiano.anatomy.kit.focusOnPress
 import dev.sebastiano.anatomy.kit.follow
 import dev.sebastiano.anatomy.kit.rememberFrameLoop
 import kotlin.math.floor
@@ -146,6 +147,7 @@ fun BunsenBurnerFigure(
                     steer(Math.round(to * 10) / 10.0)
                     true
                 }
+                .focusOnPress()
                 .focusable(),
             trace = "bunsen-burner draw",
         ) {

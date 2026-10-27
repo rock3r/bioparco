@@ -47,6 +47,7 @@ import dev.sebastiano.anatomy.kit.cylinder
 import dev.sebastiano.anatomy.kit.depthOf
 import dev.sebastiano.anatomy.kit.dotGrid
 import dev.sebastiano.anatomy.kit.fitProjection
+import dev.sebastiano.anatomy.kit.focusOnPress
 import dev.sebastiano.anatomy.kit.haloOf
 import dev.sebastiano.anatomy.kit.insetPlan
 import dev.sebastiano.anatomy.kit.iso
@@ -806,6 +807,7 @@ fun TokenBucketFigure(
                         else -> false
                     }
                 }
+                .focusOnPress()
                 .focusable(),
             trace = "token-bucket draw",
         ) {

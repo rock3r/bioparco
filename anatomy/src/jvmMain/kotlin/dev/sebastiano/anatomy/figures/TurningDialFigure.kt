@@ -33,6 +33,7 @@ import dev.sebastiano.anatomy.kit.LegendKey
 import dev.sebastiano.anatomy.kit.Palette
 import dev.sebastiano.anatomy.kit.Plate
 import dev.sebastiano.anatomy.kit.Settling
+import dev.sebastiano.anatomy.kit.focusOnPress
 import dev.sebastiano.anatomy.kit.rememberFrameLoop
 import dev.sebastiano.anatomy.kit.settle
 import dev.sebastiano.anatomy.kit.turn.FreePose
@@ -331,6 +332,7 @@ fun TurningDialFigure(
                     state.target = next
                     true
                 }
+                .focusOnPress()
                 .focusable(),
             trace = "turning-dial draw",
         ) {

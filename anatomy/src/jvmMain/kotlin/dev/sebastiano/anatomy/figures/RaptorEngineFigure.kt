@@ -38,6 +38,7 @@ import dev.sebastiano.anatomy.kit.Flat
 import dev.sebastiano.anatomy.kit.IsoCanvas
 import dev.sebastiano.anatomy.kit.Palette
 import dev.sebastiano.anatomy.kit.Plate
+import dev.sebastiano.anatomy.kit.focusOnPress
 import dev.sebastiano.anatomy.kit.rememberFrameLoop
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -312,6 +313,7 @@ private fun RaptorCanvas(
                     }
                 }
                 .onKeyEvent(controls::key)
+                .focusOnPress()
                 .focusable(),
             clock = { live.clock },
             trace = "raptor-engine draw",
