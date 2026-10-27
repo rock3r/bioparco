@@ -25,6 +25,7 @@ dependencies {
     implementation(project(":honeycomb"))
     implementation(project(":hairline"))
     implementation(project(":departure-board"))
+    implementation(project(":holo-card"))
     implementation(project(":tracing"))
 
     testImplementation(libs.junit.jupiter)

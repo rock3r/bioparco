@@ -27,6 +27,7 @@ import dev.sebastiano.departureboard.App as DepartureBoardApp
 import dev.sebastiano.dotmatrixrecorder.App as DotMatrixRecorderApp
 import dev.sebastiano.grabbystepper.App
 import dev.sebastiano.hairline.App as HairlineApp
+import dev.sebastiano.holocard.App as HoloCardApp
 import dev.sebastiano.honeycomb.App as HoneycombApp
 import dev.sebastiano.peelsticker.App as PeelStickerApp
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
@@ -53,6 +54,7 @@ private enum class SpecimenRoute {
     Honeycomb,
     Hairline,
     DepartureBoard,
+    HoloCard,
 }
 
 @Composable
@@ -77,6 +79,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenHoneycomb = { route = SpecimenRoute.Honeycomb },
                     onOpenHairline = { route = SpecimenRoute.Hairline },
                     onOpenDepartureBoard = { route = SpecimenRoute.DepartureBoard },
+                    onOpenHoloCard = { route = SpecimenRoute.HoloCard },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -183,6 +186,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     DepartureBoardApp()
                 }
+            SpecimenRoute.HoloCard ->
+                SpecimenHost(
+                    title = "Holo card",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    HoloCardApp()
+                }
         }
     }
 }
@@ -202,6 +213,7 @@ private fun Catalog(
     onOpenHoneycomb: () -> Unit,
     onOpenHairline: () -> Unit,
     onOpenDepartureBoard: () -> Unit,
+    onOpenHoloCard: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -310,6 +322,14 @@ private fun Catalog(
                     "field puts another city on the board. After HASSCO (@itshassco).",
             testTag = "open-departure-board",
             onOpen = onOpenDepartureBoard,
+        )
+        SpecimenCard(
+            name = "Holo card",
+            summary =
+                "A holographic trading card tilts towards the pointer in 3D. Its puffy foil " +
+                    "mascot shifts colour as it turns. After Ann Nguyen (@ann_nnng).",
+            testTag = "open-holo-card",
+            onOpen = onOpenHoloCard,
         )
     }
 }

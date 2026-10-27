@@ -29,6 +29,7 @@ kotlin {
             implementation(project(":honeycomb"))
             implementation(project(":hairline"))
             implementation(project(":departure-board"))
+            implementation(project(":holo-card"))
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
