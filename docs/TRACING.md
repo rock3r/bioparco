@@ -49,7 +49,8 @@ python3 tracing/tools/trace-summary.py /tmp/traces/peel-sticker
 The script lists each section under its parent, with count, median, 95th percentile, and worst time.
 It also reports the intervals between `frame` sections. Its first run downloads Perfetto's trace processor.
 
-[peel-sticker/PERFORMANCE.md](../peel-sticker/PERFORMANCE.md) describes measurements from these tools.
+[peel-sticker/PERFORMANCE.md](../peel-sticker/PERFORMANCE.md) and
+[holo-card/PERFORMANCE.md](../holo-card/PERFORMANCE.md) describe measurements from these tools.
 Peel sticker's `SoftwareRenderingBenchmark` and `CpuCostLadder` tests run only when requested.
 Its `GpuParity` test compares Skia's OpenGL and CPU backends under Xvfb.
 Mesa's software OpenGL runs the GPU path, so the test can detect GPU-path artefacts without physical GPU hardware.

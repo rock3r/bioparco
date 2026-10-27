@@ -84,6 +84,8 @@ The task discovers specimen modules from Gradle includes and writes one MP4 per 
 - `recordings/build/recordings/honeycomb.mp4`
 - `recordings/build/recordings/hairline.mp4`
 - `recordings/build/recordings/departure-board.mp4`
+- `recordings/build/recordings/holo-card.mp4`
+- `recordings/build/recordings/wheel-picker.mp4`
 - `recordings/build/recordings/anatomy.mp4`
 
 ### Linux / Xvfb
@@ -136,6 +138,8 @@ Stable download URLs:
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/honeycomb.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/hairline.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/departure-board.mp4
+- https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/holo-card.mp4
+- https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/wheel-picker.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/anatomy.mp4
 
 ## Traces
@@ -162,9 +166,9 @@ a push to `main`) runs them under `xvfb-run` on Ubuntu and uploads every MP4 to 
 floating release. A skipped or empty recording fails the job instead of publishing a
 partial set.
 
-### Prove all fourteen MP4s
+### Prove all sixteen MP4s
 
-In the `recordings` CI job, the "Record specimens" step must report `PASSED` for all fourteen tests:
+In the `recordings` CI job, the "Record specimens" step must report `PASSED` for all sixteen tests:
 
 - `AchievementBadgeRecordingTest`
 - `AnatomyRecordingTest`
@@ -175,13 +179,15 @@ In the `recordings` CI job, the "Record specimens" step must report `PASSED` for
 - `DotMatrixRecorderRecordingTest`
 - `GrabbyStepperRecordingTest`
 - `HairlineRecordingTest`
+- `HoloCardRecordingTest`
 - `HoneycombRecordingTest`
 - `PeelStickerRecordingTest`
 - `ProcessingFieldRecordingTest`
 - `ScrollEffectsRecordingTest`
 - `ThinkingOrbsRecordingTest`
+- `WheelPickerRecordingTest`
 
-`recordings/build/recordings/` must contain fourteen files, each larger than 1 KB.
+`recordings/build/recordings/` must contain sixteen files, each larger than 1 KB.
 The task fails if any expected file is missing.
 A run filtered with `--tests` records only matching specimens and skips this completeness check.
 

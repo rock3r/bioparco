@@ -115,6 +115,22 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/departure-board.mp4)
 
+### [Holo card](holo-card/)
+
+**Seb** · [Ann Nguyen](https://x.com/ann_nnng)’s [holo 3D card effect](https://x.com/ann_nnng/status/2108122086569136417)
+
+![Holo card](https://static.sebastiano.dev/stable/bioparco/holo-card.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/holo-card.mp4)
+
+### [Wheel picker](wheel-picker/)
+
+**Seb** · [Alex](https://x.com/a_cucos)’s [wheel picker with edge distortion](https://x.com/a_cucos/status/2104949571461829086)
+
+![Wheel picker](https://static.sebastiano.dev/stable/bioparco/wheel-picker.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/wheel-picker.mp4)
+
 ### [Anatomy](anatomy/)
 
 **Chris** · Ryan’s [Anatomy](https://github.com/wheresryan22/anatomy) (MIT): the kit, the figures and an agent skill that makes new ones
@@ -152,6 +168,8 @@ Run a specimen directly with its module task:
 ./gradlew :honeycomb:run
 ./gradlew :hairline:run
 ./gradlew :departure-board:run
+./gradlew :holo-card:run
+./gradlew :wheel-picker:run
 ./gradlew :anatomy:run
 ...
 ```

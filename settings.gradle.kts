@@ -53,6 +53,10 @@ include(":hairline")
 
 include(":departure-board")
 
+include(":holo-card")
+
+include(":wheel-picker")
+
 include(":anatomy")
 
 include(":tracing")
