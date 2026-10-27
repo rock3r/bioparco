@@ -70,6 +70,7 @@ internal class EspressoState {
                 shot.pull()
         }
         shot.advance(dt)
+        if (calm) shot.settle()
         val heating = stat.update(boiler)
         boiler +=
             dt *

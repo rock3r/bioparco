@@ -159,8 +159,16 @@ class Shot {
         }
     }
 
+    /** Finishes venting at once, for reduced motion: a stopped shot's gauge reads zero. */
+    fun settle() {
+        if (!running) vented = maxOf(vented, VENTED_S)
+    }
+
     private companion object {
         const val VENT_S = 0.3
+
+        /** Long enough that the vented pressure is well under a hundredth of a bar. */
+        const val VENTED_S = VENT_S * 12
     }
 }
 

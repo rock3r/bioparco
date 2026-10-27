@@ -1,6 +1,7 @@
 package dev.sebastiano.anatomy
 
 import dev.sebastiano.anatomy.figures.Espresso
+import dev.sebastiano.anatomy.figures.EspressoState
 import dev.sebastiano.anatomy.figures.Pressurestat
 import dev.sebastiano.anatomy.figures.Shot
 import kotlin.math.abs
@@ -105,5 +106,32 @@ class EspressoTest {
         val seconds = Espresso.shotTime().toInt()
         assertEquals("36 g in $seconds s · boiler 1.1 bar", Espresso.readoutOf(shot, 1.1))
         assertTrue(abs(shot.grams - 36.0) < 0.1)
+    }
+
+    @Test
+    fun `under reduced motion the gauge drops to zero when a shot ends by itself`() {
+        val state = EspressoState().apply { touring = false }
+        state.shot.pull()
+        var frames = 0
+        while (state.tick(DT, calm = true)) {
+            frames++
+            check(frames < 10_000) { "the shot never ended" }
+        }
+        assertFalse(state.shot.running)
+        assertTrue(state.view.pressure < 0.05, "gauge left at ${state.view.pressure} bar")
+    }
+
+    @Test
+    fun `under reduced motion the gauge drops to zero when a shot is stopped`() {
+        val state = EspressoState().apply { touring = false }
+        state.shot.pull()
+        repeat(300) { state.tick(DT, calm = true) }
+        state.shot.pull()
+        assertFalse(state.tick(DT, calm = true), "the loop should settle at once")
+        assertTrue(state.view.pressure < 0.05, "gauge left at ${state.view.pressure} bar")
+    }
+
+    private companion object {
+        const val DT = 1.0 / 60
     }
 }
