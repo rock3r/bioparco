@@ -11,10 +11,13 @@ import dev.sebastiano.spectre.recording.AutoRecorder
 import dev.sebastiano.spectre.recording.screencapturekit.asTitledWindow
 import dev.sebastiano.spectre.testing.runSpectreTest
 import java.awt.GraphicsEnvironment
+import java.awt.Point
+import java.awt.Rectangle
 import java.awt.event.KeyEvent
 import java.nio.file.Files
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.delay
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assumptions.assumeFalse
@@ -28,34 +31,39 @@ import org.junit.jupiter.api.Test
 class AnatomyRecordingTest {
     @Test
     @Tag("recording")
-    fun recordAnatomy(): Unit = runSpectreTest {
-        assumeFalse(GraphicsEnvironment.isHeadless(), "Needs a real AWT display")
-        val output = RecordingPaths.file(RecordingPaths.ANATOMY)
-        Files.createDirectories(output.parent)
-        val window =
-            SpecimenWindow(title = "bioparco · anatomy", size = DpSize(760.dp, 960.dp)) { App() }
-        window.start()
-        try {
-            val automator = ComposeAutomator.inProcess()
-            automator.waitForNode(tag = AnatomyTags.figure(Figure.DialIndicator))
-            delay(800)
-            // The recorder retitles the window, so read its position first.
-            val frame = window.frame()
-            val tour = Tour(automator, frame.locationOnScreen.y)
-            val handle = AutoRecorder().startWindow(frame.asTitledWindow(), output)
+    fun recordAnatomy(): Unit =
+        runSpectreTest(timeout = 5.minutes) {
+            assumeFalse(GraphicsEnvironment.isHeadless(), "Needs a real AWT display")
+            val output = RecordingPaths.file(RecordingPaths.ANATOMY)
+            Files.createDirectories(output.parent)
+            val window =
+                SpecimenWindow(title = "bioparco · anatomy", size = DpSize(760.dp, 960.dp)) {
+                    App()
+                }
+            window.start()
             try {
-                tour.play()
+                val automator = ComposeAutomator.inProcess()
+                automator.waitForNode(tag = AnatomyTags.figure(Figure.DialIndicator))
+                delay(800)
+                // The recorder retitles the window, so read its position first.
+                val frame = window.frame()
+                val tour = Tour(automator, Rectangle(frame.locationOnScreen, frame.size))
+                val handle = AutoRecorder().startWindow(frame.asTitledWindow(), output)
+                try {
+                    tour.play()
+                } finally {
+                    handle.stop()
+                }
             } finally {
-                handle.stop()
+                window.stop()
             }
-        } finally {
-            window.stop()
+            assertTrue(Files.size(output) > 1_000, "expected a non-empty $output")
         }
-        assertTrue(Files.size(output) > 1_000, "expected a non-empty $output")
-    }
 }
 
-private class Tour(private val automator: ComposeAutomator, private val windowTop: Int) {
+private class Tour(private val automator: ComposeAutomator, private val window: Rectangle) {
+    private val windowTop = window.y
+
     /**
      * Every figure, in page order. The `when` has no `else`, so a new [Figure] does not compile
      * until it has its part of the tour.
@@ -129,7 +137,9 @@ private class Tour(private val automator: ComposeAutomator, private val windowTo
 
     /**
      * Fig 6: hover the Raptor to take it apart, light up assemblies under the pointer, let it close
-     * up again, then fire it and shut it down.
+     * up again, then fire it and shut it down. Its plume is a ray-marched shader: a CPU renderer
+     * such as the recording job's software Skia takes seconds a frame on it, so there the tour
+     * stops before ignition and moves on before the Raptor's own tour fires it.
      */
     private suspend fun raptorEngine() {
         delay(1_200)
@@ -149,6 +159,7 @@ private class Tour(private val automator: ComposeAutomator, private val windowTo
         glide(raptor, 0.5f to 0.7f, 0.98f to 0.99f, steps = 8, ms = 30)
         automator.moveTo(raptor.boundsOnScreen.x - 30, raptor.boundsOnScreen.y + 200)
         delay(2_500)
+        if (softwareRendering) return
         automator.click(automator.allNodes().first { it.text == "IGNITE" })
         delay(9_000)
         automator.click(automator.allNodes().first { it.text == "SHUT DOWN" })
@@ -210,24 +221,43 @@ private class Tour(private val automator: ComposeAutomator, private val windowTo
     private fun canvas(prefix: String): AutomatorNode =
         automator.allNodes().first { it.contentDescription?.startsWith(prefix) == true }
 
-    /** Scrolls the page, one wheel notch at a time, until [figure]'s card sits near the top. */
+    /**
+     * Scrolls the page, one wheel notch at a time, until [figure]'s card sits near the top, or the
+     * page ends. Spectre clips a node's bounds to the window, so a card below it reads as a sliver
+     * at the window's top: the tour goes down the page, so a card not in view yet is below. The
+     * wheel turns over the page itself: a tall card can put the next one's centre below the window,
+     * where a wheel event would miss it.
+     */
     private suspend fun scrollTo(figure: Figure) {
         var still = 0
         var last = Int.MIN_VALUE
         repeat(MAX_NOTCHES) {
-            val node = automator.waitForNode(tag = AnatomyTags.figure(figure))
-            val y = node.boundsOnScreen.y
-            val gap = y - (windowTop + TOP_MARGIN)
+            val bounds = automator.waitForNode(tag = AnatomyTags.figure(figure)).boundsOnScreen
+            val inView = bounds.height > 1
+            val y = bounds.y
+            val gap = if (inView) y - (windowTop + TOP_MARGIN) else Int.MAX_VALUE
             if (abs(gap) < NOTCH) return
             // Wheel scrolling is animated: give up only once the page has stopped moving for a
-            // while.
-            still = if (y == last) still + 1 else 0
+            // while, which it does at its end.
+            still = if (y == last && inView) still + 1 else 0
             if (still > 8) return
             last = y
-            automator.moveTo(node.centerOnScreen.x, windowTop + TOP_MARGIN + 200)
-            if (still == 0) automator.scrollWheel(node, if (gap > 0) 1 else -1)
+            automator.moveTo(page.centerOnScreen.x, page.centerOnScreen.y)
+            if (still == 0) automator.scrollWheel(page, if (gap > 0) 1 else -1)
             delay(90)
         }
+        error("could not scroll to $figure")
+    }
+
+    /**
+     * The page's scroll container: the largest node in the middle of the window. It never moves.
+     */
+    private val page: AutomatorNode by lazy {
+        val middle = Point(window.x + window.width / 2, window.y + window.height / 2)
+        automator
+            .allNodes()
+            .filter { it.boundsOnScreen.contains(middle) }
+            .maxBy { it.boundsOnScreen.width.toLong() * it.boundsOnScreen.height }
     }
 
     /** Glides the pointer over [node] through fractions of its bounds. */
@@ -268,6 +298,9 @@ private class Tour(private val automator: ComposeAutomator, private val windowTo
     }
 
     private companion object {
+        /** Set by `recordSpecimens` on Linux CI and under Xvfb. */
+        val softwareRendering =
+            System.getProperty("skiko.renderApi")?.startsWith("SOFTWARE") == true
         const val DIAL = "A dial indicator"
         const val BUCKET = "A token dispenser"
         const val BUNSEN = "A Bunsen burner"
