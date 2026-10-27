@@ -1,15 +1,14 @@
 # Component anatomy
 
-A Jewel button, taken apart into the layers it really paints. The stack tilts, opens up, and
-tours the button's states to a beat: Normal, Hovered, Pressed, Focused, Disabled. Every layer has
-a label that names the style property it is painting right now, and the value. When a state
-changes, the layers that changed glow.
+This view separates a Jewel button into its drawing layers. The layers tilt and spread apart
+as the button cycles through Normal, Hovered, Pressed, Focused and Disabled states in time with music.
+Each label shows the layer's current style property and value. Changed layers glow.
 
-The exploded view is after [Jae](https://x.com/Jaenam97)’s
+The exploded view follows [Jae](https://x.com/Jaenam97)’s
 [Badge Tech](https://x.com/Jaenam97/status/2104201809132990900) enamel pin. That piece is a
-raymarched shader. This one is plain Compose: no shaders, just flat layers and one matrix.
+raymarched shader. This version uses flat Compose layers and one transformation matrix.
 
-Standalone:
+Run the specimen on its own:
 
 ```bash
 ./gradlew :component-anatomy:run
@@ -23,17 +22,17 @@ Or open it from the [showcase](../README.md).
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/component-anatomy.mp4)
 
-Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. See
+Spectre captures this recording. Regenerate it with `./gradlew :recordings:recordSpecimens`. See
 [docs/RECORDING.md](../docs/RECORDING.md).
 
-## Playing with it
+## Controls
 
-- The stage follows the beat until you touch something: a state chip, the style chips, the
-  **Exploded** checkbox, or a drag on the stage to orbit the stack.
-- Then it holds what you picked, and a **Back to groovin'** link appears. Click it to hand the
-  stage back to the beat.
-- **Music** is off by default. Turn it on and the beat comes from the audio itself, so the picture
-  stays locked to what you hear. The checkbox is disabled on machines with no audio output.
+- The animation follows the beat until you select a state or style, toggle **Exploded**,
+  or drag the stage to rotate the layers.
+- The view then keeps your selection and shows a **Resume animation** link. Click it to resume
+  the automatic animation.
+- **Music** is off by default. When enabled, the audio supplies the beat that controls the animation.
+  Machines without audio output disable the checkbox.
 
 ## What it shows
 
@@ -48,31 +47,26 @@ borders draw *after* it. So the real paint order, bottom to top, is:
 | 03 | Border | `colors.border…`, `metrics.borderWidth`, inside |
 | 04 | Focus outline | `globalColors.outlines.focused`, `focusOutlineAlignment`, `metrics.focusOutlineExpand` |
 
-Two things this makes visible:
+The separated layers show two details:
 
 - The focus outline is on top of everything, including the border.
 - The border and the background choose their state differently. The background prefers
   Pressed and Hovered over Focused. The border prefers Focused. On the default button, the
   dark ring you see inside the focus halo is the border, painted in `borderFocused`.
 
-## How it stays honest
+## Layer and geometry tests
 
-The specimen does not draw a lookalike. `ButtonLayers.kt` forks `ButtonImpl` and splits its
-modifier chain into one composable per layer. `ButtonParityTest` stacks those layers flat and
-compares them, pixel by pixel, with a real `DefaultButton` and `OutlinedButton`, in every state,
-in the light and the dark theme. All 40 cases must match exactly. If Jewel changes how a button
-paints, the test fails before the diagram can lie.
+`ButtonLayers.kt` copies `ButtonImpl` and splits its modifier chain into one composable per layer.
+`ButtonParityTest` stacks these layers flat and compares pixels against `DefaultButton` and `OutlinedButton`.
+It checks every state in light and dark themes. All 40 cases must match exactly.
+A change to Jewel's button drawing can therefore fail the test.
 
-The 3D is one matrix per layer, built by `Axonometry`. The same matrix draws the layer and places
-its label's anchor, so a leader line always points at its layer. `AxonometryTest` checks that the
-two agree.
+`Axonometry` builds one transformation matrix per layer. That matrix controls both the drawing and its label anchor.
+`AxonometryTest` checks that both positions agree.
+The view looks down on the layers. Front layers move forward and down, while each layer's far edge rises.
 
-The view looks down on the stack, so the front layers come towards you and down, and each
-layer's far edge rises. A view from below is just as valid geometrically, but the eye reads it
-inside out.
-
-The choreography is `AnatomyTimeline`, a pure function of the beat: eight bars at 120 BPM, one
-state per bar. The groove is synthesised in memory by `GrooveSynth`, in stereo: a
-four-on-the-floor kick, a filtered clap, swung hats, an off-beat sub bass, FM electric-piano
-stabs and a soft pad over Fmaj9, Em9, Dm9 and Cmaj9. Everything but the drums ducks under the
-kick. The groove is exactly one loop long, and the repo ships no audio files.
+`AnatomyTimeline` calculates the animation from the beat: eight bars at 120 beats per minute, with one state per bar.
+`GrooveSynth` generates one stereo loop in memory. The repository contains no audio files.
+The loop combines a kick on each beat, a filtered clap, swung hi-hats, and off-beat sub bass.
+It adds frequency-modulated electric-piano notes and a soft sustained sound over Fmaj9, Em9, Dm9, and Cmaj9.
+The kick lowers the volume of all instruments except the drums.

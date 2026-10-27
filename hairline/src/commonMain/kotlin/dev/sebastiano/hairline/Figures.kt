@@ -45,7 +45,7 @@ enum class Figure(
     Terrain(
         "terrain",
         "Terrain",
-        "Eighty-one pillars on a plinth that rise around the pointer and rest as a dune with two rises.",
+        "Eighty-one pillars rise around the pointer. At rest, they form two raised areas on a base.",
         "rest",
         ::mountTerrain,
     ),
@@ -59,15 +59,15 @@ enum class Figure(
     Phosphor(
         "phosphor",
         "Phosphor",
-        "A seven by seven dot matrix on a floating tile that plays a loop, and fades like phosphor " +
-            "where you paint it.",
+        "A seven by seven dot matrix plays a loop on a floating tile. Move the pointer to draw " +
+            "dots that fade over time.",
         "loop",
         ::mountPhosphor,
     ),
     Slow(
         "slow",
         "Slow",
-        "Crates riding a belt through a gate. Hovering slows the clock without stopping it.",
+        "Crates move on a belt through a gate. Hover over the belt to slow the animation.",
         "rate 1.00×",
         ::mountSlow,
     ),
@@ -81,16 +81,16 @@ enum class Figure(
     Keyboard(
         "keyboard",
         "Keyboard",
-        "A sixty-key board. The key under the pointer sinks, and its neighbours follow it down, " +
-            "less the further away.",
+        "A sixty-key board responds to the pointer. The nearest key moves down most; " +
+            "keys further away move less.",
         "rest",
         ::mountKeyboard,
     ),
     Elevator(
         "elevator",
         "Elevator",
-        "Four floors beside an open shaft. The pointer's height picks a floor, and the car travels " +
-            "there through the ones between.",
+        "Four floors sit beside an open shaft. The pointer's height selects a floor. The car " +
+            "passes the other floors on its way there.",
         "rest",
         ::mountElevator,
     ),
@@ -121,24 +121,24 @@ enum class Figure(
     Cabinet(
         "cabinet",
         "Cabinet",
-        "A rack of twelve blades: the pointer's height pulls the nearest ones out on their rails, " +
-            "the farther the less.",
+        "A rack holds twelve blade servers. The pointer's height pulls nearby servers out on " +
+            "their rails. Servers further away move less.",
         "rest",
         ::mountCabinet,
     ),
     Branches(
         "branches",
         "Branches",
-        "A commit graph on a board: the commit under the pointer rises, and its history rises after " +
-            "it, the farther back the less.",
+        "A board shows a commit graph. The commit under the pointer rises. Earlier commits in " +
+            "its history rise less as their distance increases.",
         "rest",
         ::mountBranches,
     ),
     Vault(
         "vault",
         "Vault",
-        "A vault door: circling the pointer turns its dial, which coasts and catches every ten; on " +
-            "forty its three bolts draw back.",
+        "Move the pointer in a circle to turn the vault dial. The dial slows to ten-unit steps. " +
+            "At forty, the three bolts retract.",
         "rest",
         ::mountVault,
     ),
@@ -161,8 +161,8 @@ enum class Figure(
     Patch(
         "patch",
         "Patch",
-        "A patch panel of twenty-four ports: the cable under the pointer lifts, and its neighbours " +
-            "lean away, less the further away.",
+        "A patch panel has twenty-four ports. The cable under the pointer lifts. Nearby cables " +
+            "lean away; cables further away move less.",
         "rest",
         ::mountPatch,
     ),
@@ -176,8 +176,8 @@ enum class Figure(
     Router(
         "router",
         "Router",
-        "A wifi router whose antennas lean toward the pointer, the nearest the most and the others " +
-            "less the further away.",
+        "A Wi-Fi router's antennas lean toward the pointer. The nearest antenna moves most; " +
+            "antennas further away move less.",
         "rest",
         ::mountRouter,
     ),

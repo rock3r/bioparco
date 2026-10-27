@@ -1,6 +1,8 @@
 # Testing
 
-## Layers
+## Test groups
+
+`check` runs unit tests and recording-path tests. The separate recording task opens windows and captures motion.
 
 | Layer | Where | In `check`? |
 |---|---|---|
@@ -8,15 +10,16 @@
 | Path helpers | `:recordings` untagged tests | yes |
 | Spectre recordings | `:recordings` tests tagged `recording` | no |
 
-## TDD
+## Test-driven development
 
-For behaviour that is not "does this spring feel right":
+Use test-driven development for plain Kotlin behavior such as physics, keyboard handling, and hit-testing.
+Review visual motion directly. Tests must not freeze animation constants unless the change concerns those values.
 
-1. Write the test.
-2. Run the targeted test.
-3. Prove it fails for the intended reason.
-4. Implement the minimum fix.
-5. Re-run the targeted test, then `./gradlew check`.
+1. Write a test for the expected behavior.
+2. Run that test.
+3. Check that it fails for the intended reason.
+4. Make the smallest production change that passes the test.
+5. Run the test again, then run `./gradlew check`.
 
 ## Commands
 
@@ -27,8 +30,10 @@ For behaviour that is not "does this spring feel right":
 ./gradlew :recordings:recordSpecimens
 ```
 
-Recording tests skip on a headless JVM so `./gradlew :recordings:recordSpecimens` can be
-typed locally without a display. The recordings job (`v*` tags, or a push to `main`)
-must not skip: it runs under `xvfb-run`, and the task fails if any README movie is
-missing. Specimen windows must not `exitProcess` on close, or only the first MP4 is
-written. See [RECORDING.md](RECORDING.md).
+Recording tests skip when the JVM has no display.
+On a clean checkout, `:recordings:recordSpecimens` then fails its output check because specimen movies are missing.
+Existing usable movies can satisfy that check. Runs filtered with `--tests` skip the output check.
+The recordings job runs under `xvfb-run` on `v*` tags and pushes to `main`.
+That job fails if a test skips or a README movie is missing.
+Specimen windows must not call `exitProcess` on close, because that stops the worker after the first MP4.
+See [RECORDING.md](RECORDING.md).

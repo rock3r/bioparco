@@ -1,10 +1,9 @@
 # Processing field
 
-A grid of marks whose sizes describe one soft shape that drifts, folds and breathes. The
-centres never move; only radius and ink change, so it reads as one surface working rather
-than particles flying about.
+A grid of marks forms an animated shape. The mark centres stay fixed while their
+radius and opacity change over time.
 
-Standalone:
+Run the specimen on its own:
 
 ```bash
 ./gradlew :processing-field:run
@@ -18,29 +17,26 @@ Or open it from the [showcase](../README.md).
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/processing-field.mp4)
 
-Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. See
+Spectre captures this recording. Regenerate it with `./gradlew :recordings:recordSpecimens`. See
 [docs/RECORDING.md](../docs/RECORDING.md).
 
 ## Concepts
 
-- One `Canvas`, no composable per mark.
-- A circle in mark-space, bent by three incommensurate folds, ramped across a soft
-  shoulder (smoothstep).
-- `.dots` fills circles; `.lines` strokes short segments tangent to the outline so they
-  comb around the mass.
-- `isActive = false` parks the field on a still frame (mass dead-centre, mid swell).
-- The enclosure is a playground: mark style, running/still, pitch, reach, softness,
-  drift/fold speeds, and mark weight (radius and ink floors/ceilings).
+- One `Canvas` draws every mark.
+- Three folds with incommensurate periods deform a circle in mark-space. A smoothstep function softens its boundary.
+- `.dots` draws filled circles. `.lines` draws short segments tangent to the outline.
+- `isActive = false` selects a still frame with the shape centred and halfway through its expansion.
+- The controls adjust mark style, animation, pitch, reach, softness, drift and fold speeds, and mark weight.
+  Mark weight includes lower and upper limits for radius and opacity.
 
 ## Reference
 
 - Haplo LLC's SwiftUI original: https://github.com/haplollc/ProcessingField
 
-## Tricky bits
+## Layout and timing limits
 
-- The grid is nudged so a whole number of cells fills the width; leftover height is split
-  top and bottom. Nothing is half-drawn at an edge.
-- Speeds of 0 freeze the *clocks* at t=0, which is not the still frame: t=0 still has the
-  Y-phase offset of 0.9 baked into the wander. The still frame is `time = null`.
+- The grid adjusts to fit whole cells across its width. It divides spare height between the top and bottom to avoid partial edge marks.
+- Setting speeds to 0 freezes the clocks at t=0. That time still includes the Y-phase offset of 0.9.
+  Use `time = null` for the centred still frame.
 - Cap the timeline at 30fps. Halving `pitch` roughly quadruples the mark count.
-- Draw no background. The field is an overlay by design.
+- Keep the background transparent so the field can act as an overlay.

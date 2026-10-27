@@ -1,11 +1,12 @@
 # Border beam
 
-A Compose Desktop port of [Jakub Antalik’s border-beam](https://github.com/Jakubantalik/border-beam)
-([libraries.dev](https://libraries.dev/beam.html), [playground](https://beam.jakubantalik.com/)):
-a glow that rides the border of a card. Sizes `md`, `sm`, and `line` travel; `pulse-inner` and
-`pulse-outside` breathe. Palettes are `colorful`, `mono`, `ocean`, and `sunset`, in light or dark.
+This Compose Desktop specimen ports [Jakub Antalik’s border-beam](https://github.com/Jakubantalik/border-beam)
+([libraries.dev](https://libraries.dev/beam.html), [playground](https://beam.jakubantalik.com/)).
+A glow moves around a card's border in the `md`, `sm`, and `line` variants.
+The `pulse-inner` and `pulse-outside` variants pulse in place.
+The `colorful`, `mono`, `ocean`, and `sunset` palettes support light and dark themes.
 
-Standalone:
+Run the specimen on its own:
 
 ```bash
 ./gradlew :border-beam:run
@@ -19,10 +20,10 @@ Or open it from the [showcase](../README.md).
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/border-beam.mp4)
 
-Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. See
+Spectre captures this recording. Regenerate it with `./gradlew :recordings:recordSpecimens`. See
 [docs/RECORDING.md](../docs/RECORDING.md).
 
 ## Credit and license
 
-Ported from [border-beam](https://github.com/Jakubantalik/border-beam) by Jakub Antalik. The
-original effect is MIT licensed; the preserved license is in [LICENSE](LICENSE).
+Jakub Antalik wrote the original [border-beam](https://github.com/Jakubantalik/border-beam) effect under the MIT license.
+This port keeps that license in [LICENSE](LICENSE).

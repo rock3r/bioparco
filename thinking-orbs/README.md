@@ -1,10 +1,10 @@
 # Thinking Orbs
 
-A Compose Desktop port of [Haplo LLC’s ThinkingOrbs](https://github.com/haplollc/ThinkingOrbs):
-nine monochrome, dotted indicators for AI and agent activity, each in regular and small
-purpose-tuned sizes.
+This Compose Desktop port of [Haplo LLC’s ThinkingOrbs](https://github.com/haplollc/ThinkingOrbs)
+has nine monochrome, dotted indicators for AI and agent activity. Each indicator has regular
+and small variants with motion adjusted for its size.
 
-Standalone:
+Run the specimen on its own:
 
 ```bash
 ./gradlew :thinking-orbs:run
@@ -18,26 +18,26 @@ Or open it from the [showcase](../README.md).
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/thinking-orbs.mp4)
 
-Recorded with Spectre. Regenerate with `./gradlew :recordings:recordSpecimens`. See
+Spectre captures this recording. Regenerate it with `./gradlew :recordings:recordSpecimens`. See
 [docs/RECORDING.md](../docs/RECORDING.md).
 
 ## Designs
 
-- **Working** — particles on tilted orbits
-- **Searching** — a scan meridian sweeping a dotted globe
-- **Solving** — spherical bands scrambling and returning to solved
-- **Listening** — waveforms rolling through latitude rings
-- **Connecting** — a wandering constellation with packets crossing its edges
-- **Weaving** — three strands plaiting around a sphere
-- **Composing** — an undulating multi-band sash
-- **Breathing** — a face-on ring slowly deforming
-- **Shaping** — a dotted circle morphing into a triangle and square
+- **Working** moves particles along tilted orbits.
+- **Searching** sweeps a meridian across a dotted globe.
+- **Solving** scrambles spherical bands and returns them to their starting positions.
+- **Listening** moves waveforms through latitude rings.
+- **Connecting** moves a group of points and sends packets along the lines between them.
+- **Weaving** twists three strands around a sphere.
+- **Composing** deforms a strip with several bands.
+- **Breathing** slowly deforms a ring viewed from the front.
+- **Shaping** changes a dotted circle into a triangle and square.
 
-The implementation keeps the original engine formulas, depth sorting, grayscale rendering,
-and independent tunings for the 64-point and 20-point designs.
+The port keeps the original engine formulas, depth sorting, and grayscale rendering.
+The 64-point and 20-point designs retain separate motion settings.
 
 ## Credit and license
 
-Ported from [ThinkingOrbs](https://github.com/haplollc/ThinkingOrbs) by Haplo LLC. The original
-designs and engine are by Jakub Antalik. Their code is MIT licensed; the preserved license is
-in [LICENSE](LICENSE).
+This specimen ports Haplo LLC's [ThinkingOrbs](https://github.com/haplollc/ThinkingOrbs).
+Jakub Antalik created the original designs and engine. Their code uses the MIT license,
+which this port keeps in [LICENSE](LICENSE).

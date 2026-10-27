@@ -116,7 +116,7 @@ private fun ChatScene(modifier: Modifier = Modifier) {
     val messages = remember {
         mutableStateListOf(
             ChatMessage(1, "Hey, I'm Justine"),
-            ChatMessage(2, "This is Chat Bubble Transition Using SwiftUI!"),
+            ChatMessage(2, "This is Chat Bubble Transition using Compose Desktop!"),
             ChatMessage(3, "Hello world"),
         )
     }

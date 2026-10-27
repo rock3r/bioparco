@@ -2,19 +2,14 @@
 
 # Bioparco
 
-A public collection of cute [Compose Desktop](https://www.jetbrains.com/compose-multiplatform/)
-experiments, gathered like specimens in a bioparco (wildlife park). Each specimen is in its own
-enclosure (Gradle module).
+Bioparco collects [Compose Desktop](https://www.jetbrains.com/compose-multiplatform/)
+experiments. Each experiment, called a specimen, has its own folder, Gradle module, and README.
+The showcase app opens all specimens from one catalog.
 
-The easiest way to try the specimens is the showcase. Each enclosure is its own folder, its own
-Gradle module, and its own README.
+Contributors built most examples with AI coding agents. The examples explore how Compose can
+reproduce visual effects from iOS and the web. Contributors review and adjust the results through repeated visual checks.
 
-Note that all examples in this repository are grown (i.e., mostly vibe coded) and not crafted,
-because the goal here is to prove that you _can_ create all those nice effects you see on iOS
-and the Web in Compose, too, even if you're not an expert. You just need a decent agent, time,
-an eye for detail, and the passion to care about these things.
-
-## Enclosures
+## Specimens
 
 ### [Grabby stepper](grabby-stepper/)
 
@@ -120,19 +115,20 @@ an eye for detail, and the passion to care about these things.
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/anatomy.mp4)
 
-Recordings are generated automatically with [Spectre](https://spectre.sebastiano.dev).
-README previews are animated, lower quality WebPs; original mp4 files are the full clips.
+The recording job uses [Spectre](https://spectre.sebastiano.dev) to generate the clips.
+The animated WebP previews use lower quality settings. The MP4 links contain the full recordings.
 
 ## Run the showcase
 
-JetBrains Runtime (JBR) 25 (`jvmToolchain(25)`). Jewel 0.41 is compiled for Java 25, so the showcase does not start on
-an older runtime. Another JDK 25 also works, but JBR renders fonts better.
+Use JetBrains Runtime (JBR) 25 (`jvmToolchain(25)`). Jewel 0.41 requires Java 25,
+so older runtimes cannot start the showcase. Other Java Development Kit (JDK) 25 distributions also work.
+JBR gives better font rendering.
 
 ```bash
 ./gradlew :showcase:run
 ```
 
-Or visit one enclosure directly:
+Run a specimen directly with its module task:
 
 ```bash
 ./gradlew :grabby-stepper:run

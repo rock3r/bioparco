@@ -70,7 +70,7 @@ fun App(modifier: Modifier = Modifier) {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("Border beam", style = JewelTheme.typography.h1TextStyle)
                 Text(
-                    "A glow that rides the edge of whatever it wraps.",
+                    "A glow moves along the border or pulses in place.",
                     color = JewelTheme.globalColors.text.info,
                 )
             }
@@ -222,7 +222,7 @@ private fun PromptCard(settings: BeamSettings, colors: StageColors) {
                 Text("@", color = colors.muted)
             }
             Text(
-                "Build anything…",
+                "Describe what you want to build…",
                 color = colors.muted,
                 modifier = Modifier.padding(start = 4.dp, top = 10.dp),
             )

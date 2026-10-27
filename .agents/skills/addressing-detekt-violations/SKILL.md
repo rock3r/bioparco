@@ -1,39 +1,37 @@
 ---
 name: addressing-detekt-violations
-description: Use when Detekt reports a violation and you need to fix the underlying problem without papering over it with suppressions or configuration changes.
+description: Fixes the cause of Detekt findings. Use when Detekt reports a violation in this repository.
 metadata:
   internal: true
 ---
 
 # Addressing Detekt Violations
 
-## Golden Rule
+## Fix the cause
 
-Fix the design problem. Do not use `@Suppress`, baselines, or config loosening as the default way
-out of a finding.
+Fix the design or code-structure problem that Detekt reports.
+Adding `@Suppress`, a baseline, or a weaker rule requires the owner's explicit approval.
 
 ## What To Do First
 
 When Detekt reports a violation:
 
-1. Identify whether it reflects a real design/code-structure problem.
-2. Prefer extracting collaborators or simplifying control flow over shuffling code around.
-3. Re-run the smallest relevant Detekt task after the fix.
+1. Check whether the finding describes a design or code-structure problem.
+2. Extract supporting classes or simplify control flow when those changes address the cause.
+3. Run the smallest relevant Detekt task again after the fix.
 
-## Red Flags
+## Changes to avoid
 
-Treat these as bad fixes:
+Reject changes that hide a finding without addressing its cause:
 
-- adding `@Suppress` with no clear boundary reason
-- moving methods around purely to dodge rule counts
-- converting complex functions into lambdas stored in properties just to hide them from Detekt
-- relaxing the config or generating a baseline without explicit user approval
+- Do not add `@Suppress` without a clear boundary reason and approval.
+- Do not move methods solely to reduce a rule's count.
+- Do not hide complex functions from Detekt by storing them as lambdas in properties.
+- Do not weaken the configuration or generate a baseline without explicit user approval.
 
-## Spectre Notes
+## Repository tools and rules
 
-- `ktfmt` owns formatting; do not try to resolve formatting findings by adding Detekt formatting
-  plugins or config churn.
-- Compose-bearing modules also run `io.nlopez.compose.rules:detekt`; treat those findings like any
-  other structural warning and prefer API/design fixes over suppressions.
-- If a Detekt rule seems wrong for this repo, surface it and ask before changing `config/detekt`.
-- For current repo policy and commands, read `docs/STATIC-ANALYSIS.md`.
+- Use `ktfmt` for formatting. Do not add Detekt formatting plugins or change Detekt configuration to handle formatting.
+- Compose modules also run `io.nlopez.compose.rules:detekt`. Address those findings through API or design changes where possible.
+- If a rule seems unsuitable, explain the problem and request approval before changing `config/detekt`.
+- Read `docs/STATIC-ANALYSIS.md` for repository policy and commands.
