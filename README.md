@@ -162,6 +162,14 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/email-invite.mp4)
 
+### [Routine timeline](routine-timeline/)
+
+**Seb** · [Ravi Sawlani](https://x.com/gravity_vi)’s [radial routine timeline](https://x.com/gravity_vi/status/2106249721962791116)
+
+![Routine timeline](https://static.sebastiano.dev/stable/bioparco/routine-timeline.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/routine-timeline.mp4)
+
 The recording job uses [Spectre](https://spectre.sebastiano.dev) to generate the clips.
 The animated WebP previews use lower quality settings. The MP4 links contain the full recordings.
 
@@ -197,6 +205,7 @@ Run a specimen directly with its module task:
 ./gradlew :squeeze-progress:run
 ./gradlew :anatomy:run
 ./gradlew :email-invite:run
+./gradlew :routine-timeline:run
 ...
 ```
 

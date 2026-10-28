@@ -90,6 +90,10 @@ class RecordingPathsTest {
             dir.resolve("email-invite.mp4"),
             RecordingPaths.file(RecordingPaths.EMAIL_INVITE, dir),
         )
+        assertEquals(
+            dir.resolve("routine-timeline.mp4"),
+            RecordingPaths.file(RecordingPaths.ROUTINE_TIMELINE, dir),
+        )
     }
 
     @Test
@@ -116,6 +120,7 @@ class RecordingPathsTest {
                 "squeeze-progress.mp4",
                 "anatomy.mp4",
                 "email-invite.mp4",
+                "routine-timeline.mp4",
             ),
             RecordingPaths.expectedNames(settings),
         )
@@ -205,6 +210,7 @@ class RecordingPathsTest {
                 "squeeze-progress.mp4",
                 "anatomy.mp4",
                 "email-invite.mp4",
+                "routine-timeline.mp4",
             ),
             RecordingPaths.missingOutputs(dir),
         )
@@ -227,6 +233,7 @@ class RecordingPathsTest {
         Files.write(dir.resolve("squeeze-progress.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("anatomy.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("email-invite.mp4"), ByteArray(2_000))
+        Files.write(dir.resolve("routine-timeline.mp4"), ByteArray(2_000))
         assertEquals(emptyList<String>(), RecordingPaths.missingOutputs(dir))
     }
 }

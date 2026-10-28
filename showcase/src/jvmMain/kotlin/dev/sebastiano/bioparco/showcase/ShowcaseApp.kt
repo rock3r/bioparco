@@ -33,6 +33,7 @@ import dev.sebastiano.holocard.App as HoloCardApp
 import dev.sebastiano.honeycomb.App as HoneycombApp
 import dev.sebastiano.peelsticker.App as PeelStickerApp
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
+import dev.sebastiano.routinetimeline.App as RoutineTimelineApp
 import dev.sebastiano.scrolleffects.App as ScrollEffectsApp
 import dev.sebastiano.squeezeprogress.App as SqueezeProgressApp
 import dev.sebastiano.thinkingbloom.App as ThinkingBloomApp
@@ -65,6 +66,7 @@ private enum class SpecimenRoute {
     SqueezeProgress,
     Anatomy,
     EmailInvite,
+    RoutineTimeline,
 }
 
 @Composable
@@ -95,6 +97,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenSqueezeProgress = { route = SpecimenRoute.SqueezeProgress },
                     onOpenAnatomy = { route = SpecimenRoute.Anatomy },
                     onOpenEmailInvite = { route = SpecimenRoute.EmailInvite },
+                    onOpenRoutineTimeline = { route = SpecimenRoute.RoutineTimeline },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -249,6 +252,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     EmailInviteApp()
                 }
+            SpecimenRoute.RoutineTimeline ->
+                SpecimenHost(
+                    title = "Routine timeline",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    RoutineTimelineApp()
+                }
         }
     }
 }
@@ -274,6 +285,7 @@ private fun Catalog(
     onOpenSqueezeProgress: () -> Unit,
     onOpenAnatomy: () -> Unit,
     onOpenEmailInvite: () -> Unit,
+    onOpenRoutineTimeline: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -432,6 +444,14 @@ private fun Catalog(
                     "(@sucodeee).",
             testTag = "open-email-invite",
             onOpen = onOpenEmailInvite,
+        )
+        SpecimenCard(
+            name = "Routine timeline",
+            summary =
+                "A day's routine on a half dial that turns under a fixed now marker as you drag " +
+                    "it, with the windows listed beside it. After Ravi Sawlani (@gravity_vi).",
+            testTag = "open-routine-timeline",
+            onOpen = onOpenRoutineTimeline,
         )
     }
 }
