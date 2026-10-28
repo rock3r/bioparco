@@ -31,6 +31,7 @@ dependencies {
     implementation(project(":squeeze-progress"))
     implementation(project(":anatomy"))
     implementation(project(":email-invite"))
+    implementation(project(":routine-timeline"))
     implementation(project(":currency-swarm"))
     implementation(project(":tracing"))
 

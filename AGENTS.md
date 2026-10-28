@@ -128,6 +128,7 @@ Working on `main` is allowed only when the owner has said so for that task.
 ./gradlew :squeeze-progress:run
 ./gradlew :anatomy:run
 ./gradlew :email-invite:run
+./gradlew :routine-timeline:run
 ./gradlew :currency-swarm:run
 ./gradlew :recordings:recordSpecimens
 ```

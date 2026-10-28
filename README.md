@@ -162,6 +162,14 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/email-invite.mp4)
 
+### [Routine timeline](routine-timeline/)
+
+**Seb** · [Ravi Sawlani](https://x.com/gravity_vi)’s [radial routine timeline](https://x.com/gravity_vi/status/2106249721962791116)
+
+![Routine timeline](https://static.sebastiano.dev/stable/bioparco/routine-timeline.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/routine-timeline.mp4)
+
 ### [Currency swarm](currency-swarm/)
 
 **Seb** · [Karthik Balasubramanian](https://x.com/_iam_karthik)’s [particle currency login screen](https://x.com/_iam_karthik/status/2106622203337044366)
@@ -205,8 +213,7 @@ Run a specimen directly with its module task:
 ./gradlew :squeeze-progress:run
 ./gradlew :anatomy:run
 ./gradlew :email-invite:run
-
-
+./gradlew :routine-timeline:run
 ./gradlew :currency-swarm:run
 ...
 ```
