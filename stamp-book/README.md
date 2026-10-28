@@ -32,14 +32,15 @@ Spectre captures this recording. Regenerate it with `./gradlew :recordings:recor
 
 ### The book
 
-The cover hinges on its left edge and turns in 3D (`graphicsLayer` `rotationY`, with a close camera
-for a strong perspective). Shut, it sits 5° ajar, its free edge leaning away, so the back board and
-the bird stamp's perforations peek out past it, as in the video. Open, it turns 65°.
+The cover hinges on its left edge and turns in 3D (`graphicsLayer` `rotationY`), its free edge
+swinging towards the viewer as a real cover opens. The camera sits well back, so the perspective
+stays mild, as in the video: a close camera blows the near edge up. Shut, the cover sits 5° ajar,
+and the back board and the bird stamp's perforations peek out past it. Open, it turns 60°.
 
 While shut, the cover is frosted: the stamps behind it show through as coloured blurs. That frost
 is a baked image of the two stamps in their tucked-in places, blurred once at startup, with the
 cover's colour laid over it. It clears in the first 40% of the swing, so the open cover is a solid
-sheet, shaded towards its free edge as if turned away from the light.
+sheet with a little shade towards its free edge.
 
 The video's lettering is Japanese. Here it is Italian, for a bioparco: the book is a *Raccolta*, the
 pale stamp says *Quiete*, and the loud one *Uccellino*.
@@ -84,7 +85,7 @@ Tracing sections cover each layer (`back board`, `quiet stamp`, `bird shadow`, `
 
 Every frame only copies images, baked once at startup on a background thread (`bake art`, about a
 third of a second): the two stamps, the bird stamp's shadow and its tucked-in tilt, and for each
-colour the board with the book's shadow and the cover's frosted and clear faces.
+colour the board with the book's shadow and the cover's face, frosted to clear.
 
 The first version drew the cover live: a fill, the frost, a tint, a sheen, a shade, a rim and the
 label, each through the cover's perspective, where every pixel costs a filtered sample. A software
@@ -92,7 +93,8 @@ frame then cost about 10 ms to rasterise even with nothing moving. The trace sec
 it, because Skia rasterises after the `frame` section ends; timing each layer alone in an
 `ImageComposeScene` did. Now:
 
-- the cover is one image through the perspective (two while the frost clears);
+- the cover is one image through the perspective: its frost clears in six baked steps, which never
+  show on a cover in motion, because cross-fading two faces cost 5–7 ms a frame;
 - the stamps slide in whole pixels, so copying them needs no filtering;
 - the bird stamp's shadow sits outside its turning layer, and while the stamp rests tucked in, it is
   drawn from an image already turned to its tilt, so its layer stays square.
@@ -113,39 +115,40 @@ Measured on a 4-core cloud VM:
 
 | Scenario | Median | p95 | Worst |
 |---|---|---|---|
-| Shut | 2.61 ms | 2.86 ms | 2.87 ms |
-| Opening | 3.14 ms | 4.74 ms | 5.72 ms |
-| Open | 2.84 ms | 3.18 ms | 3.29 ms |
-| Closing | 3.68 ms | 6.91 ms | 9.13 ms |
-| Recolouring | 2.59 ms | 4.01 ms | 4.01 ms |
+| Shut | 2.54 ms | 3.54 ms | 3.57 ms |
+| Opening | 3.86 ms | 5.23 ms | 5.80 ms |
+| Open | 4.15 ms | 4.72 ms | 4.75 ms |
+| Closing | 2.80 ms | 5.70 ms | 5.86 ms |
+| Recolouring | 2.51 ms | 4.09 ms | 4.09 ms |
 
-The worst whole software frame uses just over half of a 60 Hz frame (16.7 ms); the median is under a
-quarter. Before the bake, the book cost about 10 ms a frame at rest. The benchmark closes each
-frame's image as soon as it has it: left to the garbage collector, the 2 MB snapshots made timings
-swing by several milliseconds.
+The worst whole software frame uses about a third of a 60 Hz frame (16.7 ms). Before the bake, the
+book cost about 10 ms a frame at rest. The benchmark closes each frame's image as soon as it has it:
+left to the garbage collector, the 2 MB snapshots made timings swing by several milliseconds.
 
 ### Frame pacing in a window
 
-The specimen ran in a real window under Xvfb with tracing on, twice per backend.
-[xdotool](https://github.com/jordansissel/xdotool) hovered the book open, moved over the bird
-stamp, left it to close and clicked a swatch, six times. The gaps between `frame` sections give the
-pacing. The first three seconds after launch (the JIT's time) are left out, and so are gaps over
-100 ms, when nothing asks for a frame.
+The specimen ran in a real window under Xvfb with tracing on, seven times on `SOFTWARE_FAST` and
+twice on `SOFTWARE_COMPAT`. [xdotool](https://github.com/jordansissel/xdotool) hovered the book
+open, moved over the bird stamp, left it to close and clicked a swatch, six times. The gaps between
+`frame` sections give the pacing. The first three seconds after launch (the JIT's time) are left
+out, and so are gaps over 100 ms, when nothing asks for a frame. For comparison,
+[squeeze-progress](../squeeze-progress/) ran on the same VM in the same way.
 
-| Skia backend | Intervals in one 60 Hz frame (13–20 ms) | Over 20 ms | Median | p99 | Worst |
-|---|---|---|---|---|---|
-| `SOFTWARE_FAST` | 98.3–98.6% | none | 15.3–15.4 ms | 16.8–17.4 ms | 19.7 ms |
-| `SOFTWARE_COMPAT` (what CI records with) | 50–62% | 38–50% | 18.0–20.1 ms | 29 ms | 31–35 ms |
+| Skia backend | Intervals in one 60 Hz frame (13–20 ms) | Over 20 ms | Median | p99 |
+|---|---|---|---|---|
+| `SOFTWARE_FAST` | 97.9–99.2% | 4 of about 3,600 | 15.2–15.3 ms | 16.2–17.0 ms |
+| `SOFTWARE_COMPAT` (what CI records with) | 82.3–88.5% | 12–18% | 15.6–15.8 ms | 24.7–26.5 ms |
+| squeeze-progress, `SOFTWARE_COMPAT` | 82.3% | 17% | 15.9 ms | 27.0 ms |
 
-On `SOFTWARE_FAST` it holds 60 Hz: no interval in either run took longer than 20 ms, the first
-hover included. The few intervals outside the band are frames that came early.
+On `SOFTWARE_FAST` it holds 60 Hz. Five of the seven runs had no interval over 20 ms. The other
+two had two each, 24–59 ms, at random moments rather than when the book starts to move. In the one
+of those runs logged with GC, no collection came near them, so they look like the shared VM
+stalling the process. The intervals under 13 ms are frames that came early.
 
 `SOFTWARE_COMPAT` also copies every frame into the window through Java2D (see
-[docs/TRACING.md](../docs/TRACING.md#things-that-fool-you)). On the same VM,
-[squeeze-progress](../squeeze-progress/), whose frames cost under a millisecond to draw, held only
-82% there, so that copy alone takes most of a frame. This specimen's few milliseconds of rasterising
-on top push more of its frames past the deadline. The copy is a cost of Skiko and the JDK, not of
-the specimen, but it is why the CI recording looks less smooth than the app. Skia's OpenGL backend could not create a context on Mesa under Xvfb in the test
+[docs/TRACING.md](../docs/TRACING.md#things-that-fool-you)), which takes most of a frame by itself.
+There the book paces like squeeze-progress, whose frames cost under a millisecond to draw. With the
+cross-fade the frost used before it was baked in steps, this backend managed only 50–68%. Skia's OpenGL backend could not create a context on Mesa under Xvfb in the test
 container, so it is not measured here. A GPU window does almost none of this work on the CPU.
 
 ## Limits

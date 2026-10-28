@@ -19,28 +19,28 @@ internal object Book {
     val Corner = 22.dp
 
     /** The back board peeks out to the right of and below the cover. */
-    val BackShift = DpOffset(9.dp, 5.dp)
+    val BackShift = DpOffset(14.dp, 5.dp)
 
     /** The pale "quiet" stamp: it slides half out and stays on the back board. */
     val StampA = DpSize(150.dp, 232.dp)
     val StampAClosed = DpOffset(38.dp, 20.dp)
-    val StampAOpen = DpOffset(114.dp, 22.dp)
+    val StampAOpen = DpOffset(124.dp, 22.dp)
 
     /** The teal bird stamp: it slides all the way out, past the board's edge. */
     val StampB = DpSize(158.dp, 222.dp)
-    val StampBClosed = DpOffset(54.dp, 16.dp)
-    val StampBOpen = DpOffset(276.dp, 10.dp)
+    val StampBClosed = DpOffset(66.dp, 16.dp)
+    val StampBOpen = DpOffset(282.dp, 10.dp)
 
     /** The bird stamp sits a little crooked inside and nearly straight once out. */
     const val B_CLOSED_TURN = 3.5f
     const val B_OPEN_TURN = -2f
 
     /**
-     * The cover's turn about its hinge, its free edge leaning away: a few degrees ajar when shut,
-     * so the board and a stamp's edge peek out past it, and about 65° open, as in the video.
+     * The cover's turn about its hinge. Negative turns its free edge towards the viewer, as a real
+     * cover opens: a few degrees ajar when shut, about 60° open, as in the video.
      */
-    const val COVER_CLOSED_TURN = 5f
-    const val COVER_OPEN_TURN = 65f
+    const val COVER_CLOSED_TURN = -5f
+    const val COVER_OPEN_TURN = -60f
 
     /** The swatch row's middle, below the book. */
     val SwatchCentreY = FolderOrigin.y + Folder.height + 44.dp

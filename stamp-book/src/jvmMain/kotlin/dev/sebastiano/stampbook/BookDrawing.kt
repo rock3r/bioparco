@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
 
 /* Per frame, everything here only copies baked images (see BookArt). */
 
@@ -57,24 +58,17 @@ internal fun DrawScope.drawStampBShadow(art: BookArt, lift: Float) {
 
 /**
  * The cover, frosted while it is shut (the stamps show through it blurred), clearing to a solid
- * sheet as it swings open. Drawn inside the cover's turning layer, so it is one or two images.
+ * sheet as it swings open. Drawn inside the cover's turning layer, so it is always one image.
  */
 internal fun DrawScope.drawCover(art: BookArt, motion: StampBookMotion) {
     val ink = art.inks[motion.swatch]
     val frost = frost(motion.cover.value)
-    when {
-        frost >= 1f - FADE_EPSILON -> drawFilling(ink.frosted)
-        frost <= FADE_EPSILON -> drawFilling(ink.clear)
-        else -> {
-            drawFilling(ink.clear)
-            drawFilling(ink.frosted, frost)
-        }
-    }
+    drawFilling(ink.faces[(frost * (ink.faces.size - 1)).roundToInt()])
 }
 
 /**
  * How frosted the cover looks as it opens: it clears in the first part of the swing, as in the
- * video, which also keeps the two-face blend (two images through the perspective) short.
+ * video.
  */
 internal fun frost(open: Float): Float {
     val left = (1f - open / FROST_CLEARS_AT).coerceIn(0f, 1f)
@@ -82,19 +76,24 @@ internal fun frost(open: Float): Float {
 }
 
 /**
- * Bakes a cover face for [ink], in dp units: the colour, the [frost] (blurred stamps) if any, the
- * tint over it, a sheen at the top, a rim, the label and two ruled lines. Without frost it is the
- * open face, shaded towards its free edge as if turned from the light.
+ * Bakes a cover face for [ink], in dp units: the colour, [amount] of the [frost] (the blurred
+ * stamps), the tint over it, a sheen at the top, a rim, the label and two ruled lines. As the frost
+ * goes, a little shade comes in towards the free edge.
  */
-internal fun DrawScope.drawCoverFace(ink: FolderInk, frost: ImageBitmap?, text: TextMeasurer) {
+internal fun DrawScope.drawCoverFace(
+    ink: FolderInk,
+    frost: ImageBitmap,
+    amount: Float,
+    text: TextMeasurer,
+) {
     val size = Size(Book.Folder.width.value, Book.Folder.height.value)
     val corner = CornerRadius(Book.Corner.value)
     drawRoundRect(ink.cover, size = size, cornerRadius = corner)
-    if (frost != null) {
+    if (amount > 0f) {
         drawImage(
             frost,
             dstSize = IntSize(size.width.toInt(), size.height.toInt()),
-            alpha = FROST_ALPHA,
+            alpha = FROST_ALPHA * amount,
         )
     }
     drawRoundRect(ink.cover.copy(alpha = TINT_ALPHA), size = size, cornerRadius = corner)
@@ -107,11 +106,11 @@ internal fun DrawScope.drawCoverFace(ink: FolderInk, frost: ImageBitmap?, text: 
         size = size,
         cornerRadius = corner,
     )
-    if (frost == null) {
+    if (amount < 1f) {
         drawRoundRect(
             Brush.horizontalGradient(
                 0f to Color.Transparent,
-                1f to Color.Black.copy(alpha = TURN_SHADE_ALPHA),
+                1f to Color.Black.copy(alpha = TURN_SHADE_ALPHA * (1f - amount)),
                 endX = size.width,
             ),
             size = size,
@@ -152,9 +151,6 @@ private val AtOrigin = DpOffset(0.dp, 0.dp)
 
 /** The cover is clear of frost by this far through its swing. */
 private const val FROST_CLEARS_AT = 0.4f
-
-/** Below this, a fade is finished and only one face is drawn. */
-private const val FADE_EPSILON = 0.004f
 
 private const val COVER_SHADOW_ALPHA = 0.22f
 

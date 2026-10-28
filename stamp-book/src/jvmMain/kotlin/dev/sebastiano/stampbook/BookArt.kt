@@ -38,10 +38,9 @@ import org.jetbrains.skia.Surface
 
 /**
  * Everything drawn once, at [scale] pixels per dp: the two stamps, the bird stamp's shadow, and for
- * each colourway the board (with the book's shadow) and the cover's face, frosted and clear. A
- * frame then only copies images. That matters most for the cover: it turns in 3D, and every pixel
- * drawn through a perspective costs a filtered sample, so it is one image rather than a stack of
- * fills.
+ * each colourway the board (with the book's shadow) and the cover's face, frosted to clear. A frame
+ * then only copies images. That matters most for the cover: it turns in 3D, and every pixel drawn
+ * through a perspective costs a filtered sample, so it is one image rather than a stack of fills.
  */
 internal class BookArt(
     val scale: Float,
@@ -59,10 +58,12 @@ internal class BookArt(
 internal class InkArt(
     /** The back board over the whole book's soft shadow. */
     val board: Placed,
-    /** The shut cover: the stamps show through it, blurred. */
-    val frosted: ImageBitmap,
-    /** The open cover: a solid tinted sheet, shaded as if turned from the light. */
-    val clear: ImageBitmap,
+    /**
+     * The cover's face as its frost clears, in [FROST_LEVELS] steps: from the open cover, a solid
+     * tinted sheet a little shaded towards its free edge, to the shut one, with the stamps showing
+     * through it blurred. Picking one face a frame keeps the turning cover to a single image.
+     */
+    val faces: List<ImageBitmap>,
 )
 
 /** An image whose top-left goes [at] from the top-left of what it belongs to. */
@@ -91,8 +92,11 @@ internal fun bakeBookArt(scale: Float): BookArt {
             StampBookPalette.inks.map { ink ->
                 InkArt(
                     board = board(ink, bookShadow, scale),
-                    frosted = bake(Book.Folder, scale) { drawCoverFace(ink, frost, text) },
-                    clear = bake(Book.Folder, scale) { drawCoverFace(ink, null, text) },
+                    faces =
+                        List(FROST_LEVELS) { level ->
+                            val amount = level / (FROST_LEVELS - 1f)
+                            bake(Book.Folder, scale) { drawCoverFace(ink, frost, amount, text) }
+                        },
                 )
             },
     )
@@ -253,6 +257,12 @@ internal fun DrawScope.drawPerforatedPaper(width: Float, height: Float, paper: C
 private const val PERFORATION_PITCH = 9.5f
 
 private const val HOLE_RADIUS = 3.1f
+
+/**
+ * How many steps the cover's frost clears in. Its two-face cross-fade, both faces through the
+ * perspective, cost 5–7 ms a software frame; the steps never show on a cover in motion.
+ */
+internal const val FROST_LEVELS = 6
 
 /** How soft the stamps look through the frosted cover, as a blur sigma in dp. */
 private const val FROST_BLUR = 12f

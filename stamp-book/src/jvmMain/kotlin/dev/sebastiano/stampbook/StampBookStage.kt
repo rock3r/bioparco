@@ -305,5 +305,8 @@ private const val LEAN_PER_SPEED = 2.2f
 
 private const val MAX_LEAN = 5f
 
-/** Closer than Compose's default, for a stronger perspective on the swinging cover. */
-private const val CAMERA_DISTANCE = 7f
+/**
+ * Well back from the cover. Its free edge swings towards the viewer, and a close camera blows that
+ * edge up; the video shows only a mild perspective.
+ */
+private const val CAMERA_DISTANCE = 24f
