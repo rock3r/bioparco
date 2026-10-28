@@ -40,6 +40,7 @@ kotlin {
             implementation(project(":currency-swarm"))
             implementation(project(":stamp-book"))
             implementation(project(":expanding-search"))
+            implementation(project(":particle-ring"))
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)

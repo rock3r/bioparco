@@ -75,6 +75,8 @@ include(":stamp-book")
 
 include(":expanding-search")
 
+include(":particle-ring")
+
 include(":tracing")
 
 include(":showcase")

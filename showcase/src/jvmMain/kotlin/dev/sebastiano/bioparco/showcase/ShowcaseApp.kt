@@ -34,6 +34,7 @@ import dev.sebastiano.hairline.App as HairlineApp
 import dev.sebastiano.holocard.App as HoloCardApp
 import dev.sebastiano.honeycomb.App as HoneycombApp
 import dev.sebastiano.layoutmorph.App as LayoutMorphApp
+import dev.sebastiano.particlering.App as ParticleRingApp
 import dev.sebastiano.peelsticker.App as PeelStickerApp
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
 import dev.sebastiano.routinetimeline.App as RoutineTimelineApp
@@ -75,6 +76,7 @@ private enum class SpecimenRoute {
     CurrencySwarm,
     StampBook,
     ExpandingSearch,
+    ParticleRing,
 }
 
 @Composable
@@ -110,6 +112,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenCurrencySwarm = { route = SpecimenRoute.CurrencySwarm },
                     onOpenStampBook = { route = SpecimenRoute.StampBook },
                     onOpenExpandingSearch = { route = SpecimenRoute.ExpandingSearch },
+                    onOpenParticleRing = { route = SpecimenRoute.ParticleRing },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -304,6 +307,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     ExpandingSearchApp()
                 }
+            SpecimenRoute.ParticleRing ->
+                SpecimenHost(
+                    title = "Particle ring",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    ParticleRingApp()
+                }
         }
     }
 }
@@ -334,6 +345,7 @@ private fun Catalog(
     onOpenCurrencySwarm: () -> Unit,
     onOpenStampBook: () -> Unit,
     onOpenExpandingSearch: () -> Unit,
+    onOpenParticleRing: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -534,6 +546,15 @@ private fun Catalog(
                     "(@sucodeee).",
             testTag = "open-expanding-search",
             onOpen = onOpenExpandingSearch,
+        )
+        SpecimenCard(
+            name = "Particle ring",
+            summary =
+                "A Health icon bursts into a swirling ring of particles while it reads your data, " +
+                    "then folds them into a heart. Drag the ring to stir and tilt it. After Anoop " +
+                    "(@itsonly_anoop).",
+            testTag = "open-particle-ring",
+            onOpen = onOpenParticleRing,
         )
     }
 }

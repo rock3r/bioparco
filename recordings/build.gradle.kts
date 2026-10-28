@@ -36,6 +36,7 @@ dependencies {
     implementation(project(":currency-swarm"))
     implementation(project(":stamp-book"))
     implementation(project(":expanding-search"))
+    implementation(project(":particle-ring"))
     implementation(project(":tracing"))
 
     testImplementation(libs.junit.jupiter)
