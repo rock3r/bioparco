@@ -71,6 +71,8 @@ include(":layout-morph")
 
 include(":currency-swarm")
 
+include(":stamp-book")
+
 include(":tracing")
 
 include(":showcase")

@@ -38,6 +38,7 @@ kotlin {
             implementation(project(":routine-timeline"))
             implementation(project(":layout-morph"))
             implementation(project(":currency-swarm"))
+            implementation(project(":stamp-book"))
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)

@@ -185,6 +185,13 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 ![Currency swarm](https://static.sebastiano.dev/stable/bioparco/currency-swarm.webp)
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/currency-swarm.mp4)
+### [Stamp book](stamp-book/)
+
+**Seb** · [Adi](https://x.com/AdityaSur11)’s [stamp book animation](https://x.com/AdityaSur11/status/2105485353133969504)
+
+![Stamp book](https://static.sebastiano.dev/stable/bioparco/stamp-book.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/stamp-book.mp4)
 
 The recording job uses [Spectre](https://spectre.sebastiano.dev) to generate the clips.
 The animated WebP previews use lower quality settings. The MP4 links contain the full recordings.
@@ -224,6 +231,7 @@ Run a specimen directly with its module task:
 ./gradlew :routine-timeline:run
 ./gradlew :layout-morph:run
 ./gradlew :currency-swarm:run
+./gradlew :stamp-book:run
 ...
 ```
 

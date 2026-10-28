@@ -26,6 +26,7 @@ object RecordingPaths {
     const val ROUTINE_TIMELINE = "routine-timeline.mp4"
     const val LAYOUT_MORPH = "layout-morph.mp4"
     const val CURRENCY_SWARM = "currency-swarm.mp4"
+    const val STAMP_BOOK = "stamp-book.mp4"
     const val MIN_USABLE_BYTES = 1_000L
 
     private val houseModules = setOf("showcase", "recordings", "tracing")
