@@ -34,6 +34,7 @@ import dev.sebastiano.peelsticker.App as PeelStickerApp
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
 import dev.sebastiano.scrolleffects.App as ScrollEffectsApp
 import dev.sebastiano.squeezeprogress.App as SqueezeProgressApp
+import dev.sebastiano.stampbook.App as StampBookApp
 import dev.sebastiano.thinkingbloom.App as ThinkingBloomApp
 import dev.sebastiano.thinkingorbs.App as ThinkingOrbsApp
 import dev.sebastiano.wheelpicker.App as WheelPickerApp
@@ -63,6 +64,7 @@ private enum class SpecimenRoute {
     ThinkingBloom,
     SqueezeProgress,
     Anatomy,
+    StampBook,
 }
 
 @Composable
@@ -92,6 +94,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenThinkingBloom = { route = SpecimenRoute.ThinkingBloom },
                     onOpenSqueezeProgress = { route = SpecimenRoute.SqueezeProgress },
                     onOpenAnatomy = { route = SpecimenRoute.Anatomy },
+                    onOpenStampBook = { route = SpecimenRoute.StampBook },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -238,6 +241,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     AnatomyApp()
                 }
+            SpecimenRoute.StampBook ->
+                SpecimenHost(
+                    title = "Stamp book",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    StampBookApp()
+                }
         }
     }
 }
@@ -262,6 +273,7 @@ private fun Catalog(
     onOpenThinkingBloom: () -> Unit,
     onOpenSqueezeProgress: () -> Unit,
     onOpenAnatomy: () -> Unit,
+    onOpenStampBook: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -411,6 +423,14 @@ private fun Catalog(
                     "of Ryan's Anatomy (MIT).",
             testTag = "open-anatomy",
             onOpen = onOpenAnatomy,
+        )
+        SpecimenCard(
+            name = "Stamp book",
+            summary =
+                "A frosted stamp book whose cover swings open on hover while two stamps slide " +
+                    "out, with dots to recolour it. After Adi (@AdityaSur11).",
+            testTag = "open-stamp-book",
+            onOpen = onOpenStampBook,
         )
     }
 }

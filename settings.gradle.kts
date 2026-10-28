@@ -63,6 +63,8 @@ include(":squeeze-progress")
 
 include(":anatomy")
 
+include(":stamp-book")
+
 include(":tracing")
 
 include(":showcase")

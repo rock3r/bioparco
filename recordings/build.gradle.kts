@@ -30,6 +30,7 @@ dependencies {
     implementation(project(":thinking-bloom"))
     implementation(project(":squeeze-progress"))
     implementation(project(":anatomy"))
+    implementation(project(":stamp-book"))
     implementation(project(":tracing"))
 
     testImplementation(libs.junit.jupiter)

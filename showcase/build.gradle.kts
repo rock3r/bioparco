@@ -34,6 +34,7 @@ kotlin {
             implementation(project(":thinking-bloom"))
             implementation(project(":squeeze-progress"))
             implementation(project(":anatomy"))
+            implementation(project(":stamp-book"))
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
