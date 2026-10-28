@@ -63,6 +63,8 @@ include(":squeeze-progress")
 
 include(":anatomy")
 
+include(":layout-morph")
+
 include(":tracing")
 
 include(":showcase")

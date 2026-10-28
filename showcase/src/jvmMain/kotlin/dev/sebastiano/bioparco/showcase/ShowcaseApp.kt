@@ -30,6 +30,7 @@ import dev.sebastiano.grabbystepper.App
 import dev.sebastiano.hairline.App as HairlineApp
 import dev.sebastiano.holocard.App as HoloCardApp
 import dev.sebastiano.honeycomb.App as HoneycombApp
+import dev.sebastiano.layoutmorph.App as LayoutMorphApp
 import dev.sebastiano.peelsticker.App as PeelStickerApp
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
 import dev.sebastiano.scrolleffects.App as ScrollEffectsApp
@@ -63,6 +64,7 @@ private enum class SpecimenRoute {
     ThinkingBloom,
     SqueezeProgress,
     Anatomy,
+    LayoutMorph,
 }
 
 @Composable
@@ -92,6 +94,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenThinkingBloom = { route = SpecimenRoute.ThinkingBloom },
                     onOpenSqueezeProgress = { route = SpecimenRoute.SqueezeProgress },
                     onOpenAnatomy = { route = SpecimenRoute.Anatomy },
+                    onOpenLayoutMorph = { route = SpecimenRoute.LayoutMorph },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -238,6 +241,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     AnatomyApp()
                 }
+            SpecimenRoute.LayoutMorph ->
+                SpecimenHost(
+                    title = "Layout morph",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    LayoutMorphApp()
+                }
         }
     }
 }
@@ -262,6 +273,7 @@ private fun Catalog(
     onOpenThinkingBloom: () -> Unit,
     onOpenSqueezeProgress: () -> Unit,
     onOpenAnatomy: () -> Unit,
+    onOpenLayoutMorph: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -411,6 +423,15 @@ private fun Catalog(
                     "of Ryan's Anatomy (MIT).",
             testTag = "open-anatomy",
             onOpen = onOpenAnatomy,
+        )
+        SpecimenCard(
+            name = "Layout morph",
+            summary =
+                "One shop collection, six ways to browse it: grid, masonry, list, a fanned " +
+                    "stack, a carousel and a turning helix. Switch the view and every card flies " +
+                    "to its new place. After Elia (@eliakuratli).",
+            testTag = "open-layout-morph",
+            onOpen = onOpenLayoutMorph,
         )
     }
 }
