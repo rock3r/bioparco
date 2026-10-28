@@ -31,6 +31,7 @@ import dev.sebastiano.grabbystepper.App
 import dev.sebastiano.hairline.App as HairlineApp
 import dev.sebastiano.holocard.App as HoloCardApp
 import dev.sebastiano.honeycomb.App as HoneycombApp
+import dev.sebastiano.layoutmorph.App as LayoutMorphApp
 import dev.sebastiano.peelsticker.App as PeelStickerApp
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
 import dev.sebastiano.routinetimeline.App as RoutineTimelineApp
@@ -67,6 +68,7 @@ private enum class SpecimenRoute {
     Anatomy,
     EmailInvite,
     RoutineTimeline,
+    LayoutMorph,
 }
 
 @Composable
@@ -98,6 +100,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenAnatomy = { route = SpecimenRoute.Anatomy },
                     onOpenEmailInvite = { route = SpecimenRoute.EmailInvite },
                     onOpenRoutineTimeline = { route = SpecimenRoute.RoutineTimeline },
+                    onOpenLayoutMorph = { route = SpecimenRoute.LayoutMorph },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -260,6 +263,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     RoutineTimelineApp()
                 }
+            SpecimenRoute.LayoutMorph ->
+                SpecimenHost(
+                    title = "Layout morph",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    LayoutMorphApp()
+                }
         }
     }
 }
@@ -286,6 +297,7 @@ private fun Catalog(
     onOpenAnatomy: () -> Unit,
     onOpenEmailInvite: () -> Unit,
     onOpenRoutineTimeline: () -> Unit,
+    onOpenLayoutMorph: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -452,6 +464,15 @@ private fun Catalog(
                     "it, with the windows listed beside it. After Ravi Sawlani (@gravity_vi).",
             testTag = "open-routine-timeline",
             onOpen = onOpenRoutineTimeline,
+        )
+        SpecimenCard(
+            name = "Layout morph",
+            summary =
+                "One shop collection, six ways to browse it: grid, masonry, list, a fanned " +
+                    "stack, a carousel and a turning helix. Switch the view and every card flies " +
+                    "to its new place. After Elia (@eliakuratli).",
+            testTag = "open-layout-morph",
+            onOpen = onOpenLayoutMorph,
         )
     }
 }

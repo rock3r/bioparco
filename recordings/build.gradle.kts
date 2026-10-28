@@ -32,6 +32,7 @@ dependencies {
     implementation(project(":anatomy"))
     implementation(project(":email-invite"))
     implementation(project(":routine-timeline"))
+    implementation(project(":layout-morph"))
     implementation(project(":tracing"))
 
     testImplementation(libs.junit.jupiter)

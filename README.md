@@ -170,6 +170,14 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/routine-timeline.mp4)
 
+### [Layout morph](layout-morph/)
+
+**Seb** · [Elia](https://x.com/eliakuratli)’s [layout morph](https://x.com/eliakuratli/status/2106829749125550143)
+
+![Layout morph](https://static.sebastiano.dev/stable/bioparco/layout-morph.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/layout-morph.mp4)
+
 The recording job uses [Spectre](https://spectre.sebastiano.dev) to generate the clips.
 The animated WebP previews use lower quality settings. The MP4 links contain the full recordings.
 
@@ -206,6 +214,7 @@ Run a specimen directly with its module task:
 ./gradlew :anatomy:run
 ./gradlew :email-invite:run
 ./gradlew :routine-timeline:run
+./gradlew :layout-morph:run
 ...
 ```
 

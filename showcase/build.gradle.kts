@@ -36,6 +36,7 @@ kotlin {
             implementation(project(":anatomy"))
             implementation(project(":email-invite"))
             implementation(project(":routine-timeline"))
+            implementation(project(":layout-morph"))
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
