@@ -63,6 +63,8 @@ include(":squeeze-progress")
 
 include(":anatomy")
 
+include(":email-invite")
+
 include(":routine-timeline")
 
 include(":tracing")

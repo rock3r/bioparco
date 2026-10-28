@@ -154,6 +154,14 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/anatomy.mp4)
 
+### [Email invite](email-invite/)
+
+**Seb** · [sucodee](https://x.com/sucodeee)’s [email invite component](https://x.com/sucodeee/status/2106836743257542853)
+
+![Email invite](https://static.sebastiano.dev/stable/bioparco/email-invite.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/email-invite.mp4)
+
 ### [Routine timeline](routine-timeline/)
 
 **Seb** · [Ravi Sawlani](https://x.com/gravity_vi)’s [radial routine timeline](https://x.com/gravity_vi/status/2106249721962791116)
@@ -196,6 +204,7 @@ Run a specimen directly with its module task:
 ./gradlew :thinking-bloom:run
 ./gradlew :squeeze-progress:run
 ./gradlew :anatomy:run
+./gradlew :email-invite:run
 ./gradlew :routine-timeline:run
 ...
 ```
