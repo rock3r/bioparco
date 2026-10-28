@@ -132,6 +132,7 @@ Working on `main` is allowed only when the owner has said so for that task.
 ./gradlew :layout-morph:run
 ./gradlew :currency-swarm:run
 ./gradlew :stamp-book:run
+./gradlew :expanding-search:run
 ./gradlew :recordings:recordSpecimens
 ```
 

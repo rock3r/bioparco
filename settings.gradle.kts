@@ -73,6 +73,8 @@ include(":currency-swarm")
 
 include(":stamp-book")
 
+include(":expanding-search")
+
 include(":tracing")
 
 include(":showcase")

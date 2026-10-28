@@ -46,6 +46,7 @@ class RecordingPathsTest {
                 RecordingPaths.LAYOUT_MORPH to "layout-morph.mp4",
                 RecordingPaths.CURRENCY_SWARM to "currency-swarm.mp4",
                 RecordingPaths.STAMP_BOOK to "stamp-book.mp4",
+                RecordingPaths.EXPANDING_SEARCH to "expanding-search.mp4",
             )
         for ((movie, name) in movies) assertEquals(
             dir.resolve(name),
@@ -81,6 +82,7 @@ class RecordingPathsTest {
                 "layout-morph.mp4",
                 "currency-swarm.mp4",
                 "stamp-book.mp4",
+                "expanding-search.mp4",
             ),
             RecordingPaths.expectedNames(settings),
         )
@@ -174,6 +176,7 @@ class RecordingPathsTest {
                 "layout-morph.mp4",
                 "currency-swarm.mp4",
                 "stamp-book.mp4",
+                "expanding-search.mp4",
             ),
             RecordingPaths.missingOutputs(dir),
         )
@@ -200,6 +203,7 @@ class RecordingPathsTest {
         Files.write(dir.resolve("layout-morph.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("currency-swarm.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("stamp-book.mp4"), ByteArray(2_000))
+        Files.write(dir.resolve("expanding-search.mp4"), ByteArray(2_000))
         assertEquals(emptyList<String>(), RecordingPaths.missingOutputs(dir))
     }
 }

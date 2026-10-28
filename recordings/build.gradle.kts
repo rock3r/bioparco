@@ -35,6 +35,7 @@ dependencies {
     implementation(project(":layout-morph"))
     implementation(project(":currency-swarm"))
     implementation(project(":stamp-book"))
+    implementation(project(":expanding-search"))
     implementation(project(":tracing"))
 
     testImplementation(libs.junit.jupiter)

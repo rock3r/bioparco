@@ -28,6 +28,7 @@ import dev.sebastiano.currencyswarm.App as CurrencySwarmApp
 import dev.sebastiano.departureboard.App as DepartureBoardApp
 import dev.sebastiano.dotmatrixrecorder.App as DotMatrixRecorderApp
 import dev.sebastiano.emailinvite.App as EmailInviteApp
+import dev.sebastiano.expandingsearch.App as ExpandingSearchApp
 import dev.sebastiano.grabbystepper.App
 import dev.sebastiano.hairline.App as HairlineApp
 import dev.sebastiano.holocard.App as HoloCardApp
@@ -73,6 +74,7 @@ private enum class SpecimenRoute {
     LayoutMorph,
     CurrencySwarm,
     StampBook,
+    ExpandingSearch,
 }
 
 @Composable
@@ -107,6 +109,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenLayoutMorph = { route = SpecimenRoute.LayoutMorph },
                     onOpenCurrencySwarm = { route = SpecimenRoute.CurrencySwarm },
                     onOpenStampBook = { route = SpecimenRoute.StampBook },
+                    onOpenExpandingSearch = { route = SpecimenRoute.ExpandingSearch },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -293,6 +296,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     StampBookApp()
                 }
+            SpecimenRoute.ExpandingSearch ->
+                SpecimenHost(
+                    title = "Expanding search",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    ExpandingSearchApp()
+                }
         }
     }
 }
@@ -322,6 +333,7 @@ private fun Catalog(
     onOpenLayoutMorph: () -> Unit,
     onOpenCurrencySwarm: () -> Unit,
     onOpenStampBook: () -> Unit,
+    onOpenExpandingSearch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -513,6 +525,15 @@ private fun Catalog(
                     "out, with dots to recolour it. After Adi (@AdityaSur11).",
             testTag = "open-stamp-book",
             onOpen = onOpenStampBook,
+        )
+        SpecimenCard(
+            name = "Expanding search",
+            summary =
+                "A round search button springs open into a field, and a panel of results unfolds " +
+                    "under it. Type to filter, with the matched letters in bold. After sucodee " +
+                    "(@sucodeee).",
+            testTag = "open-expanding-search",
+            onOpen = onOpenExpandingSearch,
         )
     }
 }

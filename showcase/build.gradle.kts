@@ -39,6 +39,7 @@ kotlin {
             implementation(project(":layout-morph"))
             implementation(project(":currency-swarm"))
             implementation(project(":stamp-book"))
+            implementation(project(":expanding-search"))
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
