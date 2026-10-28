@@ -63,6 +63,8 @@ include(":squeeze-progress")
 
 include(":anatomy")
 
+include(":routine-timeline")
+
 include(":tracing")
 
 include(":showcase")
