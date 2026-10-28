@@ -37,6 +37,7 @@ kotlin {
             implementation(project(":email-invite"))
             implementation(project(":routine-timeline"))
             implementation(project(":layout-morph"))
+            implementation(project(":currency-swarm"))
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)

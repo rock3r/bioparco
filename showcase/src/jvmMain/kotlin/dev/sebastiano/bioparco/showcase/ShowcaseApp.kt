@@ -24,6 +24,7 @@ import dev.sebastiano.achievementbadge.App as AchievementBadgeApp
 import dev.sebastiano.anatomy.App as AnatomyApp
 import dev.sebastiano.borderbeam.App as BorderBeamApp
 import dev.sebastiano.componentanatomy.App as ComponentAnatomyApp
+import dev.sebastiano.currencyswarm.App as CurrencySwarmApp
 import dev.sebastiano.departureboard.App as DepartureBoardApp
 import dev.sebastiano.dotmatrixrecorder.App as DotMatrixRecorderApp
 import dev.sebastiano.emailinvite.App as EmailInviteApp
@@ -69,6 +70,7 @@ private enum class SpecimenRoute {
     EmailInvite,
     RoutineTimeline,
     LayoutMorph,
+    CurrencySwarm,
 }
 
 @Composable
@@ -101,6 +103,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenEmailInvite = { route = SpecimenRoute.EmailInvite },
                     onOpenRoutineTimeline = { route = SpecimenRoute.RoutineTimeline },
                     onOpenLayoutMorph = { route = SpecimenRoute.LayoutMorph },
+                    onOpenCurrencySwarm = { route = SpecimenRoute.CurrencySwarm },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -271,6 +274,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     LayoutMorphApp()
                 }
+            SpecimenRoute.CurrencySwarm ->
+                SpecimenHost(
+                    title = "Currency swarm",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    CurrencySwarmApp()
+                }
         }
     }
 }
@@ -298,6 +309,7 @@ private fun Catalog(
     onOpenEmailInvite: () -> Unit,
     onOpenRoutineTimeline: () -> Unit,
     onOpenLayoutMorph: () -> Unit,
+    onOpenCurrencySwarm: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -473,6 +485,14 @@ private fun Catalog(
                     "to its new place. After Elia (@eliakuratli).",
             testTag = "open-layout-morph",
             onOpen = onOpenLayoutMorph,
+        )
+        SpecimenCard(
+            name = "Currency swarm",
+            summary =
+                "A cloud of dots settles into ₹, $, ₩ and ¥ in turn, and parts around the " +
+                    "pointer. After Karthik Balasubramanian (@_iam_karthik).",
+            testTag = "open-currency-swarm",
+            onOpen = onOpenCurrencySwarm,
         )
     }
 }

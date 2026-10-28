@@ -92,6 +92,7 @@ The task discovers specimen modules from Gradle includes and writes one MP4 per 
 - `recordings/build/recordings/email-invite.mp4`
 - `recordings/build/recordings/routine-timeline.mp4`
 - `recordings/build/recordings/layout-morph.mp4`
+- `recordings/build/recordings/currency-swarm.mp4`
 
 ### Linux / Xvfb
 
@@ -151,6 +152,7 @@ Stable download URLs:
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/email-invite.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/routine-timeline.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/layout-morph.mp4
+- https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/currency-swarm.mp4
 
 ## Traces
 
@@ -176,15 +178,16 @@ a push to `main`) runs them under `xvfb-run` on Ubuntu and uploads every MP4 to 
 floating release. A skipped or empty recording fails the job instead of publishing a
 partial set.
 
-### Prove all twenty-one MP4s
+### Prove all twenty-two MP4s
 
-In the `recordings` CI job, the "Record specimens" step must report `PASSED` for all twenty-one tests:
+In the `recordings` CI job, the "Record specimens" step must report `PASSED` for all twenty-two tests:
 
 - `AchievementBadgeRecordingTest`
 - `AnatomyRecordingTest`
 - `BorderBeamRecordingTest`
 - `ChatBubbleRecordingTest`
 - `ComponentAnatomyRecordingTest`
+- `CurrencySwarmRecordingTest`
 - `DepartureBoardRecordingTest`
 - `DotMatrixRecorderRecordingTest`
 - `EmailInviteRecordingTest`
@@ -202,7 +205,7 @@ In the `recordings` CI job, the "Record specimens" step must report `PASSED` for
 - `ThinkingOrbsRecordingTest`
 - `WheelPickerRecordingTest`
 
-`recordings/build/recordings/` must contain twenty-one files, each larger than 1 KB.
+`recordings/build/recordings/` must contain twenty-two files, each larger than 1 KB.
 The task fails if any expected file is missing.
 A run filtered with `--tests` records only matching specimens and skips this completeness check.
 

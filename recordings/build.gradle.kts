@@ -33,6 +33,7 @@ dependencies {
     implementation(project(":email-invite"))
     implementation(project(":routine-timeline"))
     implementation(project(":layout-morph"))
+    implementation(project(":currency-swarm"))
     implementation(project(":tracing"))
 
     testImplementation(libs.junit.jupiter)

@@ -69,6 +69,8 @@ include(":routine-timeline")
 
 include(":layout-morph")
 
+include(":currency-swarm")
+
 include(":tracing")
 
 include(":showcase")
