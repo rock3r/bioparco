@@ -21,7 +21,7 @@ class RecordingPathsTest {
     fun honorsExplicitDirectory() {
         val dir = RecordingPaths.directory("/tmp/bioparco-recordings")
         assertEquals(Path.of("/tmp/bioparco-recordings"), dir)
-        // Each specimen's constant names its own movie, inside the explicit directory.
+        // One row per specimen: its constant, and the file it names.
         val movies =
             listOf(
                 RecordingPaths.CHAT_BUBBLE to "chat-bubble-transition.mp4",
@@ -43,11 +43,13 @@ class RecordingPathsTest {
                 RecordingPaths.ANATOMY to "anatomy.mp4",
                 RecordingPaths.EMAIL_INVITE to "email-invite.mp4",
                 RecordingPaths.ROUTINE_TIMELINE to "routine-timeline.mp4",
+                RecordingPaths.LAYOUT_MORPH to "layout-morph.mp4",
                 RecordingPaths.CURRENCY_SWARM to "currency-swarm.mp4",
             )
-        for ((constant, name) in movies) {
-            assertEquals(dir.resolve(name), RecordingPaths.file(constant, dir))
-        }
+        for ((movie, name) in movies) assertEquals(
+            dir.resolve(name),
+            RecordingPaths.file(movie, dir),
+        )
     }
 
     @Test
@@ -75,6 +77,7 @@ class RecordingPathsTest {
                 "anatomy.mp4",
                 "email-invite.mp4",
                 "routine-timeline.mp4",
+                "layout-morph.mp4",
                 "currency-swarm.mp4",
             ),
             RecordingPaths.expectedNames(settings),
@@ -166,6 +169,7 @@ class RecordingPathsTest {
                 "anatomy.mp4",
                 "email-invite.mp4",
                 "routine-timeline.mp4",
+                "layout-morph.mp4",
                 "currency-swarm.mp4",
             ),
             RecordingPaths.missingOutputs(dir),
@@ -190,6 +194,7 @@ class RecordingPathsTest {
         Files.write(dir.resolve("anatomy.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("email-invite.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("routine-timeline.mp4"), ByteArray(2_000))
+        Files.write(dir.resolve("layout-morph.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("currency-swarm.mp4"), ByteArray(2_000))
         assertEquals(emptyList<String>(), RecordingPaths.missingOutputs(dir))
     }

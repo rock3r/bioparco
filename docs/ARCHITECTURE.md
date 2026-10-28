@@ -24,6 +24,7 @@ showcase  -->  grabby-stepper
           \->  anatomy
           \->  email-invite
           \->  routine-timeline
+          \->  layout-morph
           \->  currency-swarm
 
 recordings --> grabby-stepper
@@ -46,6 +47,7 @@ recordings --> grabby-stepper
            \->  anatomy
            \->  email-invite
            \->  routine-timeline
+           \->  layout-morph
            \->  currency-swarm
            \->  Spectre (Maven Central)
 
@@ -75,7 +77,8 @@ every specimen, showcase, recordings --> tracing --> androidx.tracing (Perfetto)
 | `:anatomy` | Specimen 18. The Anatomy kit, its figures, and `capture` for PNG review. |
 | `:email-invite` | Specimen 19. Library + standalone `run`. |
 | `:routine-timeline` | Specimen 20. Library + standalone `run`. |
-| `:currency-swarm` | Specimen 21. Library + standalone `run`. |
+| `:layout-morph` | Specimen 21. Library + standalone `run`. |
+| `:currency-swarm` | Specimen 22. Library + standalone `run`. |
 | `:recordings` | Spectre-driven recording tests. Not part of `check`. |
 | `:tracing` | House module: Perfetto trace sections for any specimen, off unless asked for. See [TRACING.md](TRACING.md). |
 

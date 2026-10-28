@@ -67,6 +67,8 @@ include(":email-invite")
 
 include(":routine-timeline")
 
+include(":layout-morph")
+
 include(":currency-swarm")
 
 include(":tracing")
