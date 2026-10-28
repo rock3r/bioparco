@@ -154,6 +154,14 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/anatomy.mp4)
 
+### [Email invite](email-invite/)
+
+**Seb** · [sucodee](https://x.com/sucodeee)’s [email invite component](https://x.com/sucodeee/status/2106836743257542853)
+
+![Email invite](https://static.sebastiano.dev/stable/bioparco/email-invite.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/email-invite.mp4)
+
 The recording job uses [Spectre](https://spectre.sebastiano.dev) to generate the clips.
 The animated WebP previews use lower quality settings. The MP4 links contain the full recordings.
 
@@ -188,6 +196,7 @@ Run a specimen directly with its module task:
 ./gradlew :thinking-bloom:run
 ./gradlew :squeeze-progress:run
 ./gradlew :anatomy:run
+./gradlew :email-invite:run
 ...
 ```
 
