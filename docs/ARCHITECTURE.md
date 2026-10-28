@@ -28,6 +28,7 @@ showcase  -->  grabby-stepper
           \->  currency-swarm
           \->  stamp-book
           \->  expanding-search
+          \->  particle-ring
 
 recordings --> grabby-stepper
            \->  chat-bubble-transition
@@ -53,6 +54,7 @@ recordings --> grabby-stepper
            \->  currency-swarm
            \->  stamp-book
            \->  expanding-search
+           \->  particle-ring
            \->  Spectre (Maven Central)
 
 every specimen, showcase, recordings --> tracing --> androidx.tracing (Perfetto)
@@ -85,6 +87,7 @@ every specimen, showcase, recordings --> tracing --> androidx.tracing (Perfetto)
 | `:currency-swarm` | Specimen 22. Library + standalone `run`. |
 | `:stamp-book` | Specimen 23. Library + standalone `run`. |
 | `:expanding-search` | Specimen 24. Library + standalone `run`. |
+| `:particle-ring` | Specimen 25. Library + standalone `run`. |
 | `:recordings` | Spectre-driven recording tests. Not part of `check`. |
 | `:tracing` | House module: Perfetto trace sections for any specimen, off unless asked for. See [TRACING.md](TRACING.md). |
 

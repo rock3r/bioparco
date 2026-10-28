@@ -201,6 +201,14 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/expanding-search.mp4)
 
+### [Particle ring](particle-ring/)
+
+**Seb** · Anoop ([@itsonly_anoop](https://x.com/itsonly_anoop))’s [particle ring for reading Health data](https://x.com/itsonly_anoop/status/2106455242342855106)
+
+![Particle ring](https://static.sebastiano.dev/stable/bioparco/particle-ring.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/particle-ring.mp4)
+
 The recording job uses [Spectre](https://spectre.sebastiano.dev) to generate the clips.
 The animated WebP previews use lower quality settings. The MP4 links contain the full recordings.
 
@@ -241,6 +249,7 @@ Run a specimen directly with its module task:
 ./gradlew :currency-swarm:run
 ./gradlew :stamp-book:run
 ./gradlew :expanding-search:run
+./gradlew :particle-ring:run
 ...
 ```
 
