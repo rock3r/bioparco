@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -300,7 +301,25 @@ private fun ResultRow(
                 }
             }
     ) {
-        Text(label, style = style, maxLines = 1, softWrap = false)
+        Text(
+            label,
+            style = style,
+            maxLines = 1,
+            softWrap = false,
+            // Rows grow and shrink about the panel's middle, so text moves out from the middle as
+            // it grows, as in the video. The scale sits on the text, inside the blurred layer:
+            // on the blurred layer itself, Skia blurred and then resampled it through the scale,
+            // and the frames where rows blur in and out at once doubled in cost.
+            modifier =
+                Modifier.graphicsLayer {
+                    val growth = row.scale.value
+                    scaleX = growth
+                    scaleY = growth
+                    val pivot =
+                        geometry.pillWidth(motion.expansion.value) / 2f - geometry.rowTextStart
+                    if (size.width > 0f) transformOrigin = TransformOrigin(pivot / size.width, 0.5f)
+                },
+        )
     }
 }
 

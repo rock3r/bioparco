@@ -13,7 +13,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import dev.sebastiano.bioparco.tracing.Tracing
-import kotlin.math.sign
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -67,7 +66,7 @@ internal class SearchMotion(private val scope: CoroutineScope) {
                 panelRows.isRunning ||
                 highlightRow.isRunning ||
                 highlightAlpha.isRunning ||
-                rows.any { it.presence.isRunning || it.y.isRunning }
+                rows.any { it.presence.isRunning || it.y.isRunning || it.scale.isRunning }
 
     /** The row the highlight heads for: the hovered one, else the keyboard's. */
     val highlighted: Int
@@ -136,14 +135,11 @@ internal class SearchMotion(private val scope: CoroutineScope) {
             val byName = results.associateBy { it.name }
             for (step in steps) {
                 when (step) {
-                    is RowStep.Keep -> stay(shown.first { it.key == step.key }, byName)
+                    is RowStep.Keep -> stay(shown.first { it.key == step.key }, step.slot, byName)
                     is RowStep.Revive ->
-                        stay(
-                            rows.first { it.leaving && it.key == step.key && it.slot == step.slot },
-                            byName,
-                        )
+                        stay(rows.first { it.leaving && it.key == step.key }, step.slot, byName)
                     is RowStep.Leave -> leave(shown.first { it.key == step.key })
-                    is RowStep.Enter -> enter(byName.getValue(step.key), step.slot, step.from)
+                    is RowStep.Enter -> enter(byName.getValue(step.key), step.slot)
                 }
             }
             if (results.isNotEmpty()) {
@@ -158,8 +154,8 @@ internal class SearchMotion(private val scope: CoroutineScope) {
                     if (fresh) {
                         // Opening, the highlight comes in with the first row, not before it.
                         highlightAlpha.snapTo(0f)
-                        delay(PANEL_DELAY_MS + ROW_LEAD_MS)
-                        highlightAlpha.animateTo(alpha, RowFadesIn)
+                        delay(PANEL_DELAY_MS + ROW_SHARPENS_AFTER_MS)
+                        highlightAlpha.animateTo(alpha, RowSharpens)
                     } else {
                         highlightAlpha.animateTo(alpha, HighlightFades)
                     }
@@ -191,38 +187,43 @@ internal class SearchMotion(private val scope: CoroutineScope) {
             }
     }
 
-    private fun stay(row: RowMotion, results: Map<String, SearchResult>) {
+    /** Keeps [row], or brings it back, at [slot]: it slides there and grows back to full size. */
+    private fun stay(row: RowMotion, slot: Int, results: Map<String, SearchResult>) {
         row.result = results.getValue(row.key)
+        row.slot = slot
         row.leaving = false
         row.job?.cancel()
         row.job = scope.launch {
-            launch { row.y.animateTo(row.slot.toFloat(), RowSlides) }
-            row.presence.animateTo(1f, RowFadesIn)
+            launch { row.y.animateTo(slot.toFloat(), RowSlides) }
+            launch { row.scale.animateTo(1f, RowGrows) }
+            row.presence.animateTo(1f, RowSharpens)
         }
     }
 
     /**
-     * Adds a row at [slot]. A row that was at another slot, [from], fades in there instead of
-     * sliding across, starting a little towards where it was so it still reads as a move.
+     * Adds a row at [slot]. It grows from [ENTER_SCALE] on a bouncy spring, past full size and
+     * back, and sharpens out of a blur a little behind the growth, as in the video.
      */
-    private fun enter(result: SearchResult, slot: Int, from: Int?) {
-        val start =
-            if (from == null) slot.toFloat() else slot + sign((from - slot).toFloat()) * NUDGE
-        val row = RowMotion(result, slot, start)
+    private fun enter(result: SearchResult, slot: Int) {
+        val row = RowMotion(result, slot, slot.toFloat())
         rows += row
-        // Opening, rows come in one after another once the panel has started to grow.
-        val wait = if (opening) PANEL_DELAY_MS + ROW_LEAD_MS + slot * ROW_STAGGER_MS else 0L
+        // Opening, rows come in one after another as the panel starts to grow.
+        val wait = if (opening) PANEL_DELAY_MS + slot * ROW_STAGGER_MS else 0L
         row.job = scope.launch {
+            row.scale.snapTo(ENTER_SCALE)
             delay(wait)
-            launch { row.y.animateTo(slot.toFloat(), RowSlides) }
-            row.presence.animateTo(1f, RowFadesIn)
+            launch { row.scale.animateTo(1f, RowGrows) }
+            delay(ROW_SHARPENS_AFTER_MS)
+            row.presence.animateTo(1f, RowSharpens)
         }
     }
 
+    /** Blurs [row] out where it is, shrinking a little, then drops it. */
     private fun leave(row: RowMotion) {
         row.leaving = true
         row.job?.cancel()
         row.job = scope.launch {
+            launch { row.scale.animateTo(LEAVE_SCALE, RowFadesOut) }
             row.presence.animateTo(0f, RowFadesOut)
             rows.remove(row)
         }
@@ -230,8 +231,8 @@ internal class SearchMotion(private val scope: CoroutineScope) {
 
     private companion object {
         // Each spring is fitted to the 60 fps video, frame by frame, against the motion's real
-        // start
-        // and end, so its overshoot counts. The pill opens two thirds of the way in 100 ms, runs
+        // start and end, so its overshoot counts. The pill opens two thirds of the way in 100 ms,
+        // runs
         // past its width and eases back over about 200 ms.
         val PillOpens = spring<Float>(dampingRatio = 0.75f, stiffness = 400f)
         val PillCloses = spring<Float>(dampingRatio = 0.88f, stiffness = 660f)
@@ -242,23 +243,29 @@ internal class SearchMotion(private val scope: CoroutineScope) {
         val PanelCloses = tween<Float>(durationMillis = 120, easing = LinearEasing)
         // Typing resizes the panel with the most bounce in the video: about 7% past, then back.
         val RowsResize = spring<Float>(dampingRatio = 0.64f, stiffness = 270f)
-        val RowSlides = spring<Float>(dampingRatio = 0.78f, stiffness = 280f)
+        // Rows that stay slide to their new slot quickly, with next to no overshoot.
+        val RowSlides = spring<Float>(dampingRatio = 0.8f, stiffness = 340f)
+        // The bounciest spring in the video. A new row's text, measured frame by frame, grows from
+        // about 62% to 107% of its size, dips to 99% and settles about 700 ms in.
+        val RowGrows = spring<Float>(dampingRatio = 0.45f, stiffness = 165f)
         // The highlight runs about 2% past each row it moves to.
         val HighlightSlides = spring<Float>(dampingRatio = 0.78f, stiffness = 280f)
         val HighlightFades = tween<Float>(120)
-        // In the video the first row shows 85 ms after the pill starts, each next one about 30 ms
-        // later, and each is sharp about 160 ms after it shows.
-        val RowFadesIn = tween<Float>(durationMillis = 160, easing = LinearOutSlowInEasing)
-        val RowFadesOut = tween<Float>(durationMillis = 110, easing = FastOutSlowInEasing)
+        // A new row starts to show 65 ms after it starts growing and is sharp 100 ms later, by
+        // when it has nearly reached full size.
+        val RowSharpens = tween<Float>(durationMillis = 100, easing = FastOutSlowInEasing)
+        // A leaving row is mostly gone after a frame or two: fast first, then easing.
+        val RowFadesOut = tween<Float>(durationMillis = 110, easing = LinearOutSlowInEasing)
 
         const val PANEL_DELAY_MS = 60L
-        const val ROW_LEAD_MS = 25L
+        const val ROW_SHARPENS_AFTER_MS = 65L
         const val ROW_STAGGER_MS = 30L
         /** The video's pill starts to shrink 85–100 ms after the click, the panel 70% folded. */
         const val PILL_FOLLOWS_AT = 0.3f
 
-        /** How far towards its old slot, in rows, a moved row starts fading in. */
-        const val NUDGE = 0.18f
+        /** A new row grows from this size; a leaving one shrinks to [LEAVE_SCALE]. */
+        const val ENTER_SCALE = 0.62f
+        const val LEAVE_SCALE = 0.85f
     }
 }
 
@@ -266,11 +273,14 @@ internal class SearchMotion(private val scope: CoroutineScope) {
  * One row on screen: the [slot] it belongs in, where it is now in rows, and how present it is, 0
  * gone to 1 sharp.
  */
-internal class RowMotion(result: SearchResult, val slot: Int, y: Float) {
+internal class RowMotion(result: SearchResult, var slot: Int, y: Float) {
     val key = result.name
     var result by mutableStateOf(result)
     val y = Animatable(y)
     val presence = Animatable(0f)
+
+    /** The row's size, about the panel's middle: 1 is full size. */
+    val scale = Animatable(1f)
     var leaving = false
     var job: Job? = null
 }

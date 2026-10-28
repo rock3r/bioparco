@@ -24,7 +24,7 @@ class RowPlanTest {
             setOf(
                 Keep("Toast", 0),
                 Leave("Tab Bar", 1),
-                Enter("Hold to Confirm", 1, from = null),
+                Enter("Hold to Confirm", 1),
                 Keep("Action Button", 2),
                 Leave("Quantity Stepper", 3),
                 Leave("Invite Field", 4),
@@ -34,41 +34,47 @@ class RowPlanTest {
     }
 
     @Test
-    fun aRowThatChangesSlotFadesOutWhereItWasAndBackInWhereItGoes() {
-        // Clearing "to": rows sliding to new slots would pass through each other.
+    fun aRowThatChangesSlotSlidesThere() {
+        // Typing "t" in the video: Toast slides up a slot as Action Button slides down two,
+        // straight through it.
         val steps =
             planRows(
-                shown = listOf("Toast", "Hold to Confirm", "Action Button").slots(),
+                shown = listOf("Action Button", "Toast", "Code Input", "Segmented Control").slots(),
                 leaving = emptyList(),
-                next = listOf("Action Button", "Toast", "Code Input", "Segmented Control"),
+                next = listOf("Toast", "Tab Bar", "Action Button", "Quantity Stepper"),
             )
 
         assertEquals(
             setOf(
-                Leave("Toast", 0),
-                Enter("Toast", 1, from = 0),
-                Leave("Hold to Confirm", 1),
-                Leave("Action Button", 2),
-                Enter("Action Button", 0, from = 2),
-                Enter("Code Input", 2, from = null),
-                Enter("Segmented Control", 3, from = null),
+                Keep("Action Button", 2),
+                Keep("Toast", 0),
+                Leave("Code Input", 2),
+                Leave("Segmented Control", 3),
+                Enter("Tab Bar", 1),
+                Enter("Quantity Stepper", 3),
             ),
             steps.toSet(),
         )
     }
 
     @Test
-    fun aRowStillFadingOutComesBackIfItIsWantedInTheSameSlot() {
-        // Backspacing "to" to "t" at once: Tab Bar was still leaving slot 1 and is wanted back.
+    fun aRowStillFadingOutComesBackWhereverItIsWanted() {
+        // Backspacing "to" to "t" at once: Tab Bar was still leaving slot 1 and is wanted back
+        // there; Quantity Stepper was leaving slot 3 and is wanted at slot 2.
         val steps =
             planRows(
                 shown = listOf("Toast", "Hold to Confirm").slots(),
-                leaving = listOf("Tab Bar" to 1, "Invite Field" to 4),
-                next = listOf("Toast", "Tab Bar"),
+                leaving = listOf("Tab Bar" to 1, "Quantity Stepper" to 3),
+                next = listOf("Toast", "Tab Bar", "Quantity Stepper"),
             )
 
         assertEquals(
-            setOf(Keep("Toast", 0), Leave("Hold to Confirm", 1), Revive("Tab Bar", 1)),
+            setOf(
+                Keep("Toast", 0),
+                Leave("Hold to Confirm", 1),
+                Revive("Tab Bar", 1),
+                Revive("Quantity Stepper", 2),
+            ),
             steps.toSet(),
         )
     }
@@ -78,7 +84,7 @@ class RowPlanTest {
         val rows = listOf("Action Button", "Toast")
 
         assertEquals(
-            listOf(Enter("Action Button", 0, from = null), Enter("Toast", 1, from = null)),
+            listOf(Enter("Action Button", 0), Enter("Toast", 1)),
             planRows(emptyList(), emptyList(), rows),
         )
         assertEquals(

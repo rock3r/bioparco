@@ -43,12 +43,24 @@ video lists. `ComponentSearchTest` covers all of it.
 
 ### Rows
 
-A row only keeps its place if it keeps its slot. A row that moves fades out where it was and fades
-back in where it goes, starting a fifth of a row towards its old place so it still reads as a
-move. The first version slid rows to their new slots. When the field was cleared, Toast slid down
-as Action Button slid up through it, and the two names overlapped halfway. The video never does
-that. `planRows` (`RowStep.kt`) works out which rows stay, leave, enter or come back, and
-`RowPlanTest` covers it, including that case.
+Every row has a position, a size and a presence. As the results change:
+
+- **A row that stays slides to its new slot**, through any rows in the way. Typing "t" in the
+  video, Toast slides up as Action Button slides down past it, and for a frame the two names
+  overlap.
+- **A new row grows from 62% of its size on the bounciest spring in the video**, past full size
+  to about 107%, back to 99% and settled about 700 ms in. It starts blurred and transparent and
+  sharpens about 65 ms behind the growth, so it is nearly full size by the time it is sharp.
+- **A leaving row shrinks to 85% and blurs out where it is**, mostly gone after a frame or two.
+- Opening, the rows come in this way one after another, 30 ms apart.
+
+The sizes come from the width of each row's text in the video, frame by frame, which gives the
+scale whatever the pivot. Rows grow and shrink about the panel's middle, as there.
+
+An earlier version cross-faded rows that changed slot instead of sliding them, on a wrong reading
+of the video: frame by frame, the video does slide them through each other. `planRows`
+(`RowStep.kt`) works out which rows stay (and where to), leave, enter or come back, and
+`RowPlanTest` covers it.
 
 Hover and clicks are worked out from the pointer's height over the panel (`RowSlots.kt`), not per
 row, so rows sliding under a still pointer still update the hover. The highlight goes to the
@@ -60,10 +72,11 @@ hovered row, or to the keyboard's row when the pointer leaves, as in the video.
 |---|---|---|
 | Pill opening | spring, damping 0.75, stiffness 400 | Two thirds open at 100 ms, then about 3% past its width at 250 ms, easing back over the next 200 ms |
 | Panel opening | 60 ms later, out of a 4dp bar, spring 0.75/325 | Overshoots by about 4% at 300 ms and settles back |
-| Rows appearing | from 85 ms, 30 ms apart, each a 160 ms fade out of a blur | Read off the darkest pixel of each row's text, frame by frame |
+| Rows growing in | spring 0.45/165 from 62%, sharpening from 65 ms over 100 ms | About 7% past full size, a dip under, settled by about 700 ms |
 | Highlight | spring 0.78/280 | Runs about 2% past each row it moves to |
 | Panel resizing as you type | spring 0.64/270 | The bounciest motion in the video: about 7% past the new height, then back |
-| Rows changing | 160 ms in, 110 ms out | Fast enough to keep up with typing |
+| Rows sliding to a new slot | spring 0.8/340 | A third of the way after one frame, with next to no overshoot |
+| Rows leaving | 110 ms, fast first, shrinking to 85% | Mostly gone after a frame or two |
 | Panel closing | 120 ms at an even speed | The video's panel folds at a steady rate and is gone in about 120 ms |
 | Pill closing | spring 0.88/660, once the panel is 70% folded | Starts about 100 ms after the click and runs a hair past the circle |
 
@@ -120,12 +133,12 @@ Measured on a 4-core cloud VM, over two runs:
 
 | Scenario | Median | p95 | Worst |
 |---|---|---|---|
-| Opening | 2.2–2.5 ms | 3.9–4.8 ms | 5.3–6.0 ms |
-| Hovering | 3.0–3.2 ms | 3.8–4.8 ms | 4.0–5.0 ms |
-| Typing | 2.7–2.8 ms | 5.8–5.9 ms | 6.9–7.1 ms |
-| Clearing | 2.6–3.0 ms | 5.1–6.7 ms | 6.1–8.0 ms |
-| No match | 2.1–2.7 ms | 4.4–5.9 ms | 4.7–6.9 ms |
-| Closing | 1.5–1.6 ms | 3.6–3.7 ms | 5.6–5.7 ms |
+| Opening | 2.3 ms | 3.5–3.7 ms | 4.4–5.0 ms |
+| Hovering | 3.2–3.3 ms | 4.0–4.2 ms | 4.1–4.3 ms |
+| Typing | 3.7 ms | 5.6–6.2 ms | 6.2–7.5 ms |
+| Clearing | 3.8–3.9 ms | 5.6–5.7 ms | 7.4–7.9 ms |
+| No match | 2.6–2.7 ms | 4.4–4.7 ms | 5.6–5.7 ms |
+| Closing | 1.9 ms | 3.8 ms | 6.1–6.3 ms |
 
 The worst whole software frame uses under half of a 60 Hz frame (16.7 ms). The specimen's own
 drawing (`search chrome`) records in 0.02–0.05 ms at the median.
@@ -139,15 +152,17 @@ after a `moving` frame, leaving out the first three seconds.
 
 | Skia backend | Intervals in one 60 Hz frame (up to 20 ms) | Median | p99 | Worst |
 |---|---|---|---|---|
-| `SOFTWARE_FAST` | 99.1–99.5% | 15.2–15.3 ms | 17.5–18.8 ms | 60–63 ms |
-| `SOFTWARE_COMPAT` (what CI records with) | 83.1–84.8% | 15.5–15.7 ms | 28–29 ms | 43–67 ms |
+| `SOFTWARE_FAST` | 99.7–99.8% | 15.2 ms | 16.9–17.2 ms | 55–59 ms |
+| `SOFTWARE_COMPAT` (what CI records with) | 91.6–93.8% | 15.3–15.4 ms | 24–28 ms | 50–51 ms |
 
 The one or two slow intervals per `SOFTWARE_FAST` run have frames of about a millisecond on both
 sides. The event thread was held up by something outside the specimen. `SOFTWARE_COMPAT` also
 copies every frame into the window through Java2D, which is where its extra late frames come from,
-as [docs/TRACING.md](../docs/TRACING.md#things-that-fool-you) describes. Over six runs with the
-final drawing it ranged from 83% to 88%. Squeeze progress, which draws less each frame, measures
-87.6–89.5% on the same backend. The late `SOFTWARE_COMPAT` frames gather where seven rows fade
+as [docs/TRACING.md](../docs/TRACING.md#things-that-fool-you) describes. The springs settle for
+longer than they used to, which adds many cheap frames to the count, so these shares are not a
+like-for-like gain: with the stiffer springs of an earlier version, `SOFTWARE_COMPAT` ranged from
+83% to 88% over six runs. Squeeze progress, which draws less each frame, measures 87.6–89.5% on
+the same backend. The late `SOFTWARE_COMPAT` frames gather where seven rows fade
 at once, when Escape clears "to".
 
 ### What the traces changed
@@ -160,6 +175,10 @@ at once, when Escape clears "to".
   falloff. Gradients are built once and placed with canvas transforms, so drawing allocates
   nothing. Rendered frames differ from the blurred version by a median of 5 levels out of 255 in
   the most different channel. `SOFTWARE_COMPAT` went to 83–88%.
+- **Growing rows inside the blur.** With rows growing and shrinking as they blur in and out, the
+  first frames after clearing a query cost 10–17 ms in the benchmark: Skia blurred each scaled
+  layer and then resampled it through the scale. The scale now sits on the text, inside the
+  blurred layer, so the blur works on already-scaled text. Those frames now take 6–8 ms.
 - **Row layers.** Each row's blurred layer used to be the panel's full width. Shrinking it to the
   text brought the worst clearing frame (seven rows fading at once) from 12.3 ms to 6–8 ms in the
   benchmark.
