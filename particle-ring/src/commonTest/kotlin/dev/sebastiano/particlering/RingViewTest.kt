@@ -46,6 +46,21 @@ class RingViewTest {
     }
 
     @Test
+    fun aFlickThatEndsBetweenFramesStillSpinsAndTilts() {
+        val view = RingView()
+        // The press, the move and the release all arrive before the next frame.
+        view.press()
+        view.dragBy(0.3f, 0.3f)
+        view.release()
+        view.step(frame)
+        val spun = view.spin
+        assertTrue(abs(spun) > 0.3f, "the flick spun the ring by $spun")
+        assertTrue(view.tilt > 0f, "the flick tilted the ring: ${view.tilt}")
+        run(view, 0.2f)
+        assertTrue((view.spin - spun) * spun > 0f, "the flick coasts on")
+    }
+
+    @Test
     fun aLongPauseDoesNotFlingTheRing() {
         val view = RingView()
         view.press()

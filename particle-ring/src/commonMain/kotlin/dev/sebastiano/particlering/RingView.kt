@@ -24,6 +24,7 @@ class RingView {
     private var tiltVelocity = 0f
     private var held = false
     private var pendingSpin = 0f
+    private var moved = false
     private var reach = 0f
 
     fun press() {
@@ -38,6 +39,7 @@ class RingView {
         // Dragging right carries the near side of the ring to the right.
         pendingSpin -= dx * SPIN_PER_UNIT
         reach += dy * TILT_PER_UNIT
+        moved = true
     }
 
     fun release() {
@@ -46,7 +48,9 @@ class RingView {
 
     fun step(dt: Float) {
         val step = dt.coerceIn(0f, MAX_STEP)
-        if (held) {
+        // A drag that moved since the last step lands on this one, even if the hand has let go
+        // in between: a flick that starts and ends between two frames still spins and coasts.
+        if (held || moved) {
             spin += pendingSpin
             if (step > 0f) {
                 spinVelocity = (pendingSpin / step).coerceIn(-MAX_SPIN_SPEED, MAX_SPIN_SPEED)
@@ -61,6 +65,7 @@ class RingView {
             tilt = (tilt + tiltVelocity * step).coerceIn(-MAX_TILT, MAX_TILT)
         }
         pendingSpin = 0f
+        moved = false
     }
 
     private fun atanh(x: Float): Float = 0.5f * kotlin.math.ln((1f + x) / (1f - x))
