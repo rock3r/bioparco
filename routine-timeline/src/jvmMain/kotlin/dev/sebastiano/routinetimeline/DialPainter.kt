@@ -273,12 +273,9 @@ internal class DialPainter(
         for (window in routine.windows) {
             val shape = lanes.getValue(window.lane)
             val start = screenAngle(window.startMinute.toDouble(), time)
-            val end = start + window.durationMinutes * DEGREES_PER_MINUTE
+            val sweep = window.durationMinutes * DEGREES_PER_MINUTE
             val inset = shape.width / shape.radius * DEGREES_PER_RADIAN * 0.55
-            val low = maxOf(start + inset, -ICON_LIMIT)
-            val high = minOf(end - inset, ICON_LIMIT)
-            if (low > high) continue
-            val angle = ((start + end) / 2).coerceIn(low, high)
+            val angle = iconAngle(start, sweep, inset, ICON_LIMIT) ?: continue
             val presence = routine.presenceOf(window, time)
             val alpha = edgeFade(angle) * (ICON_REST + (1f - ICON_REST) * presence)
             RoutineIcons.of(window.kind)

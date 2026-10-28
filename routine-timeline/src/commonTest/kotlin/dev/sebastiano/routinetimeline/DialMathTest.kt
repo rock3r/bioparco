@@ -53,4 +53,18 @@ class DialMathTest {
         assertEquals(585.0, quarterStep(600.0, -1))
         assertEquals(-15.0, quarterStep(0.0, -1))
     }
+
+    @Test
+    fun `an icon sits mid-capsule, kept inside the visible range`() {
+        assertEquals(20.0, iconAngle(start = -10.0, sweep = 60.0, inset = 5.0, limit = 76.0))
+        assertEquals(76.0, iconAngle(start = 50.0, sweep = 120.0, inset = 5.0, limit = 76.0))
+        assertEquals(null, iconAngle(start = 100.0, sweep = 30.0, inset = 5.0, limit = 76.0))
+    }
+
+    @Test
+    fun `a capsule that wraps past the back of the dial keeps its icon on the visible tail`() {
+        // Sleep from 11 PM, seen at 11:30 AM: it starts at 172.5° and its tail shows at the top,
+        // from -90° down to -67.5°.
+        assertEquals(-76.0, iconAngle(start = 172.5, sweep = 120.0, inset = 5.0, limit = 76.0))
+    }
 }

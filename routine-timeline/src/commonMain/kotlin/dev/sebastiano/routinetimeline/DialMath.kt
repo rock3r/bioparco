@@ -48,3 +48,18 @@ fun quarterStep(time: Double, direction: Int): Double =
     } else {
         (ceil((time - ON_QUARTER) / QUARTER_HOUR) - 1) * QUARTER_HOUR
     }
+
+/**
+ * Where a capsule's icon goes: its middle, kept [inset] inside its ends and within ±[limit]°, or
+ * null if no part of it is in range. A capsule whose start has wrapped to the back of the dial
+ * draws its tail at the top, so it is also tried a whole turn earlier.
+ */
+fun iconAngle(start: Double, sweep: Double, inset: Double, limit: Double): Double? =
+    placeIcon(start, sweep, inset, limit) ?: placeIcon(start - 360.0, sweep, inset, limit)
+
+private fun placeIcon(start: Double, sweep: Double, inset: Double, limit: Double): Double? {
+    val low = maxOf(start + inset, -limit)
+    val high = minOf(start + sweep - inset, limit)
+    if (low > high) return null
+    return (start + sweep / 2).coerceIn(low, high)
+}
