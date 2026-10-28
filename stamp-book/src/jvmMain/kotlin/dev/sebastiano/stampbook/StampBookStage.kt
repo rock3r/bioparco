@@ -26,7 +26,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -82,7 +82,8 @@ internal fun StampBookStage(modifier: Modifier = Modifier) {
             .fillMaxSize()
             .background(StampBookPalette.Table)
             .testTag(StampBookTags.STAGE)
-            .onPreviewKeyEvent { event ->
+            // Bubbling, not preview: a focused swatch handles its own Space and Enter first.
+            .onKeyEvent { event ->
                 val code = event.key.keyCode
                 when (event.key) {
                     Key.Spacebar,

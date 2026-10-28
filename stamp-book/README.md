@@ -75,6 +75,9 @@ hovered-open book shuts it, and it stays shut until the pointer leaves and comes
 flapping it.
 
 `HoverLatchTest`, `PerforationTest`, `SwatchesTest` and `KeyRepeatFilterTest` cover the plain Kotlin.
+`StampBookMotionTest` and `SwatchKeysTest` run the specimen in a scene: hovering in and out again
+before the stamps start moving leaves them tucked in, and Space on a focused swatch picks its colour
+rather than opening the book.
 
 ## Performance
 

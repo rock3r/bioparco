@@ -11,6 +11,7 @@ import androidx.compose.runtime.withFrameNanos
 import dev.sebastiano.bioparco.tracing.Tracing
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 /**
@@ -56,9 +57,11 @@ internal class StampBookMotion(private val scope: CoroutineScope) {
         Tracing.section("recolour") { swatch = index }
     }
 
-    private suspend fun opening() {
-        scope.launch { cover.animateTo(1f, CoverOpen) }
-        scope.launch {
+    // Each part runs as a child of the transition's job, so reversing the transition cancels the
+    // parts still waiting for their delay too, not only the ones already moving.
+    private suspend fun opening() = coroutineScope {
+        launch { cover.animateTo(1f, CoverOpen) }
+        launch {
             waitMillis(A_DELAY_MILLIS)
             slideA.animateTo(1f, SlideAOut)
         }
@@ -66,9 +69,9 @@ internal class StampBookMotion(private val scope: CoroutineScope) {
         slideB.animateTo(1f, SlideBOut)
     }
 
-    private suspend fun closing() {
-        scope.launch { slideB.animateTo(0f, SlideIn) }
-        scope.launch { slideA.animateTo(0f, SlideIn) }
+    private suspend fun closing() = coroutineScope {
+        launch { slideB.animateTo(0f, SlideIn) }
+        launch { slideA.animateTo(0f, SlideIn) }
         waitMillis(COVER_CLOSE_DELAY_MILLIS)
         cover.animateTo(0f, CoverClose)
     }
