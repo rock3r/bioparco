@@ -36,6 +36,9 @@ kotlin {
             implementation(project(":anatomy"))
             implementation(project(":email-invite"))
             implementation(project(":routine-timeline"))
+            implementation(project(":layout-morph"))
+            implementation(project(":currency-swarm"))
+            implementation(project(":stamp-book"))
             implementation(project(":expanding-search"))
         }
         jvmMain.dependencies {

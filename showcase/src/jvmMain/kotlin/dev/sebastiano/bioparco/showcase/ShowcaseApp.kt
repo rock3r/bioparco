@@ -24,6 +24,7 @@ import dev.sebastiano.achievementbadge.App as AchievementBadgeApp
 import dev.sebastiano.anatomy.App as AnatomyApp
 import dev.sebastiano.borderbeam.App as BorderBeamApp
 import dev.sebastiano.componentanatomy.App as ComponentAnatomyApp
+import dev.sebastiano.currencyswarm.App as CurrencySwarmApp
 import dev.sebastiano.departureboard.App as DepartureBoardApp
 import dev.sebastiano.dotmatrixrecorder.App as DotMatrixRecorderApp
 import dev.sebastiano.emailinvite.App as EmailInviteApp
@@ -32,11 +33,13 @@ import dev.sebastiano.grabbystepper.App
 import dev.sebastiano.hairline.App as HairlineApp
 import dev.sebastiano.holocard.App as HoloCardApp
 import dev.sebastiano.honeycomb.App as HoneycombApp
+import dev.sebastiano.layoutmorph.App as LayoutMorphApp
 import dev.sebastiano.peelsticker.App as PeelStickerApp
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
 import dev.sebastiano.routinetimeline.App as RoutineTimelineApp
 import dev.sebastiano.scrolleffects.App as ScrollEffectsApp
 import dev.sebastiano.squeezeprogress.App as SqueezeProgressApp
+import dev.sebastiano.stampbook.App as StampBookApp
 import dev.sebastiano.thinkingbloom.App as ThinkingBloomApp
 import dev.sebastiano.thinkingorbs.App as ThinkingOrbsApp
 import dev.sebastiano.wheelpicker.App as WheelPickerApp
@@ -68,6 +71,9 @@ private enum class SpecimenRoute {
     Anatomy,
     EmailInvite,
     RoutineTimeline,
+    LayoutMorph,
+    CurrencySwarm,
+    StampBook,
     ExpandingSearch,
 }
 
@@ -100,6 +106,9 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenAnatomy = { route = SpecimenRoute.Anatomy },
                     onOpenEmailInvite = { route = SpecimenRoute.EmailInvite },
                     onOpenRoutineTimeline = { route = SpecimenRoute.RoutineTimeline },
+                    onOpenLayoutMorph = { route = SpecimenRoute.LayoutMorph },
+                    onOpenCurrencySwarm = { route = SpecimenRoute.CurrencySwarm },
+                    onOpenStampBook = { route = SpecimenRoute.StampBook },
                     onOpenExpandingSearch = { route = SpecimenRoute.ExpandingSearch },
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -263,6 +272,30 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     RoutineTimelineApp()
                 }
+            SpecimenRoute.LayoutMorph ->
+                SpecimenHost(
+                    title = "Layout morph",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    LayoutMorphApp()
+                }
+            SpecimenRoute.CurrencySwarm ->
+                SpecimenHost(
+                    title = "Currency swarm",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    CurrencySwarmApp()
+                }
+            SpecimenRoute.StampBook ->
+                SpecimenHost(
+                    title = "Stamp book",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    StampBookApp()
+                }
             SpecimenRoute.ExpandingSearch ->
                 SpecimenHost(
                     title = "Expanding search",
@@ -297,6 +330,9 @@ private fun Catalog(
     onOpenAnatomy: () -> Unit,
     onOpenEmailInvite: () -> Unit,
     onOpenRoutineTimeline: () -> Unit,
+    onOpenLayoutMorph: () -> Unit,
+    onOpenCurrencySwarm: () -> Unit,
+    onOpenStampBook: () -> Unit,
     onOpenExpandingSearch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -464,6 +500,31 @@ private fun Catalog(
                     "it, with the windows listed beside it. After Ravi Sawlani (@gravity_vi).",
             testTag = "open-routine-timeline",
             onOpen = onOpenRoutineTimeline,
+        )
+        SpecimenCard(
+            name = "Layout morph",
+            summary =
+                "One shop collection, six ways to browse it: grid, masonry, list, a fanned " +
+                    "stack, a carousel and a turning helix. Switch the view and every card flies " +
+                    "to its new place. After Elia (@eliakuratli).",
+            testTag = "open-layout-morph",
+            onOpen = onOpenLayoutMorph,
+        )
+        SpecimenCard(
+            name = "Currency swarm",
+            summary =
+                "A cloud of dots settles into ₹, $, ₩ and ¥ in turn, and parts around the " +
+                    "pointer. After Karthik Balasubramanian (@_iam_karthik).",
+            testTag = "open-currency-swarm",
+            onOpen = onOpenCurrencySwarm,
+        )
+        SpecimenCard(
+            name = "Stamp book",
+            summary =
+                "A frosted stamp book whose cover swings open on hover while two stamps slide " +
+                    "out, with dots to recolour it. After Adi (@AdityaSur11).",
+            testTag = "open-stamp-book",
+            onOpen = onOpenStampBook,
         )
         SpecimenCard(
             name = "Expanding search",

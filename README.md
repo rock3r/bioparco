@@ -170,6 +170,29 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/routine-timeline.mp4)
 
+### [Layout morph](layout-morph/)
+
+**Seb** · [Elia](https://x.com/eliakuratli)’s [layout morph](https://x.com/eliakuratli/status/2106829749125550143)
+
+![Layout morph](https://static.sebastiano.dev/stable/bioparco/layout-morph.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/layout-morph.mp4)
+
+### [Currency swarm](currency-swarm/)
+
+**Seb** · [Karthik Balasubramanian](https://x.com/_iam_karthik)’s [particle currency login screen](https://x.com/_iam_karthik/status/2106622203337044366)
+
+![Currency swarm](https://static.sebastiano.dev/stable/bioparco/currency-swarm.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/currency-swarm.mp4)
+### [Stamp book](stamp-book/)
+
+**Seb** · [Adi](https://x.com/AdityaSur11)’s [stamp book animation](https://x.com/AdityaSur11/status/2105485353133969504)
+
+![Stamp book](https://static.sebastiano.dev/stable/bioparco/stamp-book.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/stamp-book.mp4)
+
 ### [Expanding search](expanding-search/)
 
 **Seb** · sucodee ([@sucodeee](https://x.com/sucodeee))’s [expanding search](https://x.com/sucodeee/status/2106690154429841524)
@@ -214,6 +237,9 @@ Run a specimen directly with its module task:
 ./gradlew :anatomy:run
 ./gradlew :email-invite:run
 ./gradlew :routine-timeline:run
+./gradlew :layout-morph:run
+./gradlew :currency-swarm:run
+./gradlew :stamp-book:run
 ./gradlew :expanding-search:run
 ...
 ```

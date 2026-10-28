@@ -67,6 +67,12 @@ include(":email-invite")
 
 include(":routine-timeline")
 
+include(":layout-morph")
+
+include(":currency-swarm")
+
+include(":stamp-book")
+
 include(":expanding-search")
 
 include(":tracing")
