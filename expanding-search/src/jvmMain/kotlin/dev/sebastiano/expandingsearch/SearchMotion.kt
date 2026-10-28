@@ -53,6 +53,7 @@ internal class SearchMotion(private val scope: CoroutineScope) {
     private var cursor by mutableIntStateOf(0)
     private var hovered by mutableStateOf<Int?>(null)
     private var sequence: Job? = null
+    private var highlightJob: Job? = null
     private var opening = false
 
     /**
@@ -150,7 +151,10 @@ internal class SearchMotion(private val scope: CoroutineScope) {
                 scope.launch {
                     if (fresh) panelRows.snapTo(height) else panelRows.animateTo(height, RowsResize)
                 }
-                scope.launch {
+                // The opening fade-in waits for the first row; results that change meanwhile
+                // (say, a query with no matches) must not have it fade back in after them.
+                highlightJob?.cancel()
+                highlightJob = scope.launch {
                     if (fresh) {
                         // Opening, the highlight comes in with the first row, not before it.
                         highlightAlpha.snapTo(0f)
