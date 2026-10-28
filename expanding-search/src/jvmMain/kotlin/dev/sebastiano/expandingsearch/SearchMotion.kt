@@ -2,6 +2,7 @@ package dev.sebastiano.expandingsearch
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -228,20 +229,22 @@ internal class SearchMotion(private val scope: CoroutineScope) {
     }
 
     private companion object {
-        // Fitted to the pill's width, frame by frame, in the 60 fps video: two thirds open at
-        // 100 ms, settled by about 250 ms, no visible overshoot.
-        val PillOpens = spring<Float>(dampingRatio = 0.95f, stiffness = 500f)
-        // Matches the shrink in the video within a few percent, frame by frame.
-        val PillCloses = spring<Float>(dampingRatio = 1f, stiffness = 700f)
-        // Fitted to the panel's height in the video: it grows out of a 4dp bar 60 ms after the
-        // pill starts, overshoots by about 4% at 300 ms and settles back.
+        // Each spring is fitted to the 60 fps video, frame by frame, against the motion's real
+        // start
+        // and end, so its overshoot counts. The pill opens two thirds of the way in 100 ms, runs
+        // past its width and eases back over about 200 ms.
+        val PillOpens = spring<Float>(dampingRatio = 0.75f, stiffness = 400f)
+        val PillCloses = spring<Float>(dampingRatio = 0.88f, stiffness = 660f)
+        // The panel grows out of a 4dp bar 60 ms after the pill starts, overshoots by about 4% at
+        // 300 ms and settles back.
         val PanelOpens = spring<Float>(dampingRatio = 0.75f, stiffness = 325f)
-        // The video's panel folds fast, then eases: 30% gone after one frame, half by 33 ms, 92% by
-        // 100 ms. A spring starts from rest, so it cannot; a decelerating tween can.
-        val PanelCloses = tween<Float>(durationMillis = 180, easing = LinearOutSlowInEasing)
-        val RowsResize = spring<Float>(dampingRatio = 0.9f, stiffness = 500f)
-        val RowSlides = spring<Float>(dampingRatio = 0.9f, stiffness = 500f)
-        val HighlightSlides = spring<Float>(dampingRatio = 0.82f, stiffness = 800f)
+        // The panel folds at an even speed and is gone in about 120 ms.
+        val PanelCloses = tween<Float>(durationMillis = 120, easing = LinearEasing)
+        // Typing resizes the panel with the most bounce in the video: about 7% past, then back.
+        val RowsResize = spring<Float>(dampingRatio = 0.64f, stiffness = 270f)
+        val RowSlides = spring<Float>(dampingRatio = 0.78f, stiffness = 280f)
+        // The highlight runs about 2% past each row it moves to.
+        val HighlightSlides = spring<Float>(dampingRatio = 0.78f, stiffness = 280f)
         val HighlightFades = tween<Float>(120)
         // In the video the first row shows 85 ms after the pill starts, each next one about 30 ms
         // later, and each is sharp about 160 ms after it shows.

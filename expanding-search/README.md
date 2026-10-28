@@ -58,17 +58,22 @@ hovered row, or to the keyboard's row when the pointer leaves, as in the video.
 
 | What | How | Why |
 |---|---|---|
-| Pill opening | spring, damping 0.95, stiffness 500 | Fitted to the pill's width frame by frame in the 60 fps video: two thirds open at 100 ms, settled by about 250 ms, no visible overshoot |
-| Panel opening | 60 ms later, out of a 4dp bar, spring 0.75/325 | Fitted to the panel's height in the video, to within 2dp: it overshoots by about 4% at 300 ms and settles back |
-| Rows appearing | from 85 ms, 30 ms apart, each a 160 ms fade out of a blur | Read off the darkest pixel of each row's text in the video, frame by frame |
-| Highlight | spring 0.82/800 | Slides quickly between rows with a slight settle |
+| Pill opening | spring, damping 0.75, stiffness 400 | Two thirds open at 100 ms, then about 3% past its width at 250 ms, easing back over the next 200 ms |
+| Panel opening | 60 ms later, out of a 4dp bar, spring 0.75/325 | Overshoots by about 4% at 300 ms and settles back |
+| Rows appearing | from 85 ms, 30 ms apart, each a 160 ms fade out of a blur | Read off the darkest pixel of each row's text, frame by frame |
+| Highlight | spring 0.78/280 | Runs about 2% past each row it moves to |
+| Panel resizing as you type | spring 0.64/270 | The bounciest motion in the video: about 7% past the new height, then back |
 | Rows changing | 160 ms in, 110 ms out | Fast enough to keep up with typing |
-| Panel closing | 180 ms tween that starts fast and eases out | The video's panel is half folded after 33 ms and nearly gone by 100 ms. A spring starts from rest, so it cannot do that |
-| Pill closing | spring 1/700, once the panel is 70% folded | The video's pill starts to shrink about 100 ms after the click, then matches this spring to within a few percent a frame |
+| Panel closing | 120 ms at an even speed | The video's panel folds at a steady rate and is gone in about 120 ms |
+| Pill closing | spring 0.88/660, once the panel is 70% folded | Starts about 100 ms after the click and runs a hair past the circle |
 
-The pill's opening and the whole closing were checked against frames rendered at exact 60 Hz steps
-in an `ImageComposeScene`, not against the recording: a 30 fps screen capture does not time frames
-closely enough.
+Every spring is fitted to the 60 fps video, frame by frame, against the motion's real start and
+end, so its overshoot counts. The first fits normalised each curve to its peak instead, which
+flattened every overshoot: the motion had the right timing but none of the video's spring. Each
+fit was then checked against frames rendered at exact 60 Hz steps in an `ImageComposeScene`, not
+against the recording: a 30 fps screen capture does not time frames closely enough. Peaks now land
+within a percent of the video's: the pill 2.9% against 2.6%, the panel resizing 7.7% against
+6.8%.
 
 The pill grows from its middle. The magnifier stays half the pill's height from its left end, so
 it sits in the middle of the round button and moves left as the pill widens. The text field is
