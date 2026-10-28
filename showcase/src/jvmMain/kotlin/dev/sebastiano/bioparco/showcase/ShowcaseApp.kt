@@ -26,6 +26,7 @@ import dev.sebastiano.borderbeam.App as BorderBeamApp
 import dev.sebastiano.componentanatomy.App as ComponentAnatomyApp
 import dev.sebastiano.departureboard.App as DepartureBoardApp
 import dev.sebastiano.dotmatrixrecorder.App as DotMatrixRecorderApp
+import dev.sebastiano.expandingsearch.App as ExpandingSearchApp
 import dev.sebastiano.grabbystepper.App
 import dev.sebastiano.hairline.App as HairlineApp
 import dev.sebastiano.holocard.App as HoloCardApp
@@ -63,6 +64,7 @@ private enum class SpecimenRoute {
     ThinkingBloom,
     SqueezeProgress,
     Anatomy,
+    ExpandingSearch,
 }
 
 @Composable
@@ -92,6 +94,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenThinkingBloom = { route = SpecimenRoute.ThinkingBloom },
                     onOpenSqueezeProgress = { route = SpecimenRoute.SqueezeProgress },
                     onOpenAnatomy = { route = SpecimenRoute.Anatomy },
+                    onOpenExpandingSearch = { route = SpecimenRoute.ExpandingSearch },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -238,6 +241,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     AnatomyApp()
                 }
+            SpecimenRoute.ExpandingSearch ->
+                SpecimenHost(
+                    title = "Expanding search",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    ExpandingSearchApp()
+                }
         }
     }
 }
@@ -262,6 +273,7 @@ private fun Catalog(
     onOpenThinkingBloom: () -> Unit,
     onOpenSqueezeProgress: () -> Unit,
     onOpenAnatomy: () -> Unit,
+    onOpenExpandingSearch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -411,6 +423,15 @@ private fun Catalog(
                     "of Ryan's Anatomy (MIT).",
             testTag = "open-anatomy",
             onOpen = onOpenAnatomy,
+        )
+        SpecimenCard(
+            name = "Expanding search",
+            summary =
+                "A round search button springs open into a field, and a panel of results unfolds " +
+                    "under it. Type to filter, with the matched letters in bold. After sucodee " +
+                    "(@sucodeee).",
+            testTag = "open-expanding-search",
+            onOpen = onOpenExpandingSearch,
         )
     }
 }

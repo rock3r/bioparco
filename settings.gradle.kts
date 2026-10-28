@@ -63,6 +63,8 @@ include(":squeeze-progress")
 
 include(":anatomy")
 
+include(":expanding-search")
+
 include(":tracing")
 
 include(":showcase")

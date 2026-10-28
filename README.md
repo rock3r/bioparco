@@ -154,6 +154,14 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/anatomy.mp4)
 
+### [Expanding search](expanding-search/)
+
+**Seb** · sucodee ([@sucodeee](https://x.com/sucodeee))’s [expanding search](https://x.com/sucodeee/status/2106690154429841524)
+
+![Expanding search](https://static.sebastiano.dev/stable/bioparco/expanding-search.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/expanding-search.mp4)
+
 The recording job uses [Spectre](https://spectre.sebastiano.dev) to generate the clips.
 The animated WebP previews use lower quality settings. The MP4 links contain the full recordings.
 
@@ -188,6 +196,7 @@ Run a specimen directly with its module task:
 ./gradlew :thinking-bloom:run
 ./gradlew :squeeze-progress:run
 ./gradlew :anatomy:run
+./gradlew :expanding-search:run
 ...
 ```
 

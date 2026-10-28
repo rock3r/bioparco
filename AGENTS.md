@@ -127,6 +127,7 @@ Working on `main` is allowed only when the owner has said so for that task.
 ./gradlew :thinking-bloom:run
 ./gradlew :squeeze-progress:run
 ./gradlew :anatomy:run
+./gradlew :expanding-search:run
 ./gradlew :recordings:recordSpecimens
 ```
 
