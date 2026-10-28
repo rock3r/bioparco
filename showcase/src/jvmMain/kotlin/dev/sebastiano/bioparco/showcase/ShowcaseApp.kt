@@ -27,6 +27,7 @@ import dev.sebastiano.componentanatomy.App as ComponentAnatomyApp
 import dev.sebastiano.currencyswarm.App as CurrencySwarmApp
 import dev.sebastiano.departureboard.App as DepartureBoardApp
 import dev.sebastiano.dotmatrixrecorder.App as DotMatrixRecorderApp
+import dev.sebastiano.emailinvite.App as EmailInviteApp
 import dev.sebastiano.grabbystepper.App
 import dev.sebastiano.hairline.App as HairlineApp
 import dev.sebastiano.holocard.App as HoloCardApp
@@ -64,6 +65,7 @@ private enum class SpecimenRoute {
     ThinkingBloom,
     SqueezeProgress,
     Anatomy,
+    EmailInvite,
     CurrencySwarm,
 }
 
@@ -94,6 +96,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenThinkingBloom = { route = SpecimenRoute.ThinkingBloom },
                     onOpenSqueezeProgress = { route = SpecimenRoute.SqueezeProgress },
                     onOpenAnatomy = { route = SpecimenRoute.Anatomy },
+                    onOpenEmailInvite = { route = SpecimenRoute.EmailInvite },
                     onOpenCurrencySwarm = { route = SpecimenRoute.CurrencySwarm },
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -241,6 +244,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     AnatomyApp()
                 }
+            SpecimenRoute.EmailInvite ->
+                SpecimenHost(
+                    title = "Email invite",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    EmailInviteApp()
+                }
             SpecimenRoute.CurrencySwarm ->
                 SpecimenHost(
                     title = "Currency swarm",
@@ -273,6 +284,7 @@ private fun Catalog(
     onOpenThinkingBloom: () -> Unit,
     onOpenSqueezeProgress: () -> Unit,
     onOpenAnatomy: () -> Unit,
+    onOpenEmailInvite: () -> Unit,
     onOpenCurrencySwarm: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -423,6 +435,15 @@ private fun Catalog(
                     "of Ryan's Anatomy (MIT).",
             testTag = "open-anatomy",
             onOpen = onOpenAnatomy,
+        )
+        SpecimenCard(
+            name = "Email invite",
+            summary =
+                "An Invite pill that opens into an email field, arms Send once the address is " +
+                    "whole, and closes as the new guest hops into the avatar stack. After sucodee " +
+                    "(@sucodeee).",
+            testTag = "open-email-invite",
+            onOpen = onOpenEmailInvite,
         )
         SpecimenCard(
             name = "Currency swarm",

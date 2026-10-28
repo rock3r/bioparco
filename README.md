@@ -154,6 +154,14 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/anatomy.mp4)
 
+### [Email invite](email-invite/)
+
+**Seb** · [sucodee](https://x.com/sucodeee)’s [email invite component](https://x.com/sucodeee/status/2106836743257542853)
+
+![Email invite](https://static.sebastiano.dev/stable/bioparco/email-invite.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/email-invite.mp4)
+
 ### [Currency swarm](currency-swarm/)
 
 **Seb** · [Karthik Balasubramanian](https://x.com/_iam_karthik)’s [particle currency login screen](https://x.com/_iam_karthik/status/2106622203337044366)
@@ -196,6 +204,8 @@ Run a specimen directly with its module task:
 ./gradlew :thinking-bloom:run
 ./gradlew :squeeze-progress:run
 ./gradlew :anatomy:run
+./gradlew :email-invite:run
+
 
 ./gradlew :currency-swarm:run
 ...

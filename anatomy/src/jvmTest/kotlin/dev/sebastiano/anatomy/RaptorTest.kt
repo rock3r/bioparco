@@ -1,7 +1,10 @@
 package dev.sebastiano.anatomy
 
+import androidx.compose.ui.input.pointer.PointerEventType
 import dev.sebastiano.anatomy.figures.BurnPhase
+import dev.sebastiano.anatomy.figures.Raptor
 import dev.sebastiano.anatomy.figures.RaptorBurn
+import dev.sebastiano.anatomy.figures.RaptorControls
 import dev.sebastiano.anatomy.figures.RaptorLive
 import dev.sebastiano.anatomy.figures.RaptorNumbers
 import kotlin.math.abs
@@ -154,5 +157,44 @@ class RaptorTest {
         live.tick(1.0 / 60, calm = false) // Only the first assemblies have started.
         assertFalse(live.tick(1.0 / 60, calm = true), "a calm frame should settle everything")
         assertTrue(live.springs.values.all { it.x == 1.0 && it.pending == null })
+    }
+
+    @Test
+    fun `a tap takes the engine apart and lights the part, and it stays apart after the finger lifts`() {
+        val live = RaptorLive().apply { touring = false }
+        var closes = 0
+        val controls =
+            RaptorControls(live, quiet = {}, kick = {}, later = { closes++ }, cancel = {})
+        val part = Raptor.ORDER.last()
+        controls.tap(part)
+        controls.lift()
+        assertTrue(live.apart)
+        assertEquals(part, live.selected)
+        assertFalse(live.inside, "a lifted finger is not over the engine")
+        assertEquals(0, closes, "lifting a finger must not close the engine")
+    }
+
+    @Test
+    fun `a hovering pen that leaves without tapping is no longer inside, and closes nothing`() {
+        val live = RaptorLive().apply { touring = false }
+        var closes = 0
+        val controls =
+            RaptorControls(live, quiet = {}, kick = {}, later = { closes++ }, cancel = {})
+        controls.pointer(PointerEventType.Enter, mouse = false) { Raptor.ORDER.last() }
+        controls.pointer(PointerEventType.Exit, mouse = false) { null }
+        assertFalse(live.inside, "the idle tour waits forever while the pen counts as inside")
+        assertEquals(0, closes)
+    }
+
+    @Test
+    fun `a mouse leaving still closes the engine`() {
+        val live = RaptorLive().apply { touring = false }
+        var closes = 0
+        val controls =
+            RaptorControls(live, quiet = {}, kick = {}, later = { closes++ }, cancel = {})
+        controls.pointer(PointerEventType.Enter, mouse = true) { Raptor.ORDER.last() }
+        controls.pointer(PointerEventType.Exit, mouse = true) { null }
+        assertFalse(live.inside)
+        assertEquals(1, closes)
     }
 }

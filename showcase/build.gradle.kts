@@ -34,6 +34,7 @@ kotlin {
             implementation(project(":thinking-bloom"))
             implementation(project(":squeeze-progress"))
             implementation(project(":anatomy"))
+            implementation(project(":email-invite"))
             implementation(project(":currency-swarm"))
         }
         jvmMain.dependencies {
