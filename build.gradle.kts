@@ -26,7 +26,11 @@ configure<DetektExtension> {
     basePath.set(rootProject.layout.projectDirectory)
 }
 
-val generatedSourceExcludes = arrayOf("**/build/**", "**/generated/**")
+val generatedSourceExcludes = arrayOf("build/**", "**/build/**", "generated/**", "**/generated/**")
+
+tasks.withType<KtfmtCheckTask>().configureEach { exclude(*generatedSourceExcludes) }
+
+tasks.withType<KtfmtFormatTask>().configureEach { exclude(*generatedSourceExcludes) }
 
 subprojects {
     // Specimens use Jewel components only. compose.desktop.currentOs still drags in Compose
@@ -70,6 +74,20 @@ subprojects {
         }
     }
 
+    pluginManager.withPlugin("org.jetbrains.compose") {
+        extensions.configure<org.jetbrains.compose.ComposeExtension> {
+            extensions.configure<org.jetbrains.compose.desktop.DesktopExtension> {
+                application {
+                    val javaToolchains = project.extensions.getByType<JavaToolchainService>()
+                    val launcher = javaToolchains.launcherFor {
+                        languageVersion.set(JavaLanguageVersion.of(25))
+                    }
+                    javaHome = launcher.get().metadata.installationPath.asFile.absolutePath
+                }
+            }
+        }
+    }
+
     afterEvaluate {
         tasks.findByName("check")?.let { check ->
             tasks.findByName("ktfmtCheck")?.let { check.dependsOn(it) }
@@ -79,6 +97,12 @@ subprojects {
 }
 
 tasks.check { dependsOn(subprojects.map { it.tasks.named("check") }) }
+
+tasks.register("run") {
+    group = "compose desktop"
+    description = "Runs the Bioparco showcase application."
+    dependsOn(":showcase:run")
+}
 
 tasks.register("recordSpecimens") {
     group = "verification"

@@ -22,6 +22,10 @@ object RecordingPaths {
     const val THINKING_BLOOM = "thinking-bloom.mp4"
     const val SQUEEZE_PROGRESS = "squeeze-progress.mp4"
     const val ANATOMY = "anatomy.mp4"
+    const val EMAIL_INVITE = "email-invite.mp4"
+    const val ROUTINE_TIMELINE = "routine-timeline.mp4"
+    const val LAYOUT_MORPH = "layout-morph.mp4"
+    const val CURRENCY_SWARM = "currency-swarm.mp4"
     const val STAMP_BOOK = "stamp-book.mp4"
     const val MIN_USABLE_BYTES = 1_000L
 
