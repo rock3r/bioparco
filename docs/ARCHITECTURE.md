@@ -22,6 +22,8 @@ showcase  -->  grabby-stepper
           \->  thinking-bloom
           \->  squeeze-progress
           \->  anatomy
+          \->  email-invite
+          \->  routine-timeline
           \->  layout-morph
 
 recordings --> grabby-stepper
@@ -42,6 +44,8 @@ recordings --> grabby-stepper
            \->  thinking-bloom
            \->  squeeze-progress
            \->  anatomy
+           \->  email-invite
+           \->  routine-timeline
            \->  layout-morph
            \->  Spectre (Maven Central)
 
@@ -69,7 +73,9 @@ every specimen, showcase, recordings --> tracing --> androidx.tracing (Perfetto)
 | `:thinking-bloom` | Specimen 16. Library + standalone `run`. |
 | `:squeeze-progress` | Specimen 17. Library + standalone `run`. |
 | `:anatomy` | Specimen 18. The Anatomy kit, its figures, and `capture` for PNG review. |
-| `:layout-morph` | Specimen 19. Library + standalone `run`. |
+| `:email-invite` | Specimen 19. Library + standalone `run`. |
+| `:routine-timeline` | Specimen 20. Library + standalone `run`. |
+| `:layout-morph` | Specimen 21. Library + standalone `run`. |
 | `:recordings` | Spectre-driven recording tests. Not part of `check`. |
 | `:tracing` | House module: Perfetto trace sections for any specimen, off unless asked for. See [TRACING.md](TRACING.md). |
 

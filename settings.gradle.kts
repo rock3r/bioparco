@@ -63,6 +63,10 @@ include(":squeeze-progress")
 
 include(":anatomy")
 
+include(":email-invite")
+
+include(":routine-timeline")
+
 include(":layout-morph")
 
 include(":tracing")
