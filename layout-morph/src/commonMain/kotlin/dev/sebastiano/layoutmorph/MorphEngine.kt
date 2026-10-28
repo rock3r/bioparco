@@ -33,6 +33,11 @@ class MorphEngine(
     private val offset = FloatArray(count * CHANNELS)
     private val velocity = FloatArray(count * CHANNELS)
     private val laps = IntArray(count)
+
+    /** Each card's place in the draw order when the switch under way began, and in its view. */
+    private val fromRank = FloatArray(count)
+    private val toRank = FloatArray(count)
+    private var switchStarted = Long.MIN_VALUE
     private var last = Long.MIN_VALUE
 
     private val lift = FloatArray(count)
@@ -69,7 +74,17 @@ class MorphEngine(
 
     fun pose(index: Int): CardPose = poses[index]
 
-    /** Heads for [next]. Cards set off left to right, a beat apart, starting at [nanos]. */
+    /** The cards in the order they draw, as of the last [step]: each over the ones before it. */
+    var drawOrder: List<Int> = poses.indices.sortedBy { poses[it].depth }
+        private set
+
+    /**
+     * Heads for [next]. Cards set off left to right, a beat apart, starting at [nanos].
+     *
+     * While they travel, each card's place in the draw order slides from where it was to where
+     * [next] stacks it, all on one clock. Two cards' places then close on each other at a steady
+     * rate, so a pair swaps at most once: overlapping cards never fight over which is on top.
+     */
     fun select(next: Arrangement, nanos: Long) {
         if (next == arrangement) return
         arrangement = next
@@ -77,6 +92,14 @@ class MorphEngine(
         // A drag in the old arrangement ends where it is.
         carousel.release(0f)
         helix.release(0f)
+        drawOrder.forEachIndexed { rank, i -> fromRank[i] = rank.toFloat() }
+        // Where the new view stacks them now: a spinning helix moves on, but its depths take over
+        // only at the end, so the blend aims at one fixed order.
+        val destination = targets(next)
+        destination.indices
+            .sortedBy { destination[it].depth }
+            .forEachIndexed { rank, i -> toRank[i] = rank.toFloat() }
+        switchStarted = nanos
         val order = poses.indices.sortedBy { poses[it].x + poses[it].y * ROW_LEAN }
         order.forEachIndexed { rank, i ->
             pending[i] = if (assigned[i] == next) null else next
@@ -104,13 +127,10 @@ class MorphEngine(
         }
         if (integrate(dt)) moving = true
 
-        poses =
-            List(count) { i ->
-                val base = target(assigned[i])[i]
-                val flying = isFlying(i)
-                compose(i, base, if (flying) FLIGHT_DEPTH else 0f)
-            }
+        poses = List(count) { i -> compose(i, target(assigned[i])[i]) }
+        if (switchStarted != Long.MIN_VALUE) poses = blendDepths(nanos)
         relap()
+        drawOrder = poses.indices.sortedBy { poses[it].depth }
         // Cards that move by themselves slide under a still pointer. (Not lifted ones: a card
         // lifting out from under the pointer would hand the hover to its neighbour and back.)
         if (arrangement in SLIDING) pointer?.let { (px, py) -> hovered = hitTest(poses, px, py) }
@@ -173,6 +193,22 @@ class MorphEngine(
                 assigned[it] == Arrangement.Helix || pending[it] == Arrangement.Helix
             }
 
+    /**
+     * Mid-switch, each card draws at a blend of its rank when the switch began and its rank in the
+     * new view, moving from one to the other over [SWITCH_NANOS]. After that, the view's own depths
+     * take over, in the order the blend has arrived at.
+     */
+    private fun blendDepths(nanos: Long): List<CardPose> {
+        val t = ((nanos - switchStarted).toFloat() / SWITCH_NANOS).coerceIn(0f, 1f)
+        if (t >= 1f) {
+            switchStarted = Long.MIN_VALUE
+            return poses
+        }
+        return poses.mapIndexed { i, pose ->
+            pose.copy(depth = fromRank[i] + (toRank[i] - fromRank[i]) * t)
+        }
+    }
+
     /** Card [i] sets off for [next], where it lands on [to]. */
     private fun switch(i: Int, next: Arrangement, to: CardPose) {
         retarget(i, poses[i], to)
@@ -195,7 +231,7 @@ class MorphEngine(
         offset[o + CAPTION] = from.caption - to.caption
     }
 
-    private fun compose(i: Int, base: CardPose, depthBoost: Float): CardPose {
+    private fun compose(i: Int, base: CardPose): CardPose {
         val o = i * CHANNELS
         return CardPose(
             x = base.x + offset[o + X],
@@ -208,13 +244,8 @@ class MorphEngine(
             alpha = (base.alpha + offset[o + ALPHA]).coerceIn(0f, 1f),
             row = (base.row + offset[o + ROW]).coerceIn(0f, 1f),
             caption = (base.caption + offset[o + CAPTION]).coerceIn(0f, 1f),
-            depth = base.depth + depthBoost,
+            depth = base.depth,
         )
-    }
-
-    private fun isFlying(i: Int): Boolean {
-        val o = i * CHANNELS
-        return abs(offset[o + X]) + abs(offset[o + Y]) > FLYING_DISTANCE
     }
 
     /**
@@ -323,9 +354,8 @@ class MorphEngine(
 
         const val DEGREES_PER_DP = 0.35f
 
-        /** Flying cards draw over settled ones. */
-        const val FLIGHT_DEPTH = 100f
-        const val FLYING_DISTANCE = 1f
+        /** How long a switch takes to carry the draw order over to the new view. */
+        const val SWITCH_NANOS = 900_000_000L
 
         const val POSITION_REST = 0.02f
         const val UNIT_REST = 0.0005f

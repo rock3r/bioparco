@@ -51,7 +51,13 @@ Switching view turns where a card is now into a fresh offset from its new target
   frame. Once the offset has died away, the card is on the moving target, not chasing it.
 - **Cards set off one after another,** 16 ms apart, in reading order of where they are now: left
   to right, a row counting for a third. A flight settles in about half a second, with a whisper of
-  overshoot. Flying cards draw over settled ones.
+  overshoot.
+- **No two cards fight over which is on top.** While they travel, each card's place in the draw
+  order slides from where it was to where the new view stacks it, all on one clock. Two cards'
+  places close on each other at a steady rate, so an overlapping pair swaps at most once.
+  (The first version lifted flying cards over settled ones. As they landed one by one, out of
+  the fan's order, overlapping cards swapped back and forth: 1,271 times over the 30 possible
+  switches. `MorphEngineTest` now checks for none.)
 
 The tile and row faces cross-fade over the middle of a morph only, between 30% and 70% of the way.
 

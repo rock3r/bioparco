@@ -164,7 +164,7 @@ private fun CardField(motion: MorphMotion, modifier: Modifier = Modifier) {
                             }
                         }
                     }
-                    for (i in poses.indices.sortedBy { poses[it].depth }) {
+                    for (i in motion.engine.drawOrder) {
                         val pose = poses[i]
                         val layer = layers[i]
                         layer.translationX = pose.x.dp.toPx() - layer.size.width / 2f

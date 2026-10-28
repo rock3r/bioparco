@@ -44,7 +44,12 @@ class MorphEngineTest {
         engine.step(FRAME * 2)
         // Card 0 sits leftmost in the grid's top row and leaves first; card 7 sits rightmost.
         assertTrue(engine.pose(0) != grid[0], "the first card has set off")
-        assertEquals(grid[7], engine.pose(7), "the last card in the row is still waiting")
+        // Its depth is its place in the draw order, which the switch carries over from the start.
+        assertEquals(
+            grid[7],
+            engine.pose(7).copy(depth = 0f),
+            "the last card in the row is still waiting",
+        )
         val end = run(engine, FRAME * 2, 3.0)
         assertFalse(engine.step(end + FRAME), "everything settles within three seconds")
         val list = Arrangements.list(count, field)
@@ -115,6 +120,69 @@ class MorphEngineTest {
             }
         }
         assertTrue(faintest > 0.95f, "a card in front faded to $faintest")
+    }
+
+    @Test
+    fun `overlapping cards never swap back and forth in flight`() {
+        val fights = mutableListOf<String>()
+        for (from in Arrangement.entries) for (to in Arrangement.entries) {
+            if (from == to) continue
+            val engine = engine(from)
+            val time = run(engine, 0L, 1.0)
+            engine.select(to, time)
+            val watcher = SwapWatcher(engine.drawOrder, engine.poses)
+            run(engine, time, 3.0) { watcher.observe(engine.drawOrder, engine.poses) }
+            fights += watcher.swapsBack.map { (a, b) -> "$from to $to: $a and $b" }
+        }
+        assertTrue(fights.isEmpty(), "${fights.size} swaps back in sight, e.g. ${fights.take(6)}")
+    }
+
+    /**
+     * Watches overlapping pairs of cards swap places in the draw order. A pair that swaps a second
+     * time while overlapping puts the first card back on top: z-fighting.
+     */
+    private inner class SwapWatcher(
+        private var order: List<Int>,
+        private var poses: List<CardPose>,
+    ) {
+        private val swapped = HashSet<Pair<Int, Int>>()
+        val swapsBack = mutableListOf<Pair<Int, Int>>()
+
+        fun observe(nextOrder: List<Int>, nextPoses: List<CardPose>) {
+            val before = ranks(order)
+            val now = ranks(nextOrder)
+            for (a in 0 until count) for (b in a + 1 until count) {
+                val swappedNow = (before[a] > before[b]) != (now[a] > now[b])
+                if (swappedNow && inSight(a, b, nextPoses) && !swapped.add(a to b))
+                    swapsBack += a to b
+            }
+            order = nextOrder
+            poses = nextPoses
+        }
+
+        private fun inSight(a: Int, b: Int, next: List<CardPose>) =
+            overlap(poses[a], poses[b]) && overlap(next[a], next[b])
+
+        private fun ranks(order: List<Int>) =
+            IntArray(count).also { r -> order.forEachIndexed { k, i -> r[i] = k } }
+    }
+
+    /** Whether two cards' footprints overlap, shrunk a little so touching edges don't count. */
+    private fun overlap(a: CardPose, b: CardPose): Boolean {
+        if (a.alpha < 0.05f || b.alpha < 0.05f) return false
+        val (ax, ay) = reach(a)
+        val (bx, by) = reach(b)
+        return abs(a.x - b.x) < (ax + bx) * 0.9f && abs(a.y - b.y) < (ay + by) * 0.9f
+    }
+
+    /** Half the width and height of a card's axis-aligned footprint. */
+    private fun reach(p: CardPose): Pair<Float, Float> {
+        val r = p.rotation.toRadians()
+        val w = p.width * p.scale * abs(kotlin.math.cos(p.turn.toRadians())) / 2
+        val h = p.height * p.scale / 2
+        val c = abs(kotlin.math.cos(r))
+        val s = abs(kotlin.math.sin(r))
+        return (w * c + h * s) to (w * s + h * c)
     }
 
     /** Showing at all, and over the field. The helix wraps cards round at its faded-out ends. */
