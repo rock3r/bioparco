@@ -162,9 +162,9 @@ private fun BookLayers(
     val name = StampBookPalette.inks[motion.swatch].name
     Box(modifier) {
         Box(
-            Modifier.offset(origin.x + Book.BackShift.x, origin.y + Book.BackShift.y)
-                .size(Book.Folder)
-                .drawBehind { Tracing.section("back board") { drawBoard(art, motion) } }
+            Modifier.offset(origin.x, origin.y).size(Book.Board).drawBehind {
+                Tracing.section("back board") { drawBoard(art, motion) }
+            }
         )
         Box(
             Modifier.stampPlacement(Book.StampAClosed)
@@ -252,7 +252,7 @@ private fun Swatches(motion: StampBookMotion, modifier: Modifier = Modifier) {
     val step = Book.SwatchSize + Book.SwatchGap
     val width = step * inks.size - Book.SwatchGap
     // Centred under the book's board, as in the video.
-    val centreX = Book.FolderOrigin.x + (Book.Folder.width + Book.BackShift.x) / 2
+    val centreX = Book.FolderOrigin.x + Book.Board.width / 2
     Box(
         modifier
             .offset(centreX - width / 2, Book.SwatchCentreY - Book.SwatchSize / 2)

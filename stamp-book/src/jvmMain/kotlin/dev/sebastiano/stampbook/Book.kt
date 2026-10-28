@@ -18,8 +18,11 @@ internal object Book {
     val Folder = DpSize(220.dp, 272.dp)
     val Corner = 22.dp
 
-    /** The back board peeks out to the right of and below the cover. */
-    val BackShift = DpOffset(14.dp, 5.dp)
+    /**
+     * The back board shares the cover's spine, top and bottom, and is a little wider, about 6% as
+     * in the video, so it peeks out past the cover's free edge.
+     */
+    val Board = DpSize(Folder.width + 14.dp, Folder.height)
 
     /** The pale "quiet" stamp: it slides half out and stays on the back board. */
     val StampA = DpSize(150.dp, 232.dp)
@@ -53,8 +56,8 @@ internal object Book {
             Area(
                 left = FolderOrigin.x.toPx(),
                 top = FolderOrigin.y.toPx(),
-                right = (FolderOrigin.x + Folder.width + BackShift.x).toPx(),
-                bottom = (FolderOrigin.y + Folder.height + BackShift.y).toPx(),
+                right = (FolderOrigin.x + Board.width).toPx(),
+                bottom = (FolderOrigin.y + Board.height).toPx(),
             )
         }
 

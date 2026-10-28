@@ -143,7 +143,7 @@ private fun tucked(size: DpSize, degrees: Float, scale: Float, draw: DrawScope.(
 
 /**
  * The whole book's shadow, cast a little below it, on a canvas [BOOK_SHADOW_PAD] bigger all round
- * than the board plus the cover that sits [Book.BackShift] to its left.
+ * than the board.
  */
 private fun bookShadow(scale: Float): ImageBitmap {
     val canvas = boardCanvas()
@@ -152,7 +152,7 @@ private fun bookShadow(scale: Float): ImageBitmap {
             drawRoundRect(
                 Color.Black,
                 topLeft = Offset(BOOK_SHADOW_PAD.value, BOOK_SHADOW_PAD.value + SHADOW_DROP.value),
-                size = Size(Book.Folder.width.value, Book.Folder.height.value),
+                size = Size(Book.Board.width.value, Book.Board.height.value),
                 cornerRadius = CornerRadius(Book.Corner.value),
             )
         }
@@ -169,8 +169,8 @@ private fun board(ink: FolderInk, shadow: ImageBitmap, scale: Float): Placed {
                 dstSize = IntSize(canvas.width.value.toInt(), canvas.height.value.toInt()),
                 alpha = BOOK_SHADOW_ALPHA,
             )
-            translate(Book.BackShift.x.value + BOOK_SHADOW_PAD.value, BOOK_SHADOW_PAD.value) {
-                val size = Size(Book.Folder.width.value, Book.Folder.height.value)
+            translate(BOOK_SHADOW_PAD.value, BOOK_SHADOW_PAD.value) {
+                val size = Size(Book.Board.width.value, Book.Board.height.value)
                 val corner = CornerRadius(Book.Corner.value)
                 drawRoundRect(ink.back, size = size, cornerRadius = corner)
                 drawRoundRect(
@@ -184,14 +184,14 @@ private fun board(ink: FolderInk, shadow: ImageBitmap, scale: Float): Placed {
                 )
             }
         }
-    return Placed(image, DpOffset(-Book.BackShift.x - BOOK_SHADOW_PAD, -BOOK_SHADOW_PAD))
+    return Placed(image, DpOffset(-BOOK_SHADOW_PAD, -BOOK_SHADOW_PAD))
 }
 
-/** Room for the board, the cover to its left, and the shadow all round. */
+/** Room for the board and its shadow all round. */
 private fun boardCanvas(): DpSize =
     DpSize(
-        Book.Folder.width + Book.BackShift.x + BOOK_SHADOW_PAD * 2,
-        Book.Folder.height + SHADOW_DROP + BOOK_SHADOW_PAD * 2,
+        Book.Board.width + BOOK_SHADOW_PAD * 2,
+        Book.Board.height + SHADOW_DROP + BOOK_SHADOW_PAD * 2,
     )
 
 private fun stampShadow(scale: Float): Placed {

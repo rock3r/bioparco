@@ -34,8 +34,9 @@ Spectre captures this recording. Regenerate it with `./gradlew :recordings:recor
 
 The cover hinges on its left edge and turns in 3D (`graphicsLayer` `rotationY`), its free edge
 swinging towards the viewer as a real cover opens. The camera sits well back, so the perspective
-stays mild, as in the video: a close camera blows the near edge up. Shut, the cover sits 5° ajar,
-and the back board and the bird stamp's perforations peek out past it. Open, it turns 60°.
+stays mild, as in the video: a close camera blows the near edge up. The back board shares the
+cover's spine, top and bottom, and is a touch wider. Shut, the cover sits 5° ajar, and the board and
+the bird stamp's perforations peek out past its free edge. Open, it turns 60°.
 
 While shut, the cover is frosted: the stamps behind it show through as coloured blurs. That frost
 is a baked image of the two stamps in their tucked-in places, blurred once at startup, with the
@@ -111,15 +112,15 @@ BIOPARCO_TRACE_DIR=/tmp/traces ./gradlew :stamp-book:jvmTest --tests '*FrameBudg
 python3 tracing/tools/trace-summary.py /tmp/traces/stamp-book-benchmark
 ```
 
-Measured on a 4-core cloud VM:
+Measured on a 4-core cloud VM, two runs:
 
 | Scenario | Median | p95 | Worst |
 |---|---|---|---|
-| Shut | 2.54 ms | 3.54 ms | 3.57 ms |
-| Opening | 3.86 ms | 5.23 ms | 5.80 ms |
-| Open | 4.15 ms | 4.72 ms | 4.75 ms |
-| Closing | 2.80 ms | 5.70 ms | 5.86 ms |
-| Recolouring | 2.51 ms | 4.09 ms | 4.09 ms |
+| Shut | 2.51–3.36 ms | 3.04–3.68 ms | 3.69 ms |
+| Opening | 4.02–4.29 ms | 4.72–5.18 ms | 5.60 ms |
+| Open | 3.07–3.65 ms | 4.23–4.45 ms | 4.54 ms |
+| Closing | 3.52–3.64 ms | 4.24–5.87 ms | 6.01 ms |
+| Recolouring | 3.40–3.45 ms | 5.15–5.42 ms | 5.42 ms |
 
 The worst whole software frame uses about a third of a 60 Hz frame (16.7 ms). Before the bake, the
 book cost about 10 ms a frame at rest. The benchmark closes each frame's image as soon as it has it:
@@ -127,29 +128,35 @@ left to the garbage collector, the 2 MB snapshots made timings swing by several 
 
 ### Frame pacing in a window
 
-The specimen ran in a real window under Xvfb with tracing on, seven times on `SOFTWARE_FAST` and
-twice on `SOFTWARE_COMPAT`. [xdotool](https://github.com/jordansissel/xdotool) hovered the book
-open, moved over the bird stamp, left it to close and clicked a swatch, six times. The gaps between
-`frame` sections give the pacing. The first three seconds after launch (the JIT's time) are left
-out, and so are gaps over 100 ms, when nothing asks for a frame. For comparison,
-[squeeze-progress](../squeeze-progress/) ran on the same VM in the same way.
+The specimen ran in a real window under Xvfb with tracing on, seven times per backend.
+[xdotool](https://github.com/jordansissel/xdotool) hovered the book open, moved over the bird
+stamp, left it to close and clicked a swatch, six times. The gaps between `frame` sections give the
+pacing. The first three seconds after launch (the JIT's time) are left out, and so are gaps over
+100 ms, when nothing asks for a frame. For comparison, [squeeze-progress](../squeeze-progress/)
+ran on the same VM, playing for 18 seconds.
 
-| Skia backend | Intervals in one 60 Hz frame (13–20 ms) | Over 20 ms | Median | p99 |
-|---|---|---|---|---|
-| `SOFTWARE_FAST` | 97.9–99.2% | 4 of about 3,600 | 15.2–15.3 ms | 16.2–17.0 ms |
-| `SOFTWARE_COMPAT` (what CI records with) | 82.3–88.5% | 12–18% | 15.6–15.8 ms | 24.7–26.5 ms |
-| squeeze-progress, `SOFTWARE_COMPAT` | 82.3% | 17% | 15.9 ms | 27.0 ms |
+| | Skia backend | Intervals in one 60 Hz frame (13–20 ms) | Over 20 ms | Median | p99 |
+|---|---|---|---|---|---|
+| Stamp book | `SOFTWARE_FAST` | 96.7–98.6% | 8 of about 3,600 | 15.3–15.4 ms | 16.4–17.4 ms |
+| squeeze-progress | `SOFTWARE_FAST` | 98.7–98.9% | 4 of about 1,900 | 15.3 ms | 16.7 ms |
+| Stamp book | `SOFTWARE_COMPAT` (what CI records with) | 41–64% | 36–59% | 17.7–21.8 ms | 28.3–30.1 ms |
+| squeeze-progress | `SOFTWARE_COMPAT` | 64–73% | 27–36% | 18.0–19.0 ms | 25.4–29.3 ms |
 
-On `SOFTWARE_FAST` it holds 60 Hz. Five of the seven runs had no interval over 20 ms. The other
-two had two each, 24–59 ms, at random moments rather than when the book starts to move. In the one
-of those runs logged with GC, no collection came near them, so they look like the shared VM
-stalling the process. The intervals under 13 ms are frames that came early.
+On `SOFTWARE_FAST` it holds 60 Hz. Each run had at most two intervals over 20 ms, mostly while the
+book was at rest rather than when it starts to move, and squeeze-progress, whose frames cost under a
+millisecond, had as many per run on the same VM. On an earlier VM, a GC log showed no collection
+near such stalls, so they look like the shared VM pausing the process. The intervals under 13 ms are frames that came early.
 
 `SOFTWARE_COMPAT` also copies every frame into the window through Java2D (see
-[docs/TRACING.md](../docs/TRACING.md#things-that-fool-you)), which takes most of a frame by itself.
-There the book paces like squeeze-progress, whose frames cost under a millisecond to draw. With the
-cross-fade the frost used before it was baked in steps, this backend managed only 50–68%. Skia's OpenGL backend could not create a context on Mesa under Xvfb in the test
-container, so it is not measured here. A GPU window does almost none of this work on the CPU.
+[docs/TRACING.md](../docs/TRACING.md#things-that-fool-you)). On this VM that copy alone takes most of
+a frame: squeeze-progress misses a third of its frames there. The book's few milliseconds of
+rasterising on top cost it another 10–20 points. On an earlier, faster VM, an earlier commit whose
+frames cost the same held 82–88% here, level with squeeze-progress's 82%. Before the cover's frost
+was baked in steps, its cross-fade cost 5–7 ms a frame and this backend managed only 50–68% on that
+faster VM. The copy is a cost of Skiko and the JDK, not of the specimen, but it is why the CI
+recording looks less smooth than the app. Skia's OpenGL backend could not create a context on Mesa
+under Xvfb in the test container, so it is not measured here. A GPU window does almost none of this
+work on the CPU.
 
 ## Limits
 
