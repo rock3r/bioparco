@@ -186,12 +186,14 @@ at once, when Escape clears "to".
   the first keystroke drew two of 22–23 ms. The first open composed the rows for the first time
   and focused the text field for the first time, which sets up text input. The first keystroke
   edited the field for the first time and loaded the bold font for the matches. 400 ms after
-  launch the specimen now does each of these once, out of sight. The field takes focus, gets a
-  "t" and loses it again while it is closed and zero wide. The rows for "t" go through the real
-  row changes: they enter, fade in and leave. Closed, the panel is a 4dp bar and every row starts
-  5dp down it, so the panel's clip hides them; 90 frames rendered through the warm-up are
-  identical, pixel for pixel. On the first open, working out the rows now takes 0.3–0.4 ms and
-  its frames 9–13 ms. The first keystroke's frames take 8–14 ms.
+  launch the specimen now does each of these once, out of sight. A hidden text field, with its own
+  text, takes focus and gets a bold "t", so the warm-up never touches the real query: opening the
+  search in the middle of it shows the empty field and the suggestions, as always. The rows for
+  "t" go through the real row changes: they enter, fade in and leave. Closed, the panel is a 4dp
+  bar and every row starts 5dp down it, so the panel's clip hides them; 90 frames rendered through
+  the warm-up are identical, pixel for pixel. On the first open, working out the rows now takes
+  0.3–0.4 ms and its frames 8–16 ms under `SOFTWARE_FAST`. The first keystroke's frames take
+  6–15 ms.
 
 ## Limits
 

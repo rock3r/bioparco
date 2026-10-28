@@ -8,20 +8,27 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
@@ -31,9 +38,11 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.sebastiano.bioparco.tracing.Tracing
 import kotlinx.coroutines.delay
+import org.jetbrains.jewel.foundation.theme.JewelTheme
 
 /**
  * The page with the search widget near its top. [query] is the field's text; tests pass their own
@@ -59,23 +68,28 @@ internal fun ExpandingSearchStage(
     val shown = if (motion.isOpen) entries else emptyList()
     LaunchedEffect(shown) { motion.showRows(shown, selectable = results.size) }
     LaunchedEffect(motion) { motion.followHighlight() }
+    // Warm-up, once the window is up so its frames are real frames. Each step took a long frame
+    // the first time it happened for real: a text field's first focus (it sets up text input), its
+    // first edit, the first row changes, and the first rows with a match in bold (the bold font
+    // loads). The text field steps run on a hidden field with its own text, so the warm-up never
+    // touches the real query, whatever the user does meanwhile.
+    var warmingField by remember { mutableStateOf(false) }
+    val warmField = remember { FocusRequester() }
+    val warmQuery = rememberTextFieldState()
     LaunchedEffect(motion) {
-        // Once the window is up, so the warm-up frames are real frames. Closed, the field is zero
-        // wide and the panel's clip hides every row, so none of this shows. Each step took a long
-        // frame the first time it happened for real: the field's first focus (it sets up text
-        // input), its first edit, the first row changes, and the first rows with a match in bold
-        // (the bold font loads).
         delay(WARM_UP_DELAY_MS)
-        val untouched = query.text.isEmpty() && !motion.isOpen
-        if (untouched) {
-            field.requestFocus()
-            query.edit { append(WARM_UP_QUERY) }
-        }
-        motion.warmUp(searchComponents(WARM_UP_QUERY))
-        if (untouched) {
-            if (query.text.toString() == WARM_UP_QUERY) query.clearText()
+        warmingField = true
+        withFrameNanos {}
+        if (!motion.isOpen) {
+            warmField.requestFocus()
+            warmQuery.edit { append(WARM_UP_QUERY) }
+            withFrameNanos {}
+            withFrameNanos {}
             if (!motion.isOpen) stageFocus.requestFocus()
         }
+        warmingField = false
+        // Closed, the panel's clip hides every row, so the row changes do not show.
+        motion.warmUp(searchComponents(WARM_UP_QUERY))
     }
     LaunchedEffect(motion.isOpen) {
         if (motion.isOpen) field.requestFocus() else stageFocus.requestFocus()
@@ -156,9 +170,21 @@ internal fun ExpandingSearchStage(
                 },
             )
             ClearButton(motion, geometry, clears = text.isNotEmpty(), onClick = ::dismiss)
+            if (warmingField) WarmUpField(warmQuery, Modifier.focusRequester(warmField))
             if (!motion.isOpen) OpenButton(motion, geometry)
         }
     }
+}
+
+/** A text field nobody sees, there only for the warm-up to focus and edit once. */
+@Composable
+private fun WarmUpField(state: TextFieldState, modifier: Modifier = Modifier) {
+    BasicTextField(
+        state = state,
+        modifier = modifier.requiredSize(1.dp).graphicsLayer { alpha = 0f },
+        textStyle = JewelTheme.defaultTextStyle.copy(fontWeight = FontWeight.SemiBold),
+        lineLimits = TextFieldLineLimits.SingleLine,
+    )
 }
 
 /** Arrow keys move the highlight, Enter picks it, Escape clears or closes like the cross. */

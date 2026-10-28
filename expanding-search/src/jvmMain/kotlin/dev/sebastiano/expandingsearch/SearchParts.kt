@@ -83,6 +83,9 @@ internal fun SearchField(
                     }
                 }
                 .graphicsLayer { alpha = textAlpha(motion.expansion.value) }
+                // Closed, the field is zero wide and transparent but would still take focus from
+                // Tab, and typing would then edit a query nobody can see.
+                .focusProperties { canFocus = motion.isOpen }
                 .testTag(ExpandingSearchTags.FIELD),
         textStyle = style.copy(color = ExpandingSearchPalette.ink),
         cursorBrush = SolidColor(ExpandingSearchPalette.caret),
