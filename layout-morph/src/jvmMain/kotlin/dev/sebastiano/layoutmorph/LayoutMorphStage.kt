@@ -206,9 +206,8 @@ private suspend fun PointerInputScope.trackPointer(motion: MorphMotion) {
                 }
                 PointerEventType.Move -> {
                     val start = down
-                    if (start == null) {
-                        motion.pointerAt(at.x / density, at.y / density)
-                    } else {
+                    motion.pointerAt(at.x / density, at.y / density)
+                    if (start != null) {
                         tracker.addPosition(change.uptimeMillis, at)
                         if (!dragging && motion.canDrag() && abs(at.x - start.x) > slop) {
                             dragging = true

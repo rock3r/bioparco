@@ -42,6 +42,8 @@ class MorphEngine(
     var hovered: Int? = null
         private set
 
+    private var pointer: Pair<Float, Float>? = null
+
     private val carousel = CarouselDrive(count, initialFocus)
     private val helix = HelixDrive()
 
@@ -109,6 +111,9 @@ class MorphEngine(
                 compose(i, base, if (flying) FLIGHT_DEPTH else 0f)
             }
         relap()
+        // Cards that move by themselves slide under a still pointer. (Not lifted ones: a card
+        // lifting out from under the pointer would hand the hover to its neighbour and back.)
+        if (arrangement in SLIDING) pointer?.let { (px, py) -> hovered = hitTest(poses, px, py) }
         return moving
     }
 
@@ -117,9 +122,13 @@ class MorphEngine(
         last = Long.MIN_VALUE
     }
 
-    /** Points the pointer at card [index], or at none. */
-    fun hover(index: Int?) {
-        hovered = index
+    /**
+     * The pointer is at ([x], [y]) dp, or has left the field. The card under it is hovered, and
+     * stays so as the carousel and helix move their cards under a still pointer.
+     */
+    fun point(x: Float?, y: Float?) {
+        pointer = if (x == null || y == null) null else x to y
+        hovered = pointer?.let { (px, py) -> hitTest(poses, px, py) }
     }
 
     /** A drag by [dx] dp: slides the carousel or turns the helix. */
@@ -323,6 +332,8 @@ class MorphEngine(
         const val VELOCITY_REST = 10f
         const val MAX_SUBSTEP = 1f / 240f
         const val MAX_DT = 0.05f
+
+        val SLIDING = setOf(Arrangement.Carousel, Arrangement.Helix)
 
         val LIFTING =
             setOf(Arrangement.Grid, Arrangement.Masonry, Arrangement.List, Arrangement.Stack)

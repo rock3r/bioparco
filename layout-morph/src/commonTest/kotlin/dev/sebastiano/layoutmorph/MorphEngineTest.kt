@@ -175,15 +175,43 @@ class MorphEngineTest {
     @Test
     fun `hovering lifts one card, and the hover clears`() {
         val engine = engine(Arrangement.Stack)
-        val rest = engine.pose(5)
-        engine.hover(5)
-        assertEquals(5, engine.hovered)
+        // The fan's last card lies on top of the others, so its centre is all its own.
+        val top = count - 1
+        val rest = engine.pose(top)
+        engine.point(rest.x, rest.y)
+        assertEquals(top, engine.hovered)
         val time = run(engine, 0L, 1.0)
-        assertTrue(engine.pose(5).y < rest.y - 10f)
-        engine.hover(null)
+        assertTrue(engine.pose(top).y < rest.y - 10f)
+        engine.point(null, null)
         assertNull(engine.hovered)
         run(engine, time, 1.0)
-        assertClose(rest, engine.pose(5))
+        assertClose(rest, engine.pose(top))
+    }
+
+    @Test
+    fun `under a still pointer, the hovered card follows the carousel`() {
+        val engine = engine(Arrangement.Carousel)
+        val centre = engine.pose(0)
+        engine.point(centre.x, centre.y)
+        assertEquals(0, engine.hovered)
+        engine.stepFocus(2)
+        run(engine, 0L, 2.0)
+        assertEquals(2, engine.hovered, "the card now under the pointer")
+        engine.point(null, null)
+        assertNull(engine.hovered)
+    }
+
+    @Test
+    fun `under a still pointer, the hovered card follows the turning helix`() {
+        val engine = engine(Arrangement.Helix)
+        val front = engine.pose(count / 2)
+        engine.point(front.x, front.y)
+        assertEquals(count / 2, engine.hovered)
+        engine.drag(400f)
+        engine.release(0f)
+        engine.step(FRAME)
+        assertEquals(hitTest(engine.poses, front.x, front.y), engine.hovered)
+        assertTrue(engine.hovered != count / 2, "the front card has turned away")
     }
 
     private fun assertClose(expected: CardPose, actual: CardPose) {

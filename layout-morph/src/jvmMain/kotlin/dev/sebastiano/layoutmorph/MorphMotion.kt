@@ -76,11 +76,9 @@ internal class MorphMotion(val pieces: List<Piece>) {
 
     /** The pointer is at ([x], [y]) dp in the field, or has left it. */
     fun pointerAt(x: Float?, y: Float?) {
-        val index = if (x == null || y == null) null else hitTest(engine.poses, x, y)
-        if (index != engine.hovered) {
-            engine.hover(index)
-            poke()
-        }
+        val before = engine.hovered
+        engine.point(x, y)
+        if (engine.hovered != before) poke()
     }
 
     /** A click at ([x], [y]) dp: opens the card in the carousel, or centres it there. */
