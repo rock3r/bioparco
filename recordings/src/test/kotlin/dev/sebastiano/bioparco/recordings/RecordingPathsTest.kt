@@ -21,75 +21,30 @@ class RecordingPathsTest {
     fun honorsExplicitDirectory() {
         val dir = RecordingPaths.directory("/tmp/bioparco-recordings")
         assertEquals(Path.of("/tmp/bioparco-recordings"), dir)
-        assertEquals(
-            dir.resolve("chat-bubble-transition.mp4"),
-            RecordingPaths.file(RecordingPaths.CHAT_BUBBLE, dir),
-        )
-        assertEquals(
-            dir.resolve("processing-field.mp4"),
-            RecordingPaths.file(RecordingPaths.PROCESSING_FIELD, dir),
-        )
-        assertEquals(
-            dir.resolve("thinking-orbs.mp4"),
-            RecordingPaths.file(RecordingPaths.THINKING_ORBS, dir),
-        )
-        assertEquals(
-            dir.resolve("dot-matrix-recorder.mp4"),
-            RecordingPaths.file(RecordingPaths.DOT_MATRIX_RECORDER, dir),
-        )
-        assertEquals(
-            dir.resolve("border-beam.mp4"),
-            RecordingPaths.file(RecordingPaths.BORDER_BEAM, dir),
-        )
-        assertEquals(
-            dir.resolve("achievement-badge.mp4"),
-            RecordingPaths.file(RecordingPaths.ACHIEVEMENT_BADGE, dir),
-        )
-        assertEquals(
-            dir.resolve("component-anatomy.mp4"),
-            RecordingPaths.file(RecordingPaths.COMPONENT_ANATOMY, dir),
-        )
-        assertEquals(
-            dir.resolve("scroll-effects.mp4"),
-            RecordingPaths.file(RecordingPaths.SCROLL_EFFECTS, dir),
-        )
-        assertEquals(
-            dir.resolve("peel-sticker.mp4"),
-            RecordingPaths.file(RecordingPaths.PEEL_STICKER, dir),
-        )
-        assertEquals(
-            dir.resolve("honeycomb.mp4"),
-            RecordingPaths.file(RecordingPaths.HONEYCOMB, dir),
-        )
-        assertEquals(
-            dir.resolve("hairline.mp4"),
-            RecordingPaths.file(RecordingPaths.HAIRLINE, dir),
-        )
-        assertEquals(
-            dir.resolve("departure-board.mp4"),
-            RecordingPaths.file(RecordingPaths.DEPARTURE_BOARD, dir),
-        )
-        assertEquals(
-            dir.resolve("holo-card.mp4"),
-            RecordingPaths.file(RecordingPaths.HOLO_CARD, dir),
-        )
-        assertEquals(
-            dir.resolve("wheel-picker.mp4"),
-            RecordingPaths.file(RecordingPaths.WHEEL_PICKER, dir),
-        )
-        assertEquals(
-            dir.resolve("thinking-bloom.mp4"),
-            RecordingPaths.file(RecordingPaths.THINKING_BLOOM, dir),
-        )
-        assertEquals(
-            dir.resolve("squeeze-progress.mp4"),
-            RecordingPaths.file(RecordingPaths.SQUEEZE_PROGRESS, dir),
-        )
-        assertEquals(dir.resolve("anatomy.mp4"), RecordingPaths.file(RecordingPaths.ANATOMY, dir))
-        assertEquals(
-            dir.resolve("expanding-search.mp4"),
-            RecordingPaths.file(RecordingPaths.EXPANDING_SEARCH, dir),
-        )
+        val names =
+            listOf(
+                "chat-bubble-transition.mp4" to RecordingPaths.CHAT_BUBBLE,
+                "processing-field.mp4" to RecordingPaths.PROCESSING_FIELD,
+                "thinking-orbs.mp4" to RecordingPaths.THINKING_ORBS,
+                "dot-matrix-recorder.mp4" to RecordingPaths.DOT_MATRIX_RECORDER,
+                "border-beam.mp4" to RecordingPaths.BORDER_BEAM,
+                "achievement-badge.mp4" to RecordingPaths.ACHIEVEMENT_BADGE,
+                "component-anatomy.mp4" to RecordingPaths.COMPONENT_ANATOMY,
+                "scroll-effects.mp4" to RecordingPaths.SCROLL_EFFECTS,
+                "peel-sticker.mp4" to RecordingPaths.PEEL_STICKER,
+                "honeycomb.mp4" to RecordingPaths.HONEYCOMB,
+                "hairline.mp4" to RecordingPaths.HAIRLINE,
+                "departure-board.mp4" to RecordingPaths.DEPARTURE_BOARD,
+                "holo-card.mp4" to RecordingPaths.HOLO_CARD,
+                "wheel-picker.mp4" to RecordingPaths.WHEEL_PICKER,
+                "thinking-bloom.mp4" to RecordingPaths.THINKING_BLOOM,
+                "squeeze-progress.mp4" to RecordingPaths.SQUEEZE_PROGRESS,
+                "anatomy.mp4" to RecordingPaths.ANATOMY,
+                "email-invite.mp4" to RecordingPaths.EMAIL_INVITE,
+                "routine-timeline.mp4" to RecordingPaths.ROUTINE_TIMELINE,
+                "expanding-search.mp4" to RecordingPaths.EXPANDING_SEARCH,
+            )
+        for ((file, name) in names) assertEquals(dir.resolve(file), RecordingPaths.file(name, dir))
     }
 
     @Test
@@ -115,6 +70,8 @@ class RecordingPathsTest {
                 "thinking-bloom.mp4",
                 "squeeze-progress.mp4",
                 "anatomy.mp4",
+                "email-invite.mp4",
+                "routine-timeline.mp4",
                 "expanding-search.mp4",
             ),
             RecordingPaths.expectedNames(settings),
@@ -204,6 +161,8 @@ class RecordingPathsTest {
                 "thinking-bloom.mp4",
                 "squeeze-progress.mp4",
                 "anatomy.mp4",
+                "email-invite.mp4",
+                "routine-timeline.mp4",
                 "expanding-search.mp4",
             ),
             RecordingPaths.missingOutputs(dir),
@@ -226,6 +185,8 @@ class RecordingPathsTest {
         Files.write(dir.resolve("thinking-bloom.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("squeeze-progress.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("anatomy.mp4"), ByteArray(2_000))
+        Files.write(dir.resolve("email-invite.mp4"), ByteArray(2_000))
+        Files.write(dir.resolve("routine-timeline.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("expanding-search.mp4"), ByteArray(2_000))
         assertEquals(emptyList<String>(), RecordingPaths.missingOutputs(dir))
     }

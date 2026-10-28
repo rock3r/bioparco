@@ -26,6 +26,7 @@ import dev.sebastiano.borderbeam.App as BorderBeamApp
 import dev.sebastiano.componentanatomy.App as ComponentAnatomyApp
 import dev.sebastiano.departureboard.App as DepartureBoardApp
 import dev.sebastiano.dotmatrixrecorder.App as DotMatrixRecorderApp
+import dev.sebastiano.emailinvite.App as EmailInviteApp
 import dev.sebastiano.expandingsearch.App as ExpandingSearchApp
 import dev.sebastiano.grabbystepper.App
 import dev.sebastiano.hairline.App as HairlineApp
@@ -33,6 +34,7 @@ import dev.sebastiano.holocard.App as HoloCardApp
 import dev.sebastiano.honeycomb.App as HoneycombApp
 import dev.sebastiano.peelsticker.App as PeelStickerApp
 import dev.sebastiano.processingfield.App as ProcessingFieldApp
+import dev.sebastiano.routinetimeline.App as RoutineTimelineApp
 import dev.sebastiano.scrolleffects.App as ScrollEffectsApp
 import dev.sebastiano.squeezeprogress.App as SqueezeProgressApp
 import dev.sebastiano.thinkingbloom.App as ThinkingBloomApp
@@ -64,6 +66,8 @@ private enum class SpecimenRoute {
     ThinkingBloom,
     SqueezeProgress,
     Anatomy,
+    EmailInvite,
+    RoutineTimeline,
     ExpandingSearch,
 }
 
@@ -94,6 +98,8 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenThinkingBloom = { route = SpecimenRoute.ThinkingBloom },
                     onOpenSqueezeProgress = { route = SpecimenRoute.SqueezeProgress },
                     onOpenAnatomy = { route = SpecimenRoute.Anatomy },
+                    onOpenEmailInvite = { route = SpecimenRoute.EmailInvite },
+                    onOpenRoutineTimeline = { route = SpecimenRoute.RoutineTimeline },
                     onOpenExpandingSearch = { route = SpecimenRoute.ExpandingSearch },
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -241,6 +247,22 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     AnatomyApp()
                 }
+            SpecimenRoute.EmailInvite ->
+                SpecimenHost(
+                    title = "Email invite",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    EmailInviteApp()
+                }
+            SpecimenRoute.RoutineTimeline ->
+                SpecimenHost(
+                    title = "Routine timeline",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    RoutineTimelineApp()
+                }
             SpecimenRoute.ExpandingSearch ->
                 SpecimenHost(
                     title = "Expanding search",
@@ -273,6 +295,8 @@ private fun Catalog(
     onOpenThinkingBloom: () -> Unit,
     onOpenSqueezeProgress: () -> Unit,
     onOpenAnatomy: () -> Unit,
+    onOpenEmailInvite: () -> Unit,
+    onOpenRoutineTimeline: () -> Unit,
     onOpenExpandingSearch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -423,6 +447,23 @@ private fun Catalog(
                     "of Ryan's Anatomy (MIT).",
             testTag = "open-anatomy",
             onOpen = onOpenAnatomy,
+        )
+        SpecimenCard(
+            name = "Email invite",
+            summary =
+                "An Invite pill that opens into an email field, arms Send once the address is " +
+                    "whole, and closes as the new guest hops into the avatar stack. After sucodee " +
+                    "(@sucodeee).",
+            testTag = "open-email-invite",
+            onOpen = onOpenEmailInvite,
+        )
+        SpecimenCard(
+            name = "Routine timeline",
+            summary =
+                "A day's routine on a half dial that turns under a fixed now marker as you drag " +
+                    "it, with the windows listed beside it. After Ravi Sawlani (@gravity_vi).",
+            testTag = "open-routine-timeline",
+            onOpen = onOpenRoutineTimeline,
         )
         SpecimenCard(
             name = "Expanding search",
