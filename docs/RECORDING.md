@@ -96,6 +96,7 @@ The task discovers specimen modules from Gradle includes and writes one MP4 per 
 - `recordings/build/recordings/stamp-book.mp4`
 - `recordings/build/recordings/expanding-search.mp4`
 - `recordings/build/recordings/particle-ring.mp4`
+- `recordings/build/recordings/knockout-badge.mp4`
 
 ### Linux / Xvfb
 
@@ -159,6 +160,7 @@ Stable download URLs:
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/stamp-book.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/expanding-search.mp4
 - https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/particle-ring.mp4
+- https://raw.githubusercontent.com/rock3r/bioparco/recordings-assets/media/knockout-badge.mp4
 
 ## Traces
 
@@ -184,9 +186,9 @@ a push to `main`) runs them under `xvfb-run` on Ubuntu and uploads every MP4 to 
 floating release. A skipped or empty recording fails the job instead of publishing a
 partial set.
 
-### Prove all twenty-five MP4s
+### Prove all twenty-six MP4s
 
-In the `recordings` CI job, the "Record specimens" step must report `PASSED` for all twenty-five tests:
+In the `recordings` CI job, the "Record specimens" step must report `PASSED` for all twenty-six tests:
 
 - `AchievementBadgeRecordingTest`
 - `AnatomyRecordingTest`
@@ -202,6 +204,7 @@ In the `recordings` CI job, the "Record specimens" step must report `PASSED` for
 - `HairlineRecordingTest`
 - `HoloCardRecordingTest`
 - `HoneycombRecordingTest`
+- `KnockoutBadgeRecordingTest`
 - `LayoutMorphRecordingTest`
 - `ParticleRingRecordingTest`
 - `PeelStickerRecordingTest`
@@ -214,7 +217,7 @@ In the `recordings` CI job, the "Record specimens" step must report `PASSED` for
 - `ThinkingOrbsRecordingTest`
 - `WheelPickerRecordingTest`
 
-`recordings/build/recordings/` must contain twenty-five files, each larger than 1 KB.
+`recordings/build/recordings/` must contain twenty-six files, each larger than 1 KB.
 The task fails if any expected file is missing.
 A run filtered with `--tests` records only matching specimens and skips this completeness check.
 
