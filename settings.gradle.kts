@@ -77,6 +77,8 @@ include(":expanding-search")
 
 include(":particle-ring")
 
+include(":knockout-badge")
+
 include(":tab-switch")
 
 include(":tracing")

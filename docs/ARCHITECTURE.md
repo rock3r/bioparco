@@ -29,6 +29,7 @@ showcase  -->  grabby-stepper
           \->  stamp-book
           \->  expanding-search
           \->  particle-ring
+          \->  knockout-badge
           \->  tab-switch
 
 recordings --> grabby-stepper
@@ -56,6 +57,7 @@ recordings --> grabby-stepper
            \->  stamp-book
            \->  expanding-search
            \->  particle-ring
+           \->  knockout-badge
            \->  tab-switch
            \->  Spectre (Maven Central)
 
@@ -90,7 +92,8 @@ every specimen, showcase, recordings --> tracing --> androidx.tracing (Perfetto)
 | `:stamp-book` | Specimen 23. Library + standalone `run`. |
 | `:expanding-search` | Specimen 24. Library + standalone `run`. |
 | `:particle-ring` | Specimen 25. Library + standalone `run`. |
-| `:tab-switch` | Specimen 26. Library + standalone `run`. |
+| `:knockout-badge` | Specimen 26. Library + standalone `run`. |
+| `:tab-switch` | Specimen 27. Library + standalone `run`. |
 | `:recordings` | Spectre-driven recording tests. Not part of `check`. |
 | `:tracing` | House module: Perfetto trace sections for any specimen, off unless asked for. See [TRACING.md](TRACING.md). |
 

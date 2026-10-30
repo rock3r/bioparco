@@ -29,6 +29,7 @@ object RecordingPaths {
     const val STAMP_BOOK = "stamp-book.mp4"
     const val EXPANDING_SEARCH = "expanding-search.mp4"
     const val PARTICLE_RING = "particle-ring.mp4"
+    const val KNOCKOUT_BADGE = "knockout-badge.mp4"
     const val TAB_SWITCH = "tab-switch.mp4"
     const val MIN_USABLE_BYTES = 1_000L
 

@@ -37,6 +37,7 @@ dependencies {
     implementation(project(":stamp-book"))
     implementation(project(":expanding-search"))
     implementation(project(":particle-ring"))
+    implementation(project(":knockout-badge"))
     implementation(project(":tab-switch"))
     implementation(project(":tracing"))
 

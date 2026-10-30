@@ -209,6 +209,14 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/particle-ring.mp4)
 
+### [Knockout badge](knockout-badge/)
+
+**Seb** · jhey ([@jh3yy](https://x.com/jh3yy))’s [knockout text with `mix-blend-mode`](https://x.com/jh3yy/status/2108593170569175495)
+
+![Knockout badge](https://static.sebastiano.dev/stable/bioparco/knockout-badge.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/knockout-badge.mp4)
+
 ### [Tab switch](tab-switch/)
 
 **Seb** · Elia ([@eliakuratli](https://x.com/eliakuratli))’s [clean tab switching](https://x.com/eliakuratli/status/2108248320699498919)
@@ -258,6 +266,7 @@ Run a specimen directly with its module task:
 ./gradlew :stamp-book:run
 ./gradlew :expanding-search:run
 ./gradlew :particle-ring:run
+./gradlew :knockout-badge:run
 ./gradlew :tab-switch:run
 ...
 ```

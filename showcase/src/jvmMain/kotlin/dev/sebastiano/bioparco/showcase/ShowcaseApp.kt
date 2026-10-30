@@ -33,6 +33,7 @@ import dev.sebastiano.grabbystepper.App
 import dev.sebastiano.hairline.App as HairlineApp
 import dev.sebastiano.holocard.App as HoloCardApp
 import dev.sebastiano.honeycomb.App as HoneycombApp
+import dev.sebastiano.knockoutbadge.App as KnockoutBadgeApp
 import dev.sebastiano.layoutmorph.App as LayoutMorphApp
 import dev.sebastiano.particlering.App as ParticleRingApp
 import dev.sebastiano.peelsticker.App as PeelStickerApp
@@ -78,6 +79,7 @@ private enum class SpecimenRoute {
     StampBook,
     ExpandingSearch,
     ParticleRing,
+    KnockoutBadge,
     TabSwitch,
 }
 
@@ -115,6 +117,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenStampBook = { route = SpecimenRoute.StampBook },
                     onOpenExpandingSearch = { route = SpecimenRoute.ExpandingSearch },
                     onOpenParticleRing = { route = SpecimenRoute.ParticleRing },
+                    onOpenKnockoutBadge = { route = SpecimenRoute.KnockoutBadge },
                     onOpenTabSwitch = { route = SpecimenRoute.TabSwitch },
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -318,6 +321,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     ParticleRingApp()
                 }
+            SpecimenRoute.KnockoutBadge ->
+                SpecimenHost(
+                    title = "Knockout badge",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    KnockoutBadgeApp()
+                }
             SpecimenRoute.TabSwitch ->
                 SpecimenHost(
                     title = "Tab switch",
@@ -357,6 +368,7 @@ private fun Catalog(
     onOpenStampBook: () -> Unit,
     onOpenExpandingSearch: () -> Unit,
     onOpenParticleRing: () -> Unit,
+    onOpenKnockoutBadge: () -> Unit,
     onOpenTabSwitch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -567,6 +579,15 @@ private fun Catalog(
                     "(@itsonly_anoop).",
             testTag = "open-particle-ring",
             onOpen = onOpenParticleRing,
+        )
+        SpecimenCard(
+            name = "Knockout badge",
+            summary =
+                "A conference badge that is a black sticker with white ink, multiplied over a " +
+                    "video, so the word is a window onto the footage. Peel its corner, take it " +
+                    "apart into its layers, or type a new word. After jhey (@jh3yy).",
+            testTag = "open-knockout-badge",
+            onOpen = onOpenKnockoutBadge,
         )
         SpecimenCard(
             name = "Tab switch",

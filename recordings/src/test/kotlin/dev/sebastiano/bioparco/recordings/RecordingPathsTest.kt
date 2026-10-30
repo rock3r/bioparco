@@ -48,6 +48,7 @@ class RecordingPathsTest {
                 RecordingPaths.STAMP_BOOK to "stamp-book.mp4",
                 RecordingPaths.EXPANDING_SEARCH to "expanding-search.mp4",
                 RecordingPaths.PARTICLE_RING to "particle-ring.mp4",
+                RecordingPaths.KNOCKOUT_BADGE to "knockout-badge.mp4",
                 RecordingPaths.TAB_SWITCH to "tab-switch.mp4",
             )
         for ((movie, name) in movies) assertEquals(
@@ -86,6 +87,7 @@ class RecordingPathsTest {
                 "stamp-book.mp4",
                 "expanding-search.mp4",
                 "particle-ring.mp4",
+                "knockout-badge.mp4",
                 "tab-switch.mp4",
             ),
             RecordingPaths.expectedNames(settings),
@@ -182,6 +184,7 @@ class RecordingPathsTest {
                 "stamp-book.mp4",
                 "expanding-search.mp4",
                 "particle-ring.mp4",
+                "knockout-badge.mp4",
                 "tab-switch.mp4",
             ),
             RecordingPaths.missingOutputs(dir),
@@ -211,6 +214,7 @@ class RecordingPathsTest {
         Files.write(dir.resolve("stamp-book.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("expanding-search.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("particle-ring.mp4"), ByteArray(2_000))
+        Files.write(dir.resolve("knockout-badge.mp4"), ByteArray(2_000))
         Files.write(dir.resolve("tab-switch.mp4"), ByteArray(2_000))
         assertEquals(emptyList<String>(), RecordingPaths.missingOutputs(dir))
     }
