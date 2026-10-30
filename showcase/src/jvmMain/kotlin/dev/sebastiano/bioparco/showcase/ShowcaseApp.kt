@@ -42,6 +42,7 @@ import dev.sebastiano.routinetimeline.App as RoutineTimelineApp
 import dev.sebastiano.scrolleffects.App as ScrollEffectsApp
 import dev.sebastiano.squeezeprogress.App as SqueezeProgressApp
 import dev.sebastiano.stampbook.App as StampBookApp
+import dev.sebastiano.tabswitch.App as TabSwitchApp
 import dev.sebastiano.thinkingbloom.App as ThinkingBloomApp
 import dev.sebastiano.thinkingorbs.App as ThinkingOrbsApp
 import dev.sebastiano.wheelpicker.App as WheelPickerApp
@@ -79,6 +80,7 @@ private enum class SpecimenRoute {
     ExpandingSearch,
     ParticleRing,
     KnockoutBadge,
+    TabSwitch,
 }
 
 @Composable
@@ -116,6 +118,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenExpandingSearch = { route = SpecimenRoute.ExpandingSearch },
                     onOpenParticleRing = { route = SpecimenRoute.ParticleRing },
                     onOpenKnockoutBadge = { route = SpecimenRoute.KnockoutBadge },
+                    onOpenTabSwitch = { route = SpecimenRoute.TabSwitch },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -326,6 +329,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     KnockoutBadgeApp()
                 }
+            SpecimenRoute.TabSwitch ->
+                SpecimenHost(
+                    title = "Tab switch",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    TabSwitchApp()
+                }
         }
     }
 }
@@ -358,6 +369,7 @@ private fun Catalog(
     onOpenExpandingSearch: () -> Unit,
     onOpenParticleRing: () -> Unit,
     onOpenKnockoutBadge: () -> Unit,
+    onOpenTabSwitch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -576,6 +588,15 @@ private fun Catalog(
                     "apart into its layers, or type a new word. After jhey (@jh3yy).",
             testTag = "open-knockout-badge",
             onOpen = onOpenKnockoutBadge,
+        )
+        SpecimenCard(
+            name = "Tab switch",
+            summary =
+                "A tab bar whose light pill inches from tab to tab: its back end leaves first and " +
+                    "its front end follows, turning the icons it covers solid. After Elia " +
+                    "(@eliakuratli).",
+            testTag = "open-tab-switch",
+            onOpen = onOpenTabSwitch,
         )
     }
 }

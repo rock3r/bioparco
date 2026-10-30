@@ -79,6 +79,8 @@ include(":particle-ring")
 
 include(":knockout-badge")
 
+include(":tab-switch")
+
 include(":tracing")
 
 include(":showcase")

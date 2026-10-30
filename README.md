@@ -217,6 +217,14 @@ reproduce visual effects from iOS and the web. Contributors review and adjust th
 
 [mp4](https://static.sebastiano.dev/stable/bioparco/knockout-badge.mp4)
 
+### [Tab switch](tab-switch/)
+
+**Seb** · Elia ([@eliakuratli](https://x.com/eliakuratli))’s [clean tab switching](https://x.com/eliakuratli/status/2108248320699498919)
+
+![Tab switch](https://static.sebastiano.dev/stable/bioparco/tab-switch.webp)
+
+[mp4](https://static.sebastiano.dev/stable/bioparco/tab-switch.mp4)
+
 The recording job uses [Spectre](https://spectre.sebastiano.dev) to generate the clips.
 The animated WebP previews use lower quality settings. The MP4 links contain the full recordings.
 
@@ -259,6 +267,7 @@ Run a specimen directly with its module task:
 ./gradlew :expanding-search:run
 ./gradlew :particle-ring:run
 ./gradlew :knockout-badge:run
+./gradlew :tab-switch:run
 ...
 ```
 

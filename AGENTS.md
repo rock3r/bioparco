@@ -135,6 +135,7 @@ Working on `main` is allowed only when the owner has said so for that task.
 ./gradlew :expanding-search:run
 ./gradlew :particle-ring:run
 ./gradlew :knockout-badge:run
+./gradlew :tab-switch:run
 ./gradlew :recordings:recordSpecimens
 ```
 

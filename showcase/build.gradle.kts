@@ -42,6 +42,7 @@ kotlin {
             implementation(project(":expanding-search"))
             implementation(project(":particle-ring"))
             implementation(project(":knockout-badge"))
+            implementation(project(":tab-switch"))
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)

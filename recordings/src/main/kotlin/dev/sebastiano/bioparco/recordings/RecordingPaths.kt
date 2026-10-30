@@ -30,6 +30,7 @@ object RecordingPaths {
     const val EXPANDING_SEARCH = "expanding-search.mp4"
     const val PARTICLE_RING = "particle-ring.mp4"
     const val KNOCKOUT_BADGE = "knockout-badge.mp4"
+    const val TAB_SWITCH = "tab-switch.mp4"
     const val MIN_USABLE_BYTES = 1_000L
 
     private val houseModules = setOf("showcase", "recordings", "tracing")
