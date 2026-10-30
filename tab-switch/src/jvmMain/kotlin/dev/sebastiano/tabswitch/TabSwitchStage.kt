@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -165,7 +166,8 @@ private fun TabBar(state: TabSwitchState, painter: TabBarPainter, modifier: Modi
 
 /**
  * Invisible nodes for Spectre and screen readers: one per tab, where it rests with the current
- * selection, and one whose text is the selected label. They move once per switch, not per frame.
+ * selection, which a screen reader can activate to pick it, and one whose text is the selected
+ * label. They move once per switch, not per frame.
  */
 @Composable
 private fun TabNodes(state: TabSwitchState, painter: TabBarPainter, modifier: Modifier = Modifier) {
@@ -191,6 +193,10 @@ private fun TabNodes(state: TabSwitchState, painter: TabBarPainter, modifier: Mo
                         contentDescription = tab.label
                         role = Role.Tab
                         this.selected = index == selected
+                        onClick(label = tab.label) {
+                            state.select(index)
+                            true
+                        }
                     }
             )
         }
