@@ -77,6 +77,8 @@ include(":expanding-search")
 
 include(":particle-ring")
 
+include(":tab-switch")
+
 include(":tracing")
 
 include(":showcase")

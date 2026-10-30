@@ -41,6 +41,7 @@ import dev.sebastiano.routinetimeline.App as RoutineTimelineApp
 import dev.sebastiano.scrolleffects.App as ScrollEffectsApp
 import dev.sebastiano.squeezeprogress.App as SqueezeProgressApp
 import dev.sebastiano.stampbook.App as StampBookApp
+import dev.sebastiano.tabswitch.App as TabSwitchApp
 import dev.sebastiano.thinkingbloom.App as ThinkingBloomApp
 import dev.sebastiano.thinkingorbs.App as ThinkingOrbsApp
 import dev.sebastiano.wheelpicker.App as WheelPickerApp
@@ -77,6 +78,7 @@ private enum class SpecimenRoute {
     StampBook,
     ExpandingSearch,
     ParticleRing,
+    TabSwitch,
 }
 
 @Composable
@@ -113,6 +115,7 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                     onOpenStampBook = { route = SpecimenRoute.StampBook },
                     onOpenExpandingSearch = { route = SpecimenRoute.ExpandingSearch },
                     onOpenParticleRing = { route = SpecimenRoute.ParticleRing },
+                    onOpenTabSwitch = { route = SpecimenRoute.TabSwitch },
                     modifier = Modifier.fillMaxSize(),
                 )
             SpecimenRoute.Grabby ->
@@ -315,6 +318,14 @@ fun ShowcaseApp(modifier: Modifier = Modifier) {
                 ) {
                     ParticleRingApp()
                 }
+            SpecimenRoute.TabSwitch ->
+                SpecimenHost(
+                    title = "Tab switch",
+                    onBack = { route = SpecimenRoute.Catalog },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    TabSwitchApp()
+                }
         }
     }
 }
@@ -346,6 +357,7 @@ private fun Catalog(
     onOpenStampBook: () -> Unit,
     onOpenExpandingSearch: () -> Unit,
     onOpenParticleRing: () -> Unit,
+    onOpenTabSwitch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -555,6 +567,15 @@ private fun Catalog(
                     "(@itsonly_anoop).",
             testTag = "open-particle-ring",
             onOpen = onOpenParticleRing,
+        )
+        SpecimenCard(
+            name = "Tab switch",
+            summary =
+                "A tab bar whose light pill inches from tab to tab: its back end leaves first and " +
+                    "its front end follows, turning the icons it covers solid. After Elia " +
+                    "(@eliakuratli).",
+            testTag = "open-tab-switch",
+            onOpen = onOpenTabSwitch,
         )
     }
 }

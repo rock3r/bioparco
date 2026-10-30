@@ -37,6 +37,7 @@ dependencies {
     implementation(project(":stamp-book"))
     implementation(project(":expanding-search"))
     implementation(project(":particle-ring"))
+    implementation(project(":tab-switch"))
     implementation(project(":tracing"))
 
     testImplementation(libs.junit.jupiter)
