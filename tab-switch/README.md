@@ -57,6 +57,11 @@ its tab, which for a neighbour is 0.27 s after the click, as in the original, th
 
 **The pointer.** A hovered tab's icon brightens, and the pill leans 8 dp towards it.
 
+**The badge.** While the tabs settle, the closed ones drift by fractions of a pixel. Skia placed
+the badge's count on whole pixels, so it hopped a pixel against its circle as Inbox came to rest.
+The count's style turns on sub-pixel glyph positioning, and the count is not rounded: it now stays
+within a quarter of a pixel of its circle's centre, the finest step Skia positions glyphs at.
+
 **The frame.** The motion is plain Kotlin, stepped on the frame clock while anything moves, then
 asleep until the next input. Each spring integrates in sub-steps of 1 ms, in doubles: near rest,
 a sub-step moves a pill end less than a float can resolve. A step is capped at 1/30 s, so a
@@ -86,9 +91,10 @@ These changes got it there:
   0.5 s after each switch. The tabs' openings still settle to 0.0001, since they have to snap
   together to keep filling the bar.
 - Cold, the first switch drew a 16 ms frame in software: the other labels' glyphs, the solid icons
-  and the dark badge were drawn for the first time. The first two frames now draw them at 1/255
-  alpha, which leaves the pixels as they were, and a throwaway bar switches through every tab off
-  the main thread at launch, so the springs are compiled. The first switch now costs 10 ms cold.
+  and the dark badge were drawn for the first time. The first two frames now draw them inside the
+  resting pill, just before the pill is painted over them, which leaves every pixel as it was, and
+  a throwaway bar switches through every tab off the main thread at launch, so the springs are
+  compiled. The first switch now costs 10 to 11 ms cold.
 
 Each run still has one long gap, of 60 to 75 ms, at the first click, and most have one of 50 to
 100 ms at the first press of a digit key. Neither is the specimen's: the frames on either side

@@ -98,11 +98,6 @@ internal class TabBarPainter(
                 }
             }
 
-            if (primeFrames > 0) {
-                primeFrames--
-                Tracing.section("primer") { prime(motion) }
-            }
-
             val left = inset + motion.pillLeft * density
             val right = inset + motion.pillRight * density
             pill.reset()
@@ -115,6 +110,10 @@ internal class TabBarPainter(
                     CornerRadius((size.height - 2 * inset) / 2f),
                 )
             )
+            if (primeFrames > 0) {
+                primeFrames--
+                Tracing.section("primer") { prime(left) }
+            }
             Tracing.section("pill") {
                 clipPath(pill) {
                     drawRect(
@@ -145,23 +144,24 @@ internal class TabBarPainter(
         }
 
     /**
-     * Draws everything the pill can show, at 1/255 alpha, which leaves the bar's pixels as they
-     * were. Cold, the first switch drew a 16 ms frame in software: it drew the other labels'
-     * glyphs, the solid icons and the dark badge for the first time. Now the first frames do that.
+     * Draws everything the pill can show, inside the pill's area, just before the pill is painted
+     * over it, which leaves every pixel as the pill alone would. Cold, the first switch drew a 16
+     * ms frame in software: it drew the other labels' glyphs, the solid icons and the dark badge
+     * for the first time. Now the first frames do that. Each tab's icon, badge and label fit in the
+     * resting pill, which is as wide as an open tab.
      */
-    private fun DrawScope.prime(motion: TabMotion) {
-        val faint = TabSwitchPalette.ink.copy(alpha = PRIMER_ALPHA)
+    private fun DrawScope.prime(pillLeft: Float) {
+        val x = pillLeft + PAD_START * density + iconPx / 2f
         for (tab in tabs.indices) {
-            val x = iconX(tab, motion)
-            drawIcon(icons[tab].solid, x, faint, solid = true)
+            drawIcon(icons[tab].solid, x, TabSwitchPalette.ink, solid = true)
             drawBadge(
                 tab,
                 x,
-                fill = faint,
-                ink = TabSwitchPalette.pill.copy(alpha = PRIMER_ALPHA),
-                ring = faint,
+                fill = TabSwitchPalette.ink,
+                ink = TabSwitchPalette.pill,
+                ring = TabSwitchPalette.pill,
             )
-            drawLabel(tab, x, PRIMER_ALPHA)
+            drawLabel(tab, x, alpha = 1f)
         }
     }
 
@@ -181,6 +181,9 @@ internal class TabBarPainter(
 
     /**
      * The count at the icon's top right, ringed in whatever is behind it to part it from the icon.
+     * The count sits on its circle to a fraction of a pixel, which its style's sub-pixel glyph
+     * positioning allows. Snapped to whole pixels, it hopped a pixel against the circle as the tab
+     * slid to rest. Only its height is rounded, which never changes.
      */
     private fun DrawScope.drawBadge(tab: Int, x: Float, fill: Color, ink: Color, ring: Color) {
         val text = badges[tab] ?: return
@@ -193,13 +196,17 @@ internal class TabBarPainter(
             color = ink,
             topLeft =
                 Offset(
-                    (centre.x - text.size.width / 2f).roundToInt().toFloat(),
+                    centre.x - text.size.width / 2f,
                     (centre.y - text.size.height / 2f).roundToInt().toFloat(),
                 ),
         )
     }
 
-    private fun DrawScope.drawLabel(tab: Int, x: Float, alpha: Float) {
+    private fun DrawScope.drawLabel(
+        tab: Int,
+        x: Float,
+        alpha: Float,
+    ) {
         if (alpha <= 0f) return
         val text = labels[tab]
         drawText(
@@ -230,7 +237,6 @@ internal class TabBarPainter(
         const val SLOT = 62f
 
         private const val PRIME_FRAMES = 2
-        private const val PRIMER_ALPHA = 1f / 255f
 
         /** The badge, on the icon's 24-unit grid. */
         private const val BADGE_X = 19.6f

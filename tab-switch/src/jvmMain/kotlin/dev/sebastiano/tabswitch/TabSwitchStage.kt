@@ -37,6 +37,10 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.FontRasterizationSettings
+import androidx.compose.ui.text.PlatformParagraphStyle
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
@@ -64,7 +68,12 @@ internal fun TabSwitchStage(modifier: Modifier = Modifier) {
                         fontWeight = FontWeight.Medium,
                         letterSpacing = (-0.2).sp,
                     ),
-                badgeStyle = base.copy(fontSize = 11.sp, fontWeight = FontWeight.SemiBold),
+                badgeStyle =
+                    base.copy(
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        platformStyle = SubpixelGlyphs,
+                    ),
                 density = density,
             )
         }
@@ -189,3 +198,24 @@ private fun TabNodes(state: TabSwitchState, painter: TabBarPainter, modifier: Mo
 }
 
 private val NumberKeys = listOf(Key.One, Key.Two, Key.Three, Key.Four)
+
+/**
+ * The platform's text rendering, but with glyphs placed to a fraction of a pixel, so the badge's
+ * count can glide with its circle instead of snapping to whole pixels.
+ */
+@OptIn(ExperimentalTextApi::class)
+private val SubpixelGlyphs =
+    FontRasterizationSettings.PlatformDefault.let { platform ->
+        PlatformTextStyle(
+            spanStyle = null,
+            paragraphStyle =
+                PlatformParagraphStyle(
+                    FontRasterizationSettings(
+                        smoothing = platform.smoothing,
+                        hinting = platform.hinting,
+                        subpixelPositioning = true,
+                        autoHintingForced = platform.autoHintingForced,
+                    )
+                ),
+        )
+    }
